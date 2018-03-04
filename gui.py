@@ -10,7 +10,8 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication,
                              QMessageBox, QSpinBox, QTableView, QToolBar)
 
 import resources
-from counter import Column, WeekDay, WeekWrapper, weekday_from_date
+from counter import (Column, WeekDay, WeekWrapper,
+                     weekday_from_date, weeks_for_year)
 
 
 class MainWindow(QMainWindow):
@@ -111,31 +112,31 @@ class MainWindow(QMainWindow):
             self.dayActions[day] = action
             self.toolbar_days.addAction(action)
 
-        previousAct = QAction(QIcon(':/previous.png'), 'Previous', self)
-        previousAct.setEnabled(False)
+        previousAct = QAction(QIcon(':/previous.png'), 'Previous Week', self)
         previousAct.triggered.connect(self.__previous_week__)
+        previousAct.setStatusTip('Go to Previous Week')
 
-        nextAct = QAction(QIcon(':/next.png'), 'Next', self)
-        nextAct.setEnabled(False)
+        nextAct = QAction(QIcon(':/next.png'), 'Next Week', self)
         nextAct.triggered.connect(self.__next_week__)
+        nextAct.setStatusTip('Go to Next Week')
 
         exitAct = QAction(QIcon(':/exit.png'), '&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit application')
         exitAct.triggered.connect(self.close)
-
         self.toolbar_other.addAction(exitAct)
-        self.week_edit = QSpinBox()
-        self.week_edit.setPrefix('Week: ')
-        self.week_edit.setMinimum(1)
-        self.week_edit.setMaximum(55)
-        self.week_edit.setValue(datetime.date.today().isocalendar()[1])
 
         self.year_edit = QSpinBox()
         self.year_edit.setPrefix('Year: ')
         self.year_edit.setMinimum(2010)
         self.year_edit.setMaximum(2050)
         self.year_edit.setValue(datetime.datetime.now().year)
+
+        self.week_edit = QSpinBox()
+        self.week_edit.setPrefix('Week: ')
+        self.week_edit.setMinimum(1)
+        self.__update_week_edit__(self.year_edit.value())
+        self.week_edit.setValue(datetime.date.today().isocalendar()[1])
 
         self.week_edit.valueChanged.connect(self.__week_changed__)
         self.year_edit.valueChanged.connect(self.__year_changed__)
@@ -148,12 +149,6 @@ class MainWindow(QMainWindow):
 
     def __validate_week_and_year__(self):
         """Validates the week and the year and updates a WeekWrapper."""
-        print('validate week and year')
-        # TODO: check values
-        print(self.year_edit.value())
-        print(self.week_edit.value())
-
-        print('>>> create week wrapper')
         self.week_wrapper = WeekWrapper(
             self.year_edit.value(), self.week_edit.value())
 
@@ -167,32 +162,48 @@ class MainWindow(QMainWindow):
 
     def __previous_week__(self):
         """The previous week button was clicked."""
-        print('previous week')
+        current_week = int(self.week_edit.value())
+        if current_week - 1 == 0:
+            current_year = int(self.year_edit.value())
+            weeks_of_previous_year = weeks_for_year(current_year - 1)
+            self.week_edit.setValue(weeks_of_previous_year)
+            self.year_edit.setValue(current_year - 1)
+        else:
+            self.week_edit.setValue(current_week - 1)
 
     def __next_week__(self):
         """The next week button was clicked."""
-        print('next week')
+        current_week = int(self.week_edit.value())
+        current_year = int(self.year_edit.value())
+        weeks_of_current_year = weeks_for_year(current_year)
+        if current_week + 1 > weeks_of_current_year:
+            self.week_edit.setValue(1)
+            self.year_edit.setValue(current_year + 1)
+        else:
+            self.week_edit.setValue(current_week + 1)
 
     def __change_current_day__(self):
         """Changes the current day for edition."""
         sender = self.sender()
-        print(sender.text() + ' clicked')
         if self.week_wrapper:
-            print(WeekDay[sender.text()])
             self.model = self.week_wrapper[WeekDay[sender.text()]]
-            print(self.model)
             self.table.setModel(self.model)
 
             self.__resize_headers__()
 
     def __year_changed__(self, year):
         """The current year has changed."""
-        print('Year: ' + str(year))
-        # TODO: update week number max value for this year
+        self.__update_week_edit__(year)
+        self.__validate_week_and_year__()
 
     def __week_changed__(self, week):
         """The current week has changed."""
-        print('Week: ' + str(week))
+        self.__validate_week_and_year__()
+
+    def __update_week_edit__(self, year):
+        """Updates the week edit max value for a given year."""
+        weeks = weeks_for_year(int(year))
+        self.week_edit.setMaximum(weeks)
 
 
 if __name__ == '__main__':

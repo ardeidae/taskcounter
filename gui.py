@@ -3,15 +3,16 @@
 import datetime
 import sys
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QItemSelectionModel
 from PyQt5.QtGui import QBrush, QColor, QFont, QIcon, QPalette
 from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication,
                              QDesktopWidget, QHeaderView, QMainWindow,
-                             QMessageBox, QSpinBox, QTableView, QToolBar)
+                             QMessageBox, QSpinBox, QTableView, QToolBar,
+                             QWidget)
 
 import resources
-from counter import (Column, WeekDay, WeekWrapper,
-                     weekday_from_date, weeks_for_year)
+from counter import (Column, WeekDay, WeekWrapper, weekday_from_date,
+                     weeks_for_year)
 
 
 class MainWindow(QMainWindow):
@@ -190,6 +191,14 @@ class MainWindow(QMainWindow):
             self.table.setModel(self.model)
 
             self.__resize_headers__()
+
+            # the table takes the focus
+            self.table.setFocus(Qt.OtherFocusReason)
+
+            # the last task cell is selected
+            flags = QItemSelectionModel.ClearAndSelect
+            index = self.model.last_task_cell_index
+            self.table.selectionModel().setCurrentIndex(index, flags)
 
     def __year_changed__(self, year):
         """The current year has changed."""

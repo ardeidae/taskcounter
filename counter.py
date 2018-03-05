@@ -1,6 +1,6 @@
 """Tasks counter model."""
 
-from datetime import date, timedelta
+from datetime import date, timedelta, time
 from enum import Enum, unique
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QTime, QVariant
@@ -318,3 +318,9 @@ class DayWrapper(QAbstractTableModel):
                 return True
         except IntegrityError:
             return False
+
+    @property
+    def last_task_cell_index(self):
+        """Gets the QModelIndex of the last task cell."""
+
+        return self.index(self.rowCount() - 1, Column.Task.value)

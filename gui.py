@@ -3,16 +3,134 @@
 import datetime
 import sys
 
-from PyQt5.QtCore import Qt, QItemSelectionModel
-from PyQt5.QtGui import QBrush, QColor, QFont, QIcon, QPalette
-from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication,
-                             QDesktopWidget, QHeaderView, QMainWindow,
-                             QMessageBox, QSpinBox, QTableView, QToolBar,
-                             QWidget)
+from PyQt5.QtCore import QItemSelectionModel, QStringListModel, Qt, pyqtSignal
+from PyQt5.QtGui import (QBrush, QColor, QFont, QIcon, QPalette, QTextCursor,
+                         QTextOption)
+from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCompleter,
+                             QDesktopWidget, QHeaderView, QItemDelegate,
+                             QMainWindow, QMessageBox, QSpinBox,
+                             QTableView, QTextEdit,
+                             QToolBar, QWidget)
 
 import resources
-from counter import (Column, WeekDay, WeekWrapper, weekday_from_date,
-                     weeks_for_year)
+from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
+                     weekday_from_date, weeks_for_year)
+
+# TODO: print current dates
+
+class LineEdit(QTextEdit):
+    """Custom LineEdit."""
+
+    returnPressed = pyqtSignal()
+
+    def __init__(self, parent=None):
+        """Constructs a custom line edit."""
+        super().__init__(parent)
+        self.setAcceptRichText(False)
+        self.setWordWrapMode(QTextOption.NoWrap)
+        self.setUndoRedoEnabled(False)
+        self.setTabChangesFocus(True)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.completer = None
+        self.textChanged.connect(self.__text_has_changed__)
+
+    def set_completer(self, completer):
+        """Sets the completer on the editor."""
+        if completer:
+            completer.setWidget(self)
+            completer.setCompletionMode(QCompleter.PopupCompletion)
+            completer.setCaseSensitivity(Qt.CaseInsensitive)
+            completer.setModelSorting(
+                QCompleter.CaseSensitivelySortedModel)
+            completer.setMaxVisibleItems(15)
+            completer.activated.connect(self.__insert_completion__)
+            self.completer = completer
+
+    def __insert_completion__(self, completion):
+        """When the completer is activated, inserts the completion."""
+        if self.completer and self.completer.widget() == self:
+            self.completer.widget().setPlainText(completion)
+            self.completer.widget().moveCursor(QTextCursor.EndOfLine)
+            self.completer.widget().ensureCursorVisible()
+
+    def keyPressEvent(self, event):
+        """When a key is pressed."""
+        if self.completer and self.completer.popup().isVisible():
+
+            if event.key() in (Qt.Key_Return, Qt.Key_Enter,
+                               Qt.Key_Tab, Qt.Key_Backtab, Qt.Key_Escape):
+                event.ignore()
+                return
+        else:
+            if event.key() in(Qt.Key_Return, Qt.Key_Enter):
+                self.returnPressed.emit()
+                return
+
+        super().keyPressEvent(event)
+
+        if not self.toPlainText():
+            self.completer.popup().hide()
+            return
+
+        self.completer.setCompletionPrefix(self.toPlainText())
+        self.completer.popup().setCurrentIndex(
+            self.completer.completionModel().index(0, 0))
+        self.completer.complete()
+
+    def __text_has_changed__(self):
+        """When the text has changed."""
+        # remove new lines and strip left blank characters
+        self.blockSignals(True)
+        cursor = self.textCursor()
+        self.setPlainText(' '.join(self.toPlainText().splitlines()).lstrip())
+        self.setTextCursor(cursor)
+        self.ensureCursorVisible()
+        self.blockSignals(False)
+
+
+class TaskNameDelegate(QItemDelegate):
+    """Delegate with completion for the task name."""
+
+    def __init__(self, parent):
+        """Constructs a task name delegate."""
+        super().__init__(parent)
+
+    def createEditor(self, parent, option, index):
+        """Returns the widget used to edit the item specified by index."""
+        completer = QCompleter(self)
+        string_list_model = QStringListModel(
+            get_last_unique_task_names(), completer)
+        completer.setModel(string_list_model)
+        editor = LineEdit(parent)
+        editor.set_completer(completer)
+        editor.returnPressed.connect(self.__commit_and_close_editor__)
+        return editor
+
+    def __commit_and_close_editor__(self):
+        """Commits changes and closes the editor."""
+        editor = self.sender()
+        self.commitData.emit(editor)
+        self.closeEditor.emit(editor)
+
+    def setEditorData(self, editor, index):
+        """Sets the data to be displayed and edited by the editor from the
+        data model item specified by the model index."""
+        if editor:
+            row = index.row()
+            column = index.column()
+            try:
+                editor.setText(index.model().data[row][Column(column)])
+                editor.selectAll()
+            except KeyError:
+                print('>>> KeyError')
+                pass
+
+    def setModelData(self, editor, model, index):
+        """Gets data from the editor widget and stores it in the specified
+        model at the item index."""
+        if editor:
+            model.setData(index, editor.toPlainText(), Qt.EditRole)
 
 
 class MainWindow(QMainWindow):
@@ -60,6 +178,9 @@ class MainWindow(QMainWindow):
         palette.setBrush(QPalette.HighlightedText, QBrush(Qt.red))
         self.table.setPalette(palette)
         self.__disable_headers_click__()
+        task_name_delegate = TaskNameDelegate(self.table)
+        self.table.setItemDelegateForColumn(
+            Column.Task.value, task_name_delegate)
 
     def __resize_headers__(self):
         """Resizes headers."""

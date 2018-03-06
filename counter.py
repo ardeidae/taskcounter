@@ -324,3 +324,12 @@ class DayWrapper(QAbstractTableModel):
         """Gets the QModelIndex of the last task cell."""
 
         return self.index(self.rowCount() - 1, Column.Task.value)
+
+def get_last_unique_task_names():
+    """Returns the last unique task names since last three months."""
+    last_3_months = date.today() + timedelta(days=-90)
+    return (tuple(x.name for x in Task.select(Task.name)
+                  .join(Day)
+                  .distinct()
+                  .where(Day.date > last_3_months)
+                  .order_by(Task.name)))

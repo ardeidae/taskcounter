@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCompleter,
 import resources
 from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
                      weekday_from_date, weeks_for_year)
+from database import create_database
 
 # TODO: print current dates
 
@@ -338,6 +339,8 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+
+    create_database()
 
     mw = MainWindow()
     mw.initUI()

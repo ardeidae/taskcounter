@@ -72,5 +72,10 @@ def create_database():
     DB.create_tables([Week, Day, Task], safe=True)
 
 
+def close_database():
+    """Close the database."""
+    DB.close()
+
+
 if __name__ == '__main__':
     create_database()

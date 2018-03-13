@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCompleter,
 import resources
 from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
                      weekday_from_date, weeks_for_year)
-from database import create_database
+from database import close_database, create_database
 
 
 
@@ -148,6 +148,10 @@ class MainWindow(QMainWindow):
         self.week_wrapper = None
         self.year_edit = None
         self.current_day_label = None
+
+    def closeEvent(self, event):
+        """When application is about to close."""
+        close_database()
 
     def __center__(self):
         """Center the window."""

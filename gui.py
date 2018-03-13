@@ -8,16 +8,15 @@ from PyQt5.QtGui import (QBrush, QColor, QFont, QIcon, QPalette, QTextCursor,
                          QTextOption)
 from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCompleter,
                              QDesktopWidget, QHeaderView, QItemDelegate,
-                             QMainWindow, QMessageBox, QSpinBox,
-                             QTableView, QTextEdit,
-                             QToolBar, QWidget)
+                             QLabel, QMainWindow, QSpinBox, QTableView,
+                             QTextEdit, QToolBar, QVBoxLayout, QWidget)
 
 import resources
 from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
                      weekday_from_date, weeks_for_year)
 from database import create_database
 
-# TODO: print current dates
+
 
 class LineEdit(QTextEdit):
     """Custom LineEdit."""
@@ -148,6 +147,7 @@ class MainWindow(QMainWindow):
         self.week_edit = None
         self.week_wrapper = None
         self.year_edit = None
+        self.current_day_label = None
 
     def __center__(self):
         """Center the window."""
@@ -200,6 +200,30 @@ class MainWindow(QMainWindow):
                                   QHeaderView.Fixed)
         self.table.horizontalHeader().resizeSection(Column.End_Time.value, 70)
 
+    def __init_layout__(self):
+        """Initializes the central widget layout."""
+        main_widget = QWidget(self)
+        self.setCentralWidget(main_widget)
+
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+        self.current_day_label = QLabel('', self)
+        self.current_day_label.setAlignment(Qt.AlignCenter)
+        self.current_day_label.setMargin(5)
+        title_font = self.current_day_label.font()
+        title_font.setBold(True)
+        title_font.setPointSize(16)
+        self.current_day_label.setFont(title_font)
+        main_layout.addWidget(self.current_day_label)
+        main_layout.addWidget(self.table)
+
+        main_widget.setLayout(main_layout)
+
+    def __set_day_title__(self, title):
+        """Sets the day title on top of the table view."""
+        self.current_day_label.setText(str(title))
+
     def initUI(self):
         """Initializes the user interface."""
         self.setWindowTitle('Tasks counter')
@@ -210,7 +234,7 @@ class MainWindow(QMainWindow):
         self.__center__()
         self.__create_toolbars__()
         self.__init_table__()
-        self.setCentralWidget(self.table)
+        self.__init_layout__()
 
         self.__validate_week_and_year__()
 
@@ -310,6 +334,9 @@ class MainWindow(QMainWindow):
         sender = self.sender()
         if self.week_wrapper:
             self.model = self.week_wrapper[WeekDay[sender.text()]]
+
+            # set readable date in title
+            self.__set_day_title__(self.model.date.strftime('%A %d %B %Y'))
             self.table.setModel(self.model)
 
             self.__resize_headers__()

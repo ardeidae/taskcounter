@@ -7,9 +7,10 @@ from PyQt5.QtCore import QItemSelectionModel, QStringListModel, Qt, pyqtSignal
 from PyQt5.QtGui import (QBrush, QColor, QFont, QIcon, QPalette, QTextCursor,
                          QTextOption)
 from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCompleter,
-                             QDesktopWidget, QHeaderView, QItemDelegate,
-                             QLabel, QMainWindow, QSpinBox, QTableView,
-                             QTextEdit, QToolBar, QVBoxLayout, QWidget)
+                             QDesktopWidget, QFrame, QHBoxLayout, QHeaderView,
+                             QItemDelegate, QLabel, QLCDNumber, QMainWindow,
+                             QSpinBox, QTableView, QTextEdit, QToolBar,
+                             QVBoxLayout, QWidget)
 
 import resources
 from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
@@ -148,6 +149,7 @@ class MainWindow(QMainWindow):
         self.week_wrapper = None
         self.year_edit = None
         self.current_day_label = None
+        self.day_time_lcdnumber = None
 
     def closeEvent(self, event):
         """When application is about to close."""
@@ -221,6 +223,17 @@ class MainWindow(QMainWindow):
         self.current_day_label.setFont(title_font)
         main_layout.addWidget(self.current_day_label)
         main_layout.addWidget(self.table)
+
+
+        self.day_time_lcdnumber = QLCDNumber(self)
+        self.day_time_lcdnumber.setSegmentStyle(QLCDNumber.Flat)
+        self.day_time_lcdnumber.setFixedHeight(40)
+        self.day_time_lcdnumber.setFrameStyle(QFrame.NoFrame)
+
+        footer_layout = QHBoxLayout()
+        footer_layout.addWidget(self.day_time_lcdnumber)
+
+        main_layout.addLayout(footer_layout)
 
         main_widget.setLayout(main_layout)
 
@@ -337,7 +350,12 @@ class MainWindow(QMainWindow):
         """Changes the current day for edition."""
         sender = self.sender()
         if self.week_wrapper:
+            if self.model:
+                self.model.dataChanged.disconnect()
             self.model = self.week_wrapper[WeekDay[sender.text()]]
+            self.__update_day_time_counter__()
+            self.model.dataChanged.connect(
+                self.__update_day_time_counter__)
 
             # set readable date in title
             self.__set_day_title__(self.model.date.strftime('%A %d %B %Y'))
@@ -366,6 +384,13 @@ class MainWindow(QMainWindow):
         """Updates the week edit max value for a given year."""
         weeks = weeks_for_year(int(year))
         self.week_edit.setMaximum(weeks)
+
+    def __update_day_time_counter__(self):
+        """Updates the day time counter."""
+        total_minutes = self.model.minutes_of_day
+        (hours, minutes) = divmod(total_minutes, 60)
+        self.day_time_lcdnumber.display(
+            '{:02d}:{:02d}'.format(int(hours), int(minutes)))
 
 
 if __name__ == '__main__':

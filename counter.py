@@ -1,11 +1,11 @@
 """Tasks counter model."""
 
-from datetime import date, timedelta, time
+from datetime import date, time, timedelta
 from enum import Enum, unique
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QTime, QVariant
 
-from database import Day, IntegrityError, Task, Week
+from database import Day, IntegrityError, Task, Week, fn
 
 
 @unique
@@ -324,6 +324,20 @@ class DayWrapper(QAbstractTableModel):
         """Gets the QModelIndex of the last task cell."""
 
         return self.index(self.rowCount() - 1, Column.Task.value)
+
+    @property
+    def minutes_of_day(self):
+        """Gets the total time in minutes of today's tasks."""
+        minutes = (Task.select(fn.SUM((fn.strftime('%s', Task.end_time)
+                                       - fn.strftime('%s', Task.start_time))
+                                      .cast('real') / 60).alias('sum')
+                               )
+                   .where((Task.day == self._day)
+                          & Task.start_time.is_null(False)
+                          & Task.end_time.is_null(False)
+                          )
+                   .scalar())
+        return minutes or 0
 
 def get_last_unique_task_names():
     """Returns the last unique task names since last three months."""

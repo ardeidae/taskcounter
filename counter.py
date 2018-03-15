@@ -4,6 +4,7 @@ from datetime import date, time, timedelta
 from enum import Enum, unique
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QTime, QVariant
+from PyQt5.QtGui import QBrush, QColor
 
 from database import Day, IntegrityError, Task, Week, fn
 
@@ -217,7 +218,18 @@ class DayWrapper(QAbstractTableModel):
         elif role == Qt.FontRole:
             pass
         elif role == Qt.BackgroundRole:
-            pass
+            try:
+                start = self.data[row][Column.Start_Time]
+                end = self.data[row][Column.End_Time]
+                red_brush = QBrush(QColor('#FFCDD2'))
+                if not start or not end:
+                    return red_brush
+                if start >= end:
+                    return red_brush
+                return QBrush(QColor('#DAF7A6'))
+            except KeyError:
+                pass
+
         elif role == Qt.TextAlignmentRole:
             if column == Column.Task.value:
                 return Qt.AlignLeft | Qt.AlignVCenter
@@ -248,17 +260,30 @@ class DayWrapper(QAbstractTableModel):
                                               [Qt.DisplayRole])
                         self.layoutChanged.emit()
                         return True
-                elif self.update_task(task_id, field, value):
-                    self.__cache_data__()
+                else:
+                    if not value:
+                        return False
 
-                    self.layoutAboutToBeChanged.emit()
-                    top_left = self.index(0, 0)
-                    bottom_right = self.index(
-                        self.rowCount() + 1, self.columnCount())
-                    self.dataChanged.emit(top_left, bottom_right,
-                                          [Qt.DisplayRole])
-                    self.layoutChanged.emit()
-                    return True
+                    if field == Column.Start_Time:
+                        end = self.data[row][Column.End_Time]
+                        if end and value >= end:
+                            return False
+                    elif field == Column.End_Time:
+                        start = self.data[row][Column.Start_Time]
+                        if start and value <= start:
+                            return False
+
+                    if self.update_task(task_id, field, value):
+                        self.__cache_data__()
+
+                        self.layoutAboutToBeChanged.emit()
+                        top_left = self.index(0, 0)
+                        bottom_right = self.index(
+                            self.rowCount() + 1, self.columnCount())
+                        self.dataChanged.emit(top_left, bottom_right,
+                                              [Qt.DisplayRole])
+                        self.layoutChanged.emit()
+                        return True
             else:
                 if field == Column.Task and value:
                     # insert only when task name is not empty

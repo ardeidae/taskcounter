@@ -225,15 +225,9 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.current_day_label)
         main_layout.addWidget(self.table)
 
-        self.week_time_lcdnumber = QLCDNumber(self)
-        self.week_time_lcdnumber.setSegmentStyle(QLCDNumber.Flat)
-        self.week_time_lcdnumber.setFixedHeight(40)
-        self.week_time_lcdnumber.setFrameStyle(QFrame.NoFrame)
+        self.week_time_lcdnumber = self.__build_lcd_number_widget__()
 
-        self.day_time_lcdnumber = QLCDNumber(self)
-        self.day_time_lcdnumber.setSegmentStyle(QLCDNumber.Flat)
-        self.day_time_lcdnumber.setFixedHeight(40)
-        self.day_time_lcdnumber.setFrameStyle(QFrame.NoFrame)
+        self.day_time_lcdnumber = self.__build_lcd_number_widget__()
 
         footer_layout = QHBoxLayout()
         footer_layout.addWidget(self.day_time_lcdnumber)
@@ -404,11 +398,18 @@ class MainWindow(QMainWindow):
         self.week_time_lcdnumber.display(
             self.minutes_to_time_str(self.week_wrapper.minutes_of_week))
 
-
     @staticmethod
     def minutes_to_time_str(total_minutes):
         (hours, minutes) = divmod(total_minutes, 60)
         return '{:02d}:{:02d}'.format(int(hours), int(minutes))
+
+    def __build_lcd_number_widget__(self):
+        """Builds a LCD Number widget."""
+        lcdnumber = QLCDNumber(self)
+        lcdnumber.setSegmentStyle(QLCDNumber.Flat)
+        lcdnumber.setFixedHeight(40)
+        lcdnumber.setFrameStyle(QFrame.NoFrame)
+        return lcdnumber
 
 
 if __name__ == '__main__':

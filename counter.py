@@ -126,6 +126,20 @@ class WeekWrapper:
                                         self._week.week_number):
             DayWrapper(date_=date_, week=self._week)
 
+    @property
+    def minutes_of_week(self):
+        """Gets the total time in minutes of week's tasks."""
+        minutes = (Task.select(fn.SUM((fn.strftime('%s', Task.end_time)
+                                       - fn.strftime('%s', Task.start_time))
+                                      .cast('real') / 60).alias('sum')
+                               ).join(Day)
+                   .where((Day.week == self._week)
+                          & Task.start_time.is_null(False)
+                          & Task.end_time.is_null(False)
+                          )
+                   .scalar())
+        return minutes or 0
+
 
 class DayWrapper(QAbstractTableModel):
     """Wrapper for the day model."""

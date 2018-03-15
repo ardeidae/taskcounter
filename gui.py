@@ -149,6 +149,7 @@ class MainWindow(QMainWindow):
         self.week_wrapper = None
         self.year_edit = None
         self.current_day_label = None
+        self.week_time_lcdnumber = None
         self.day_time_lcdnumber = None
 
     def closeEvent(self, event):
@@ -224,6 +225,10 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.current_day_label)
         main_layout.addWidget(self.table)
 
+        self.week_time_lcdnumber = QLCDNumber(self)
+        self.week_time_lcdnumber.setSegmentStyle(QLCDNumber.Flat)
+        self.week_time_lcdnumber.setFixedHeight(40)
+        self.week_time_lcdnumber.setFrameStyle(QFrame.NoFrame)
 
         self.day_time_lcdnumber = QLCDNumber(self)
         self.day_time_lcdnumber.setSegmentStyle(QLCDNumber.Flat)
@@ -232,6 +237,7 @@ class MainWindow(QMainWindow):
 
         footer_layout = QHBoxLayout()
         footer_layout.addWidget(self.day_time_lcdnumber)
+        footer_layout.addWidget(self.week_time_lcdnumber)
 
         main_layout.addLayout(footer_layout)
 
@@ -354,8 +360,11 @@ class MainWindow(QMainWindow):
                 self.model.dataChanged.disconnect()
             self.model = self.week_wrapper[WeekDay[sender.text()]]
             self.__update_day_time_counter__()
+            self.__update_week_time_counter__()
             self.model.dataChanged.connect(
                 self.__update_day_time_counter__)
+            self.model.dataChanged.connect(
+                self.__update_week_time_counter__)
 
             # set readable date in title
             self.__set_day_title__(self.model.date.strftime('%A %d %B %Y'))
@@ -390,6 +399,13 @@ class MainWindow(QMainWindow):
         total_minutes = self.model.minutes_of_day
         (hours, minutes) = divmod(total_minutes, 60)
         self.day_time_lcdnumber.display(
+            '{:02d}:{:02d}'.format(int(hours), int(minutes)))
+
+    def __update_week_time_counter__(self):
+        """Updates the week time counter."""
+        total_minutes = self.week_wrapper.minutes_of_week
+        (hours, minutes) = divmod(total_minutes, 60)
+        self.week_time_lcdnumber.display(
             '{:02d}:{:02d}'.format(int(hours), int(minutes)))
 
 

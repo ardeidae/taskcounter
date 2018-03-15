@@ -396,17 +396,19 @@ class MainWindow(QMainWindow):
 
     def __update_day_time_counter__(self):
         """Updates the day time counter."""
-        total_minutes = self.model.minutes_of_day
-        (hours, minutes) = divmod(total_minutes, 60)
         self.day_time_lcdnumber.display(
-            '{:02d}:{:02d}'.format(int(hours), int(minutes)))
+            self.minutes_to_time_str(self.model.minutes_of_day))
 
     def __update_week_time_counter__(self):
         """Updates the week time counter."""
-        total_minutes = self.week_wrapper.minutes_of_week
-        (hours, minutes) = divmod(total_minutes, 60)
         self.week_time_lcdnumber.display(
-            '{:02d}:{:02d}'.format(int(hours), int(minutes)))
+            self.minutes_to_time_str(self.week_wrapper.minutes_of_week))
+
+
+    @staticmethod
+    def minutes_to_time_str(total_minutes):
+        (hours, minutes) = divmod(total_minutes, 60)
+        return '{:02d}:{:02d}'.format(int(hours), int(minutes))
 
 
 if __name__ == '__main__':

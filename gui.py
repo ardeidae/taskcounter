@@ -1,16 +1,15 @@
 """Tasks counter user interface."""
 
 import datetime
-import sys
 
 from PyQt5.QtCore import QItemSelectionModel, QStringListModel, Qt, pyqtSignal
 from PyQt5.QtGui import (QBrush, QColor, QFont, QIcon, QPalette, QTextCursor,
                          QTextOption)
-from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCompleter,
-                             QDesktopWidget, QFrame, QHBoxLayout, QHeaderView,
-                             QItemDelegate, QLabel, QLCDNumber, QMainWindow,
-                             QSpinBox, QTableView, QTextEdit, QToolBar,
-                             QVBoxLayout, QWidget)
+from PyQt5.QtWidgets import (QAction, QActionGroup, QCompleter, QDesktopWidget,
+                             QFrame, QHBoxLayout, QHeaderView, QItemDelegate,
+                             QLabel, QLCDNumber, QMainWindow, QSpinBox,
+                             QTableView, QTextEdit, QToolBar, QVBoxLayout,
+                             QWidget)
 
 import resources
 from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
@@ -410,14 +409,3 @@ class MainWindow(QMainWindow):
         lcdnumber.setFixedHeight(40)
         lcdnumber.setFrameStyle(QFrame.NoFrame)
         return lcdnumber
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-
-    create_database()
-
-    mw = MainWindow()
-    mw.initUI()
-
-    sys.exit(app.exec_())

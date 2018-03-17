@@ -6,7 +6,7 @@ from enum import Enum, unique
 from PyQt5.QtCore import QAbstractTableModel, Qt, QTime, QVariant
 from PyQt5.QtGui import QBrush, QColor
 
-from database import Day, IntegrityError, Task, Week, fn
+from database import SQL, Day, IntegrityError, Task, Week, fn
 
 
 @unique
@@ -174,12 +174,16 @@ class DayWrapper(QAbstractTableModel):
     def __cache_data__(self):
         """Caches data."""
         self.data = {}
+
+        # ensure that null start_time appears in last positions
         for counter, task in enumerate(Task.select(Task.id, Task.name,
                                                    Task.start_time,
                                                    Task.end_time)
                                        .join(Day)
                                        .where(Task.day == self._day)
-                                       .order_by(Task.id)):
+                                       .order_by(SQL(
+                                           "IFNULL(start_time, '24:00')"
+                                       ))):
             row = {}
             row[Column.Id] = task.id
             row[Column.Task] = task.name
@@ -271,6 +275,9 @@ class DayWrapper(QAbstractTableModel):
                     elif field == Column.End_Time:
                         start = self.data[row][Column.Start_Time]
                         if start and value <= start:
+                            return False
+                    if field in (Column.Start_Time, Column.End_Time):
+                        if self.__overlaps_other_range__(task_id, field, value):
                             return False
 
                     if self.update_task(task_id, field, value):
@@ -377,6 +384,45 @@ class DayWrapper(QAbstractTableModel):
                           )
                    .scalar())
         return minutes or 0
+
+    def __overlaps_other_range__(self, task_id, field, value):
+        """Checks range overlaps another range."""
+
+        if not self.data:
+            return False
+
+        # find start and end times of task_id.
+        for r in self.data:
+            if self.data[r][Column.Id] == task_id:
+                if field == Column.Start_Time:
+                    start_time = value
+                    end_time = self.data[r][Column.End_Time]
+                if field == Column.End_Time:
+                    start_time = self.data[r][Column.Start_Time]
+                    end_time = value
+                break
+
+        # check new value is not in another range and current range does not
+        # overlap another start or end time.
+        for r in self.data:
+            if self.data[r][Column.Id] != task_id:
+
+                if (self.data[r][Column.Start_Time]
+                        and self.data[r][Column.End_Time]):
+
+                    if (self.data[r][Column.Start_Time] < value
+                            < self.data[r][Column.End_Time]):
+                        return True
+
+                    if (start_time and end_time
+                        and (start_time < self.data[r][Column.Start_Time]
+                             < end_time
+                             or start_time < self.data[r][Column.End_Time]
+                             < end_time)):
+                        return True
+
+        return False
+
 
 def get_last_unique_task_names():
     """Returns the last unique task names since last three months."""

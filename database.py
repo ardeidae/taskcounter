@@ -1,10 +1,12 @@
 """"Tasks counter database model."""
 
-from peewee import (CharField, Check, DateField, ForeignKeyField, IntegerField,
-                    IntegrityError, Model, SqliteDatabase, TimeField, fn)
+from peewee import (SQL, CharField, Check, DateField, ForeignKeyField,
+                    IntegerField, IntegrityError, Model, SqliteDatabase,
+                    TimeField, fn)
 
 IntegrityError = IntegrityError
 fn = fn
+SQL = SQL
 
 
 DB = SqliteDatabase('database.db')

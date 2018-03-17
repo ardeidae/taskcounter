@@ -16,5 +16,6 @@
         <file alias="friday.png">images/friday.png</file>
         <file alias="saturday.png">images/saturday.png</file>
         <file alias="sunday.png">images/sunday.png</file>
+        <file alias="today.png">images/today.png</file>
     </qresource>
 </RCC>

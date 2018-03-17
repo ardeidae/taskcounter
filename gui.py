@@ -17,7 +17,6 @@ from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
 from database import close_database, create_database
 
 
-
 class LineEdit(QTextEdit):
     """Custom LineEdit."""
 
@@ -283,6 +282,10 @@ class MainWindow(QMainWindow):
         nextAct.triggered.connect(self.__next_week__)
         nextAct.setStatusTip('Go to Next Week')
 
+        todayAct = QAction(QIcon(':/today.png'), 'Today', self)
+        todayAct.triggered.connect(self.__today__)
+        todayAct.setStatusTip('Go to today')
+
         exitAct = QAction(QIcon(':/exit.png'), '&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit application')
@@ -309,6 +312,7 @@ class MainWindow(QMainWindow):
 
         self.toolbar_other.addAction(previousAct)
         self.toolbar_other.addAction(nextAct)
+        self.toolbar_other.addAction(todayAct)
 
     def __validate_week_and_year__(self):
         """Validates the week and the year and updates a WeekWrapper."""
@@ -344,6 +348,13 @@ class MainWindow(QMainWindow):
             self.year_edit.setValue(current_year + 1)
         else:
             self.week_edit.setValue(current_week + 1)
+
+    def __today__(self):
+        """The today button was clicked."""
+        self.year_edit.setValue(datetime.datetime.now().year)
+        self.__update_week_edit__(self.year_edit.value())
+        self.week_edit.setValue(datetime.date.today().isocalendar()[1])
+        self.__validate_week_and_year__()
 
     def __change_current_day__(self):
         """Changes the current day for edition."""

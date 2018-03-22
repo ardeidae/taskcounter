@@ -150,7 +150,18 @@ class TaskNameDelegate(QItemDelegate):
             model.setData(index, editor.toPlainText(), Qt.EditRole)
 
 
-class About(QDialog):
+class CenterMixin:
+    """This mixin allows the centering of window."""
+
+    def center(self):
+        """Centers the window."""
+        geometry = self.frameGeometry()
+        center = QDesktopWidget().availableGeometry().center()
+        geometry.moveCenter(center)
+        self.move(geometry.topLeft())
+
+
+class About(CenterMixin, QDialog):
     """Application about dialog."""
 
     def __init__(self, parent=None):
@@ -161,7 +172,7 @@ class About(QDialog):
         self.setMinimumWidth(600)
         self.setMaximumHeight(600)
         self.setMaximumWidth(600)
-        self.__center__()
+        self.center()
 
         self.license = QTextEdit()
         self.license.setReadOnly(True)
@@ -187,15 +198,8 @@ class About(QDialog):
         else:
             print(stream.errorString())
 
-    def __center__(self):
-        """Center the window."""
-        geometry = self.frameGeometry()
-        center = QDesktopWidget().availableGeometry().center()
-        geometry.moveCenter(center)
-        self.move(geometry.topLeft())
 
-
-class MainWindow(QMainWindow):
+class MainWindow(CenterMixin, QMainWindow):
     """The main window of the application."""
 
     def __init__(self):
@@ -216,13 +220,6 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         """When application is about to close."""
         close_database()
-
-    def __center__(self):
-        """Center the window."""
-        geometry = self.frameGeometry()
-        center = QDesktopWidget().availableGeometry().center()
-        geometry.moveCenter(center)
-        self.move(geometry.topLeft())
 
     def __set_window_size__(self):
         """Sets the window size."""
@@ -309,7 +306,7 @@ class MainWindow(QMainWindow):
         self.statusBar()
 
         self.__set_window_size__()
-        self.__center__()
+        self.center()
         self.__create_toolbars__()
         self.__init_table__()
         self.__init_layout__()

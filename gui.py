@@ -1,15 +1,33 @@
+#     Copyright (C) 2018  Matthieu PETIOT
+#
+#     https://github.com/ardeidae/tasks-counter
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 """Tasks counter user interface."""
 
 import datetime
 
-from PyQt5.QtCore import QItemSelectionModel, QStringListModel, Qt, pyqtSignal
+from PyQt5.QtCore import (QFile, QItemSelectionModel, QStringListModel, Qt,
+                          pyqtSignal)
 from PyQt5.QtGui import (QBrush, QColor, QFont, QIcon, QPalette, QTextCursor,
                          QTextOption)
 from PyQt5.QtWidgets import (QAction, QActionGroup, QCompleter, QDesktopWidget,
-                             QFrame, QHBoxLayout, QHeaderView, QItemDelegate,
-                             QLabel, QLCDNumber, QMainWindow, QSpinBox,
-                             QTableView, QTextEdit, QToolBar, QVBoxLayout,
-                             QWidget)
+                             QDialog, QDialogButtonBox, QFrame, QHBoxLayout,
+                             QHeaderView, QItemDelegate, QLabel, QLCDNumber,
+                             QMainWindow, QSpinBox, QTableView, QTextEdit,
+                             QToolBar, QVBoxLayout, QWidget)
 
 import resources
 from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
@@ -130,6 +148,51 @@ class TaskNameDelegate(QItemDelegate):
         model at the item index."""
         if editor:
             model.setData(index, editor.toPlainText(), Qt.EditRole)
+
+
+class About(QDialog):
+    """Application about dialog."""
+
+    def __init__(self, parent=None):
+        """Constructs an about dialog."""
+        super().__init__(parent)
+        self.setWindowTitle('About this software')
+        self.setMinimumHeight(600)
+        self.setMinimumWidth(600)
+        self.setMaximumHeight(600)
+        self.setMaximumWidth(600)
+        self.__center__()
+
+        self.license = QTextEdit()
+        self.license.setReadOnly(True)
+        font = QFont("Courier")
+        font.setStyleHint(QFont.Monospace)
+        font.setPointSize(11)
+        font.setFixedPitch(True)
+        self.license.setFont(font)
+
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        layout.addWidget(self.license)
+
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok)
+        button_box.accepted.connect(self.accept)
+        layout.addWidget(button_box)
+
+        stream = QFile(':/LICENSE')
+        if stream.open(QFile.ReadOnly):
+            string = str(stream.readAll(), 'utf-8')
+            stream.close()
+            self.license.setPlainText(str(string))
+        else:
+            print(stream.errorString())
+
+    def __center__(self):
+        """Center the window."""
+        geometry = self.frameGeometry()
+        center = QDesktopWidget().availableGeometry().center()
+        geometry.moveCenter(center)
+        self.move(geometry.topLeft())
 
 
 class MainWindow(QMainWindow):
@@ -286,6 +349,10 @@ class MainWindow(QMainWindow):
         todayAct.triggered.connect(self.__today__)
         todayAct.setStatusTip('Go to today')
 
+        aboutAct = QAction(QIcon(':/info.png'), 'About', self)
+        aboutAct.triggered.connect(self.__about__)
+        aboutAct.setStatusTip('About this application')
+
         exitAct = QAction(QIcon(':/exit.png'), '&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit application')
@@ -313,6 +380,7 @@ class MainWindow(QMainWindow):
         self.toolbar_other.addAction(previousAct)
         self.toolbar_other.addAction(nextAct)
         self.toolbar_other.addAction(todayAct)
+        self.toolbar_other.addAction(aboutAct)
 
     def __validate_week_and_year__(self):
         """Validates the week and the year and updates a WeekWrapper."""
@@ -355,6 +423,11 @@ class MainWindow(QMainWindow):
         self.__update_week_edit__(self.year_edit.value())
         self.week_edit.setValue(datetime.date.today().isocalendar()[1])
         self.__validate_week_and_year__()
+
+    def __about__(self):
+        """The about button was clicked."""
+        about = About(self)
+        about.exec_()
 
     def __change_current_day__(self):
         """Changes the current day for edition."""

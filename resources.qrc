@@ -2,20 +2,24 @@
 <RCC version="1.0">
     <qresource>
         <!-- https://www.flaticon.com/free-icon/test_167709 -->
-        <file alias="tasks.png">images/tasks.png</file>
+        <file alias="tasks.png">resources/images/tasks.png</file>
         <!-- https://www.flaticon.com/free-icon/exit_448940 -->
-        <file alias="exit.png">images/exit.png</file>
+        <file alias="exit.png">resources/images/exit.png</file>
         <!-- https://www.flaticon.com/free-icon/left-arrow_137623 -->
-        <file alias="previous.png">images/previous.png</file>
-        <file alias="next.png">images/next.png</file>
+        <file alias="previous.png">resources/images/previous.png</file>
+        <file alias="next.png">resources/images/next.png</file>
         <!-- https://www.flaticon.com/free-icon/monday-calendar-page_42524 -->
-        <file alias="monday.png">images/monday.png</file>
-        <file alias="tuesday.png">images/tuesday.png</file>
-        <file alias="wednesday.png">images/wednesday.png</file>
-        <file alias="thursday.png">images/thursday.png</file>
-        <file alias="friday.png">images/friday.png</file>
-        <file alias="saturday.png">images/saturday.png</file>
-        <file alias="sunday.png">images/sunday.png</file>
-        <file alias="today.png">images/today.png</file>
+        <file alias="monday.png">resources/images/monday.png</file>
+        <file alias="tuesday.png">resources/images/tuesday.png</file>
+        <file alias="wednesday.png">resources/images/wednesday.png</file>
+        <file alias="thursday.png">resources/images/thursday.png</file>
+        <file alias="friday.png">resources/images/friday.png</file>
+        <file alias="saturday.png">resources/images/saturday.png</file>
+        <file alias="sunday.png">resources/images/sunday.png</file>
+        <file alias="today.png">resources/images/today.png</file>
+        <!-- https://www.flaticon.com/free-icon/info_147277 -->
+        <file alias="info.png">resources/images/info.png</file>
+
+        <file alias="LICENSE">resources/LICENSE</file>
     </qresource>
 </RCC>

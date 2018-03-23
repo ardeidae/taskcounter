@@ -18,9 +18,10 @@
 """Tasks counter tests."""
 
 import unittest
-from counter import (weeks_for_year, WeekDay, Column,
-                     weekday_from_date, seven_days_of_week)
 from datetime import date
+
+from counter import (Column, WeekDay, minutes_to_time_str, seven_days_of_week,
+                     weekday_from_date, weeks_for_year)
 
 
 class TestWeeksForYear(unittest.TestCase):
@@ -217,6 +218,36 @@ class TestSevenDaysOfWeek(unittest.TestCase):
 
         with self.assertRaises(StopIteration):
             next(generator)
+
+
+class TestMinutesToTimeStr(unittest.TestCase):
+
+    def test_minutes_to_time_str_with_negative_minutes(self):
+        self.assertIsNone(minutes_to_time_str(-1))
+
+    def test_minutes_to_time_str_with_float(self):
+        self.assertEqual(minutes_to_time_str(50.3), '00:50')
+
+    def test_minutes_to_time_str_with_number_in_str(self):
+        self.assertEqual(minutes_to_time_str('50'), '00:50')
+
+    def test_minutes_to_time_str_without_number_in_str(self):
+        self.assertIsNone(minutes_to_time_str('a string'))
+
+    def test_minutes_to_time_str_with_zero_minutes(self):
+        self.assertEqual(minutes_to_time_str(0), '00:00')
+
+    def test_minutes_to_time_str_with_less_than_one_hour(self):
+        self.assertEqual(minutes_to_time_str(50), '00:50')
+
+    def test_minutes_to_time_str_with_exactly_one_hour(self):
+        self.assertEqual(minutes_to_time_str(60), '01:00')
+
+    def test_minutes_to_time_str_with_zero_padded_result(self):
+        self.assertEqual(minutes_to_time_str(65), '01:05')
+
+    def test_minutes_to_time_str_without_zero_padded_result(self):
+        self.assertEqual(minutes_to_time_str(645), '10:45')
 
 
 if __name__ == '__main__':

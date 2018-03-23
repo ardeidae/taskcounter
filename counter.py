@@ -102,6 +102,20 @@ def seven_days_of_week(a_year, a_week_number):
             yield searched_week + timedelta(days=i)
 
 
+def minutes_to_time_str(a_total_minutes):
+    """Gets a hh:mm string from a number of minutes."""
+
+    try:
+        total_minutes = int(a_total_minutes)
+    except ValueError:
+        return None
+    else:
+        if total_minutes < 0:
+            return None
+        (hours, minutes) = divmod(total_minutes, 60)
+        return '{:02d}:{:02d}'.format(int(hours), int(minutes))
+
+
 class WeekWrapper:
     """Wrapper for the week model."""
 

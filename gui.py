@@ -31,7 +31,7 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QCompleter, QDesktopWidget,
 
 import resources
 from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
-                     weekday_from_date, weeks_for_year)
+                     minutes_to_time_str, weekday_from_date, weeks_for_year)
 from database import close_database, create_database
 
 
@@ -471,17 +471,12 @@ class MainWindow(CenterMixin, QMainWindow):
     def __update_day_time_counter__(self):
         """Updates the day time counter."""
         self.day_time_lcdnumber.display(
-            self.minutes_to_time_str(self.model.minutes_of_day))
+            minutes_to_time_str(self.model.minutes_of_day))
 
     def __update_week_time_counter__(self):
         """Updates the week time counter."""
         self.week_time_lcdnumber.display(
-            self.minutes_to_time_str(self.week_wrapper.minutes_of_week))
-
-    @staticmethod
-    def minutes_to_time_str(total_minutes):
-        (hours, minutes) = divmod(total_minutes, 60)
-        return '{:02d}:{:02d}'.format(int(hours), int(minutes))
+            minutes_to_time_str(self.week_wrapper.minutes_of_week))
 
     def __build_lcd_number_widget__(self):
         """Builds a LCD Number widget."""

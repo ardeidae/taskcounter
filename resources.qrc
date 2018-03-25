@@ -21,5 +21,6 @@
         <file alias="info.png">resources/images/info.png</file>
 
         <file alias="LICENSE">resources/LICENSE</file>
+        <file alias="ABOUT">resources/ABOUT</file>
     </qresource>
 </RCC>

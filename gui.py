@@ -26,8 +26,9 @@ from PyQt5.QtGui import (QBrush, QColor, QFont, QIcon, QPalette, QTextCursor,
 from PyQt5.QtWidgets import (QAction, QActionGroup, QCompleter, QDesktopWidget,
                              QDialog, QDialogButtonBox, QFrame, QHBoxLayout,
                              QHeaderView, QItemDelegate, QLabel, QLCDNumber,
-                             QMainWindow, QSpinBox, QTableView, QTextEdit,
-                             QToolBar, QVBoxLayout, QWidget)
+                             QMainWindow, QSpinBox, QTableView, QTabWidget,
+                             QTextBrowser, QTextEdit, QToolBar, QVBoxLayout,
+                             QWidget)
 
 import resources
 from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
@@ -174,29 +175,47 @@ class About(CenterMixin, QDialog):
         self.setMaximumWidth(600)
         self.center()
 
-        self.license = QTextEdit()
-        self.license.setReadOnly(True)
-        font = QFont("Courier")
-        font.setStyleHint(QFont.Monospace)
-        font.setPointSize(11)
-        font.setFixedPitch(True)
-        self.license.setFont(font)
+        self.license = self.__build_text_browser__()
+        self.about = self.__build_text_browser__()
+
+        self.tab_widget = QTabWidget(self)
 
         layout = QVBoxLayout()
         self.setLayout(layout)
-        layout.addWidget(self.license)
+        layout.addWidget(self.tab_widget)
+
+        self.tab_widget.addTab(self.license, 'License')
+        self.tab_widget.addTab(self.about, 'Third-Party Software Notices')
 
         button_box = QDialogButtonBox(QDialogButtonBox.Ok)
         button_box.accepted.connect(self.accept)
         layout.addWidget(button_box)
 
-        stream = QFile(':/LICENSE')
-        if stream.open(QFile.ReadOnly):
-            string = str(stream.readAll(), 'utf-8')
-            stream.close()
-            self.license.setPlainText(str(string))
+        self.license.setText(self.__get_file_content__(':/LICENSE'))
+        self.about.setText(self.__get_file_content__(':/ABOUT'))
+
+    def __build_text_browser__(self):
+        """Builds a text browser."""
+        edit = QTextBrowser()
+        edit.setReadOnly(True)
+        edit.setOpenExternalLinks(True)
+        font = QFont('Courier')
+        font.setStyleHint(QFont.Monospace)
+        font.setPointSize(11)
+        font.setFixedPitch(True)
+        edit.setFont(font)
+        return edit
+
+    def __get_file_content__(self, resource_file):
+        """Gets the content of a given resource file."""
+        file = QFile(resource_file)
+        if file.open(QFile.ReadOnly):
+            string = str(file.readAll(), 'utf-8')
+            file.close()
+            return str(string)
         else:
-            print(stream.errorString())
+            print('>>> ' + file.errorString())
+            return ''
 
 
 class MainWindow(CenterMixin, QMainWindow):

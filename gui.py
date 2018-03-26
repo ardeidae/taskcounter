@@ -34,6 +34,7 @@ import resources
 from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
                      minutes_to_time_str, weekday_from_date, weeks_for_year)
 from database import close_database, create_database
+from version import author, github_repository, version
 
 
 class LineEdit(QTextEdit):
@@ -178,10 +179,22 @@ class About(CenterMixin, QDialog):
         self.license = self.__build_text_browser__()
         self.about = self.__build_text_browser__()
 
+        repository_label = QLabel(
+            '<html>Source repository URL: <a href="{link}">{link}</a></html>'
+            .format(link=github_repository), self)
+        repository_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        repository_label.setOpenExternalLinks(True)
+        author_label = QLabel('Author: {}'.format(author))
+        version_label = QLabel(
+            'Version: {}'.format(version), self)
+
         self.tab_widget = QTabWidget(self)
 
         layout = QVBoxLayout()
         self.setLayout(layout)
+        layout.addWidget(repository_label)
+        layout.addWidget(author_label)
+        layout.addWidget(version_label)
         layout.addWidget(self.tab_widget)
 
         self.tab_widget.addTab(self.license, 'License')

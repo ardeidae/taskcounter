@@ -24,7 +24,7 @@ from PyQt5.QtCore import (QFile, QItemSelectionModel, QStringListModel, Qt,
 from PyQt5.QtGui import (QBrush, QColor, QFont, QIcon, QPalette, QTextCursor,
                          QTextOption)
 from PyQt5.QtWidgets import (QAction, QActionGroup, QCompleter, QDesktopWidget,
-                             QDialog, QDialogButtonBox, QFrame, QHBoxLayout,
+                             QDialog, QDialogButtonBox, QFrame, QGridLayout,
                              QHeaderView, QItemDelegate, QLabel, QLCDNumber,
                              QMainWindow, QSpinBox, QTableView, QTabWidget,
                              QTextBrowser, QTextEdit, QToolBar, QVBoxLayout,
@@ -315,13 +315,21 @@ class MainWindow(CenterMixin, QMainWindow):
         main_layout.addWidget(self.current_day_label)
         main_layout.addWidget(self.table)
 
+        week_label = QLabel("Week time")
         self.week_time_lcdnumber = self.__build_lcd_number_widget__()
 
+        day_label = QLabel("Day time")
         self.day_time_lcdnumber = self.__build_lcd_number_widget__()
 
-        footer_layout = QHBoxLayout()
-        footer_layout.addWidget(self.day_time_lcdnumber)
-        footer_layout.addWidget(self.week_time_lcdnumber)
+        footer_layout = QGridLayout()
+        footer_layout.addWidget(day_label, 0, 0,
+                                Qt.AlignHCenter | Qt.AlignVCenter)
+        footer_layout.addWidget(week_label, 0, 1,
+                                Qt.AlignHCenter | Qt.AlignVCenter)
+        footer_layout.addWidget(self.day_time_lcdnumber, 1, 0,
+                                Qt.AlignHCenter | Qt.AlignVCenter)
+        footer_layout.addWidget(self.week_time_lcdnumber, 1, 1,
+                                Qt.AlignHCenter | Qt.AlignVCenter)
 
         main_layout.addLayout(footer_layout)
 

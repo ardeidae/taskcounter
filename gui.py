@@ -317,9 +317,11 @@ class MainWindow(CenterMixin, QMainWindow):
 
         week_label = QLabel("Week time")
         self.week_time_lcdnumber = self.__build_lcd_number_widget__()
+        self.__change_week_color__(Qt.darkBlue)
 
         day_label = QLabel("Day time")
         self.day_time_lcdnumber = self.__build_lcd_number_widget__()
+        self.__change_day_color__(Qt.darkGreen)
 
         footer_layout = QGridLayout()
         footer_layout.addWidget(day_label, 0, 0,
@@ -338,6 +340,22 @@ class MainWindow(CenterMixin, QMainWindow):
     def __set_day_title__(self, title):
         """Sets the day title on top of the table view."""
         self.current_day_label.setText(str(title))
+
+    def __change_week_color__(self, color):
+        """Changes the lcd week color."""
+        self.__change_lcd_number_color__(self.week_time_lcdnumber, color)
+
+    def __change_day_color__(self, color):
+        """Changes the lcd day color."""
+        self.__change_lcd_number_color__(self.day_time_lcdnumber, color)
+
+    def __change_lcd_number_color__(self, lcd_widget, color):
+        """Changes a given lcd number color with a given color."""
+        if isinstance(color, Qt.GlobalColor) and isinstance(lcd_widget,
+                                                            QLCDNumber):
+            palette = QPalette()
+            palette.setColor(QPalette.WindowText, color)
+            lcd_widget.setPalette(palette)
 
     def initUI(self):
         """Initializes the user interface."""

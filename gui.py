@@ -33,7 +33,7 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QCompleter, QDesktopWidget,
 import resources
 from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
                      minutes_to_time_str, weekday_from_date, weeks_for_year)
-from database import close_database, create_database
+from database import close_database
 from version import author, github_repository, version
 
 
@@ -43,7 +43,7 @@ class LineEdit(QTextEdit):
     returnPressed = pyqtSignal()
 
     def __init__(self, parent=None):
-        """Constructs a custom line edit."""
+        """Construct a custom line edit."""
         super().__init__(parent)
         self.setAcceptRichText(False)
         self.setWordWrapMode(QTextOption.NoWrap)
@@ -55,7 +55,7 @@ class LineEdit(QTextEdit):
         self.textChanged.connect(self.__text_has_changed__)
 
     def set_completer(self, completer):
-        """Sets the completer on the editor."""
+        """Set the completer on the editor."""
         if completer:
             completer.setWidget(self)
             completer.setCompletionMode(QCompleter.PopupCompletion)
@@ -112,11 +112,11 @@ class TaskNameDelegate(QItemDelegate):
     """Delegate with completion for the task name."""
 
     def __init__(self, parent):
-        """Constructs a task name delegate."""
+        """Construct a task name delegate."""
         super().__init__(parent)
 
     def createEditor(self, parent, option, index):
-        """Returns the widget used to edit the item specified by index."""
+        """Return the widget used to edit the item specified by index."""
         completer = QCompleter(self)
         string_list_model = QStringListModel(
             get_last_unique_task_names(), completer)
@@ -127,27 +127,35 @@ class TaskNameDelegate(QItemDelegate):
         return editor
 
     def __commit_and_close_editor__(self):
-        """Commits changes and closes the editor."""
+        """Commit changes and close the editor."""
         editor = self.sender()
         self.commitData.emit(editor)
         self.closeEditor.emit(editor)
 
     def setEditorData(self, editor, index):
-        """Sets the data to be displayed and edited by the editor from the
-        data model item specified by the model index."""
+        """Set the data to be displayed and edited.
+
+        Set the data to be displayed and edited by the editor from the
+        data model item specified by the model index.
+        """
         if editor:
             row = index.row()
             column = index.column()
             try:
-                editor.setText(index.model().data[row][Column(column)])
+                editor.setText(index.model()
+                               .get_cached_data(row,
+                                                Column(column)))
                 editor.selectAll()
             except KeyError:
                 print('>>> KeyError')
                 pass
 
     def setModelData(self, editor, model, index):
-        """Gets data from the editor widget and stores it in the specified
-        model at the item index."""
+        """Get data from the editor widget and store it.
+
+        Get data from the editor widget and store it in the specified
+        model at the item index.
+        """
         if editor:
             model.setData(index, editor.toPlainText(), Qt.EditRole)
 
@@ -156,7 +164,7 @@ class CenterMixin:
     """This mixin allows the centering of window."""
 
     def center(self):
-        """Centers the window."""
+        """Center the window."""
         geometry = self.frameGeometry()
         center = QDesktopWidget().availableGeometry().center()
         geometry.moveCenter(center)
@@ -167,7 +175,7 @@ class About(CenterMixin, QDialog):
     """Application about dialog."""
 
     def __init__(self, parent=None):
-        """Constructs an about dialog."""
+        """Construct an about dialog."""
         super().__init__(parent)
         self.setWindowTitle('About this software')
         self.setMinimumHeight(600)
@@ -208,7 +216,7 @@ class About(CenterMixin, QDialog):
         self.about.setText(self.__get_file_content__(':/ABOUT'))
 
     def __build_text_browser__(self):
-        """Builds a text browser."""
+        """Build a text browser."""
         edit = QTextBrowser()
         edit.setReadOnly(True)
         edit.setOpenExternalLinks(True)
@@ -220,7 +228,7 @@ class About(CenterMixin, QDialog):
         return edit
 
     def __get_file_content__(self, resource_file):
-        """Gets the content of a given resource file."""
+        """Get the content of a given resource file."""
         file = QFile(resource_file)
         if file.open(QFile.ReadOnly):
             string = str(file.readAll(), 'utf-8')
@@ -235,7 +243,7 @@ class MainWindow(CenterMixin, QMainWindow):
     """The main window of the application."""
 
     def __init__(self):
-        """Constructs a MainWindow."""
+        """Construct a MainWindow."""
         super().__init__()
         self.dayActions = dict()
         self.model = None
@@ -254,20 +262,20 @@ class MainWindow(CenterMixin, QMainWindow):
         close_database()
 
     def __set_window_size__(self):
-        """Sets the window size."""
+        """Set the window size."""
         self.setMinimumHeight(600)
         self.setMinimumWidth(600)
         self.setMaximumHeight(600)
         self.setMaximumWidth(600)
 
     def __disable_headers_click__(self):
-        """Disables click on table headers."""
+        """Disable click on table headers."""
         self.table.horizontalHeader().setSectionsClickable(False)
         self.table.setCornerButtonEnabled(False)
         self.table.verticalHeader().setSectionsClickable(False)
 
     def __init_table__(self):
-        """Creates table view and initializes some settings."""
+        """Create table view and initialize some settings."""
         self.table = QTableView()
         self.table.setSelectionMode(QTableView.SingleSelection)
         self.table.setAlternatingRowColors(True)
@@ -281,24 +289,23 @@ class MainWindow(CenterMixin, QMainWindow):
             Column.Task.value, task_name_delegate)
 
     def __resize_headers__(self):
-        """Resizes headers."""
+        """Resize headers."""
         self.table.hideColumn(Column.Id.value)
-        self.table.horizontalHeader() \
-            .setSectionResizeMode(Column.Task.value,
-                                  QHeaderView.Stretch)
-        self.table.horizontalHeader() \
-            .setSectionResizeMode(Column.Start_Time.value,
-                                  QHeaderView.Fixed)
-        self.table.horizontalHeader().resizeSection(Column.Start_Time.value,
-                                                    70)
+        self.table.horizontalHeader().setSectionResizeMode(
+            Column.Task.value,
+            QHeaderView.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(
+            Column.Start_Time.value,
+            QHeaderView.Fixed)
+        self.table.horizontalHeader().resizeSection(
+            Column.Start_Time.value, 70)
 
-        self.table.horizontalHeader() \
-            .setSectionResizeMode(Column.End_Time.value,
-                                  QHeaderView.Fixed)
+        self.table.horizontalHeader().setSectionResizeMode(
+            Column.End_Time.value, QHeaderView.Fixed)
         self.table.horizontalHeader().resizeSection(Column.End_Time.value, 70)
 
     def __init_layout__(self):
-        """Initializes the central widget layout."""
+        """Initialize the central widget layout."""
         main_widget = QWidget(self)
         self.setCentralWidget(main_widget)
 
@@ -338,19 +345,19 @@ class MainWindow(CenterMixin, QMainWindow):
         main_widget.setLayout(main_layout)
 
     def __set_day_title__(self, title):
-        """Sets the day title on top of the table view."""
+        """Set the day title on top of the table view."""
         self.current_day_label.setText(str(title))
 
     def __change_week_color__(self, color):
-        """Changes the lcd week color."""
+        """Change the lcd week color."""
         self.__change_lcd_number_color__(self.week_time_lcdnumber, color)
 
     def __change_day_color__(self, color):
-        """Changes the lcd day color."""
+        """Change the lcd day color."""
         self.__change_lcd_number_color__(self.day_time_lcdnumber, color)
 
     def __change_lcd_number_color__(self, lcd_widget, color):
-        """Changes a given lcd number color with a given color."""
+        """Change a given lcd number color with a given color."""
         if isinstance(color, Qt.GlobalColor) and isinstance(lcd_widget,
                                                             QLCDNumber):
             palette = QPalette()
@@ -358,7 +365,7 @@ class MainWindow(CenterMixin, QMainWindow):
             lcd_widget.setPalette(palette)
 
     def initUI(self):
-        """Initializes the user interface."""
+        """Initialize the user interface."""
         self.setWindowTitle('Tasks counter')
         self.setWindowIcon(QIcon(':/tasks.png'))
         self.statusBar()
@@ -374,7 +381,7 @@ class MainWindow(CenterMixin, QMainWindow):
         self.show()
 
     def __create_toolbars__(self):
-        """Creates the toolbars."""
+        """Create the toolbars."""
         self.toolbar_other = QToolBar(self)
         self.addToolBar(Qt.TopToolBarArea, self.toolbar_other)
         self.addToolBarBreak()
@@ -438,7 +445,7 @@ class MainWindow(CenterMixin, QMainWindow):
         self.toolbar_other.addAction(aboutAct)
 
     def __validate_week_and_year__(self):
-        """Validates the week and the year and updates a WeekWrapper."""
+        """Validate the week and the year and update a WeekWrapper."""
         self.week_wrapper = WeekWrapper(
             self.year_edit.value(), self.week_edit.value())
 
@@ -451,7 +458,7 @@ class MainWindow(CenterMixin, QMainWindow):
             self.dayActions[WeekDay.Monday].activate(QAction.Trigger)
 
     def __previous_week__(self):
-        """The previous week button was clicked."""
+        """Go to the previous week."""
         current_week = int(self.week_edit.value())
         if current_week - 1 == 0:
             current_year = int(self.year_edit.value())
@@ -462,7 +469,7 @@ class MainWindow(CenterMixin, QMainWindow):
             self.week_edit.setValue(current_week - 1)
 
     def __next_week__(self):
-        """The next week button was clicked."""
+        """Go to the next week."""
         current_week = int(self.week_edit.value())
         current_year = int(self.year_edit.value())
         weeks_of_current_year = weeks_for_year(current_year)
@@ -473,19 +480,19 @@ class MainWindow(CenterMixin, QMainWindow):
             self.week_edit.setValue(current_week + 1)
 
     def __today__(self):
-        """The today button was clicked."""
+        """Go to the current day, today."""
         self.year_edit.setValue(datetime.datetime.now().year)
         self.__update_week_edit__(self.year_edit.value())
         self.week_edit.setValue(datetime.date.today().isocalendar()[1])
         self.__validate_week_and_year__()
 
     def __about__(self):
-        """The about button was clicked."""
+        """Open the about page."""
         about = About(self)
         about.exec_()
 
     def __change_current_day__(self):
-        """Changes the current day for edition."""
+        """Change the current day for edition."""
         sender = self.sender()
         if self.week_wrapper:
             if self.model:
@@ -513,31 +520,31 @@ class MainWindow(CenterMixin, QMainWindow):
             self.table.selectionModel().setCurrentIndex(index, flags)
 
     def __year_changed__(self, year):
-        """The current year has changed."""
+        """Change the current year, event."""
         self.__update_week_edit__(year)
         self.__validate_week_and_year__()
 
     def __week_changed__(self, week):
-        """The current week has changed."""
+        """Change the current week, event."""
         self.__validate_week_and_year__()
 
     def __update_week_edit__(self, year):
-        """Updates the week edit max value for a given year."""
+        """Update the week edit max value for a given year."""
         weeks = weeks_for_year(int(year))
         self.week_edit.setMaximum(weeks)
 
     def __update_day_time_counter__(self):
-        """Updates the day time counter."""
+        """Update the day time counter."""
         self.day_time_lcdnumber.display(
             minutes_to_time_str(self.model.minutes_of_day))
 
     def __update_week_time_counter__(self):
-        """Updates the week time counter."""
+        """Update the week time counter."""
         self.week_time_lcdnumber.display(
             minutes_to_time_str(self.week_wrapper.minutes_of_week))
 
     def __build_lcd_number_widget__(self):
-        """Builds a LCD Number widget."""
+        """Build a LCD Number widget."""
         lcdnumber = QLCDNumber(self)
         lcdnumber.setSegmentStyle(QLCDNumber.Flat)
         lcdnumber.setFixedHeight(40)

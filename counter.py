@@ -17,7 +17,7 @@
 
 """Tasks counter model."""
 
-from datetime import date, time, timedelta
+from datetime import date, timedelta
 from enum import Enum, unique
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QTime, QVariant
@@ -69,8 +69,7 @@ def weeks_for_year(year):
 
 
 def seven_days_of_week(a_year, a_week_number):
-    """Gets seven dates from a given year and a given week number."""
-
+    """Get seven dates from a given year and a given week number."""
     try:
         year = int(a_year)
         week_number = int(a_week_number)
@@ -103,8 +102,7 @@ def seven_days_of_week(a_year, a_week_number):
 
 
 def minutes_to_time_str(a_total_minutes):
-    """Gets a hh:mm string from a number of minutes."""
-
+    """Get a hh:mm string from a number of minutes."""
     try:
         total_minutes = int(a_total_minutes)
     except ValueError:
@@ -120,27 +118,27 @@ class WeekWrapper:
     """Wrapper for the week model."""
 
     def __init__(self, year, week_number):
-        """Constructs a week wrapper object."""
+        """Construct a week wrapper object."""
         self._week = Week.get_or_create(year=year,
                                         week_number=week_number)[0]
         self.__create_days__()
 
     @property
     def week_hours(self):
-        """Gets hours of this week instance."""
+        """Get hours of this week instance."""
         return self._week.week_hours
 
     @week_hours.setter
     def week_hours(self, week_hours):
-        """Sets hours of this week instance."""
+        """Set hours of this week instance."""
         self._week.week_hours = week_hours
         self._week.save()
 
     def __getitem__(self, week_day):
         """
-        Gets item with bracket operator. Takes a WeekDay value.
+        Get item with bracket operator. Take a WeekDay value.
 
-        Returns a DayWrapper.
+        Return a DayWrapper.
         """
         if week_day in WeekDay:
             for day in (Day.select(Day)
@@ -153,14 +151,14 @@ class WeekWrapper:
         return None
 
     def __create_days__(self):
-        """Creates the days of this week."""
+        """Create the days of this week."""
         for date_ in seven_days_of_week(self._week.year,
                                         self._week.week_number):
             DayWrapper(date_=date_, week=self._week)
 
     @property
     def minutes_of_week(self):
-        """Gets the total time in minutes of week's tasks."""
+        """Get the total time in minutes of week's tasks."""
         minutes = (Task.select(fn.SUM((fn.strftime('%s', Task.end_time)
                                        - fn.strftime('%s', Task.start_time))
                                       .cast('real') / 60).alias('sum')
@@ -177,34 +175,34 @@ class DayWrapper(QAbstractTableModel):
     """Wrapper for the day model."""
 
     def __init__(self, date_, week):
-        """Constructs a day wrapper object."""
+        """Construct a day wrapper object."""
         super().__init__()
         self._day = Day.get_or_create(date=date_,
                                       week=week)[0]
-        self.data = None
+        self._cached_data = None
         self.__cache_data__()
 
     @property
     def week(self):
-        """Gets the week property."""
+        """Get the week property."""
         return self._day.week
 
     @property
     def date(self):
-        """Gets the date property."""
+        """Get the date property."""
         return self._day.date
 
     def rowCount(self, parent=None):
-        """Returns the number of rows under the given parent."""
-        return len(self.data) + 1
+        """Return the number of rows under the given parent."""
+        return len(self._cached_data) + 1
 
     def columnCount(self, parent=None):
-        """Returns the number of columns for the children of the given parent."""
+        """Return the number of columns under the given parent."""
         return 4
 
     def __cache_data__(self):
-        """Caches data."""
-        self.data = {}
+        """Cache data."""
+        self._cached_data = {}
 
         # ensure that null start_time appears in last positions
         for counter, task in enumerate(Task.select(Task.id, Task.name,
@@ -220,11 +218,18 @@ class DayWrapper(QAbstractTableModel):
             row[Column.Task] = task.name
             row[Column.Start_Time] = task.start_time
             row[Column.End_Time] = task.end_time
-            self.data[counter] = row
+            self._cached_data[counter] = row
+
+    def get_cached_data(self, row, column):
+        """Get the cached data for a given row and column."""
+        return self._cached_data[row][column]
 
     def data(self, index, role):
-        """Returns the data stored under the given role for the item referred
-        to by the index."""
+        """Return the data.
+
+        Return the data stored under the given role for the item referred
+        to by the index.
+        """
         if not index.isValid():
             return QVariant()
 
@@ -232,7 +237,7 @@ class DayWrapper(QAbstractTableModel):
         column = index.column()
         if role in (Qt.DisplayRole, Qt.EditRole):
             try:
-                value = self.data[row][Column(column)]
+                value = self._cached_data[row][Column(column)]
             except KeyError:
                 return QVariant()
             else:
@@ -254,8 +259,8 @@ class DayWrapper(QAbstractTableModel):
             pass
         elif role == Qt.BackgroundRole:
             try:
-                start = self.data[row][Column.Start_Time]
-                end = self.data[row][Column.End_Time]
+                start = self._cached_data[row][Column.Start_Time]
+                end = self._cached_data[row][Column.End_Time]
                 red_brush = QBrush(QColor('#FFCDD2'))
                 if not start or not end:
                     return red_brush
@@ -274,15 +279,15 @@ class DayWrapper(QAbstractTableModel):
         return QVariant()
 
     def setData(self, index, value, role):
-        """Sets the role data for the item at index to value."""
+        """Set the role data for the item at index to value."""
         if role == Qt.EditRole:
             row = index.row()
             column = index.column()
 
             field = Column(column)
 
-            if row in self.data:
-                task_id = self.data[row][Column.Id]
+            if row in self._cached_data:
+                task_id = self._cached_data[row][Column.Id]
 
                 if field == Column.Task and not value:
                     if self.delete_task(task_id):
@@ -300,15 +305,16 @@ class DayWrapper(QAbstractTableModel):
                         return False
 
                     if field == Column.Start_Time:
-                        end = self.data[row][Column.End_Time]
+                        end = self._cached_data[row][Column.End_Time]
                         if end and value >= end:
                             return False
                     elif field == Column.End_Time:
-                        start = self.data[row][Column.Start_Time]
+                        start = self._cached_data[row][Column.Start_Time]
                         if start and value <= start:
                             return False
                     if field in (Column.Start_Time, Column.End_Time):
-                        if self.__overlaps_other_range__(task_id, field, value):
+                        if self.__overlaps_other_range__(task_id,
+                                                         field, value):
                             return False
 
                     if self.update_task(task_id, field, value):
@@ -343,20 +349,23 @@ class DayWrapper(QAbstractTableModel):
         return False
 
     def headerData(self, section, orientation, role):
-        """Returns the data for the given role and section in the header with
-        the specified orientation."""
+        """Return the header data.
+
+        Return the data for the given role and section in the header with
+        the specified orientation.
+        """
         if role == Qt.DisplayRole:
             if orientation == Qt.Horizontal:
                 return Column(section).name.replace('_', ' ')
         return QVariant()
 
     def flags(self, index):
-        """Returns the item flags for the given index."""
+        """Return the item flags for the given index."""
         return Qt.ItemIsEditable | super().flags(index)
 
     @staticmethod
     def update_task(id, field, value):
-        """Updates task field with a given value for a given id."""
+        """Update task field with a given value for a given id."""
         args = dict()
 
         if field == Column.Task:
@@ -380,31 +389,29 @@ class DayWrapper(QAbstractTableModel):
 
     @staticmethod
     def delete_task(id):
-        """Deletes a task with the given id."""
+        """Delete a task with the given id."""
         query = Task.delete().where(Task.id == id)
         print('>>> query: ' + str(query.sql()))
         return query.execute() > 0
 
     def create_task(self, task_name):
-        """Creates a task for a given task name."""
-
+        """Create a task for a given task name."""
         try:
             query = Task.insert(name=task_name, day=self._day)
             print('>>> query: ' + str(query.sql()))
-            if query.execute() > 0:
-                return True
+            # pylint: disable=locally-disabled,E1120
+            return query.execute() > 0
         except IntegrityError:
             return False
 
     @property
     def last_task_cell_index(self):
-        """Gets the QModelIndex of the last task cell."""
-
+        """Get the QModelIndex of the last task cell."""
         return self.index(self.rowCount() - 1, Column.Task.value)
 
     @property
     def minutes_of_day(self):
-        """Gets the total time in minutes of today's tasks."""
+        """Get the total time in minutes of today's tasks."""
         minutes = (Task.select(fn.SUM((fn.strftime('%s', Task.end_time)
                                        - fn.strftime('%s', Task.start_time))
                                       .cast('real') / 60).alias('sum')
@@ -417,46 +424,47 @@ class DayWrapper(QAbstractTableModel):
         return minutes or 0
 
     def __overlaps_other_range__(self, task_id, field, value):
-        """Checks range overlaps another range."""
-
-        if not self.data:
+        """Check range overlaps another range."""
+        if not self._cached_data:
             return False
 
         # find start and end times of task_id.
-        for r in self.data:
-            if self.data[r][Column.Id] == task_id:
+        for r in self._cached_data:
+            if self._cached_data[r][Column.Id] == task_id:
                 if field == Column.Start_Time:
                     start_time = value
-                    end_time = self.data[r][Column.End_Time]
+                    end_time = self._cached_data[r][Column.End_Time]
                 if field == Column.End_Time:
-                    start_time = self.data[r][Column.Start_Time]
+                    start_time = self._cached_data[r][Column.Start_Time]
                     end_time = value
                 break
 
         # check new value is not in another range and current range does not
         # overlap another start or end time.
-        for r in self.data:
-            if self.data[r][Column.Id] != task_id:
+        for r in self._cached_data:
+            if self._cached_data[r][Column.Id] != task_id:
 
-                if (self.data[r][Column.Start_Time]
-                        and self.data[r][Column.End_Time]):
+                if (self._cached_data[r][Column.Start_Time]
+                        and self._cached_data[r][Column.End_Time]):
 
-                    if (self.data[r][Column.Start_Time] < value
-                            < self.data[r][Column.End_Time]):
+                    if (self._cached_data[r][Column.Start_Time] < value
+                            < self._cached_data[r][Column.End_Time]):
                         return True
 
                     if (start_time and end_time
-                        and (start_time < self.data[r][Column.Start_Time]
-                             < end_time
-                             or start_time < self.data[r][Column.End_Time]
-                             < end_time)):
+                        and(start_time
+                            < self._cached_data[r][Column.Start_Time]
+                            < end_time
+                            or start_time
+                            < self._cached_data[r][Column.End_Time]
+                            < end_time)):
                         return True
 
         return False
 
 
 def get_last_unique_task_names():
-    """Returns the last unique task names since last three months."""
+    """Return the last unique task names since last three months."""
     last_3_months = date.today() + timedelta(days=-90)
     return (tuple(x.name for x in Task.select(Task.name)
                   .join(Day)

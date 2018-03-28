@@ -61,7 +61,7 @@ def weeks_for_year(year):
     # https://stackoverflow.com/a/29263010
     try:
         last_week = date(int(year), 12, 28)
-    except ValueError:
+    except (TypeError, ValueError):
         return None
     else:
         return last_week.isocalendar()[1]
@@ -73,7 +73,7 @@ def seven_days_of_week(a_year, a_week_number):
     try:
         year = int(a_year)
         week_number = int(a_week_number)
-    except ValueError:
+    except (TypeError, ValueError):
         return None
     else:
         if weeks_for_year(year) < week_number or week_number < 1:
@@ -105,7 +105,7 @@ def minutes_to_time_str(a_total_minutes):
     """Get a hh:mm string from a number of minutes."""
     try:
         total_minutes = int(a_total_minutes)
-    except ValueError:
+    except (TypeError, ValueError):
         return None
     else:
         if total_minutes < 0:

@@ -26,13 +26,7 @@ from counter import (Column, WeekDay, minutes_to_time_str, seven_days_of_week,
 
 class TestWeeksForYear(unittest.TestCase):
 
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
-    def test_year_is_a_string(self):
+    def test_year_is_a_string_returns_none(self):
         self.assertIsNone(weeks_for_year("two thousand"))
 
     def test_year_is_a_number_in_string(self):
@@ -40,6 +34,9 @@ class TestWeeksForYear(unittest.TestCase):
 
     def test_year_is_a_float(self):
         self.assertEqual(52, weeks_for_year(2000.43))
+
+    def test_year_is_none_returns_none(self):
+        self.assertIsNone(weeks_for_year(None))
 
     def test_over_several_years(self):
         expected = {
@@ -152,6 +149,11 @@ class TestSevenDaysOfWeek(unittest.TestCase):
         self.assertEqual([], list(seven_days_of_week(2018, -1)))
         self.assertEqual(7, len(list(seven_days_of_week(2018, 1))))
 
+    def test_args_are_none(self):
+        self.assertEqual([], list(seven_days_of_week(None, None)))
+        self.assertEqual([], list(seven_days_of_week(2018, None)))
+        self.assertEqual([], list(seven_days_of_week(None, 15)))
+
     def test_over_several_years_and_weeks(self):
 
         expected = {
@@ -224,6 +226,9 @@ class TestMinutesToTimeStr(unittest.TestCase):
 
     def test_minutes_to_time_str_with_negative_minutes(self):
         self.assertIsNone(minutes_to_time_str(-1))
+
+    def test_minutes_to_time_str_with_none(self):
+        self.assertIsNone(minutes_to_time_str(None))
 
     def test_minutes_to_time_str_with_float(self):
         self.assertEqual(minutes_to_time_str(50.3), '00:50')

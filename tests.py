@@ -25,20 +25,26 @@ from counter import (Column, WeekDay, minutes_to_time_str, seven_days_of_week,
 
 
 class TestWeeksForYear(unittest.TestCase):
+    """Tests for weeks_for_year function."""
 
-    def test_year_is_a_string_returns_none(self):
+    def test_non_number_string_returns_none(self):
+        """Test that non number string returns None."""
         self.assertIsNone(weeks_for_year("two thousand"))
 
-    def test_year_is_a_number_in_string(self):
+    def test_int_in_string_returns_correct_value(self):
+        """Test that int in string returns correct value."""
         self.assertEqual(52, weeks_for_year("2000"))
 
-    def test_year_is_a_float(self):
+    def test_float_value_returns_correct_value(self):
+        """Test that float value returns correct value."""
         self.assertEqual(52, weeks_for_year(2000.43))
 
-    def test_year_is_none_returns_none(self):
+    def test_none_returns_none(self):
+        """Test that None returns None."""
         self.assertIsNone(weeks_for_year(None))
 
-    def test_over_several_years(self):
+    def test_number_of_weeks_for_several_years(self):
+        """Test number of weeks for several years."""
         expected = {
             2000: 52,
             2001: 52,
@@ -79,8 +85,10 @@ class TestWeeksForYear(unittest.TestCase):
 
 
 class TestWeekDay(unittest.TestCase):
+    """Tests for WeekDay enum ans weekday_from_date."""
 
     def test_enum_values(self):
+        """Test enum values."""
         self.assertEqual(0, WeekDay.Monday.value)
         self.assertEqual(1, WeekDay.Tuesday.value)
         self.assertEqual(2, WeekDay.Wednesday.value)
@@ -90,12 +98,15 @@ class TestWeekDay(unittest.TestCase):
         self.assertEqual(6, WeekDay.Sunday.value)
 
     def test_enum_has_seven_days(self):
+        """Test that enum has seven days."""
         self.assertEqual(7, len(WeekDay))
 
-    def test_weekday_from_date_without_date(self):
+    def test_non_number_string_returns_none(self):
+        """Test that non number string returns None."""
         self.assertIsNone(weekday_from_date("a string"))
 
-    def test_weekday_from_date(self):
+    def test_a_date_returns_the_right_weekday(self):
+        """Test that a date returns the right weekday."""
         expected = {
             WeekDay.Monday: date(2018, 3, 5),
             WeekDay.Tuesday: date(2018, 3, 6),
@@ -111,51 +122,61 @@ class TestWeekDay(unittest.TestCase):
 
 
 class TestColumn(unittest.TestCase):
+    """Tests for Column enum."""
 
     def test_enum_values(self):
+        """Test enum values."""
         self.assertEqual(0, Column.Id.value)
         self.assertEqual(1, Column.Task.value)
         self.assertEqual(2, Column.Start_Time.value)
         self.assertEqual(3, Column.End_Time.value)
 
     def test_enum_has_four_columns(self):
+        """Test that enum has four columns."""
         self.assertEqual(4, len(Column))
 
 
 class TestSevenDaysOfWeek(unittest.TestCase):
+    """Tests for seven_days_of_week function."""
 
-    def test_seven_days_of_week_with_week_too_big(self):
+    def test_number_of_weeks_too_big_returns_empty(self):
+        """Test that number of weeks too big returns empty."""
         self.assertEqual([], list(seven_days_of_week(2018, 54)))
         self.assertEqual([], list(seven_days_of_week(2018, 53)))
         self.assertNotEqual([], list(seven_days_of_week(2018, 52)))
 
-    def test_args_are_string(self):
+    def test_non_number_string_returns_empty(self):
+        """Test that non number string returns empty."""
         self.assertEqual([], list(seven_days_of_week('str1', 'str2')))
         self.assertEqual([], list(seven_days_of_week('str1', 52)))
         self.assertEqual([], list(seven_days_of_week(2018, 'str2')))
 
-    def test_args_are_number_in_string(self):
+    def test_int_in_string_returns_seven_days_list(self):
+        """Test that int in string returns seven days list.."""
         self.assertEqual(7, len(list(seven_days_of_week('2018', '52'))))
         self.assertEqual(7, len(list(seven_days_of_week('2018', 52))))
         self.assertEqual(7, len(list(seven_days_of_week(2018, '52'))))
 
-    def test_args_are_float(self):
+    def test_float_returns_seven_days_list(self):
+        """Test that float returns seven days list."""
         self.assertEqual(7, len(list(seven_days_of_week(2018.243, 52.13))))
         self.assertEqual(7, len(list(seven_days_of_week(2018.243, 52))))
         self.assertEqual(7, len(list(seven_days_of_week(2018, 52.13))))
 
-    def test_week_number_is_less_than_one(self):
+    def test_negative_week_number_returns_empty(self):
+        """Test that negative week number returns empty."""
         self.assertEqual([], list(seven_days_of_week(2018, 0)))
         self.assertEqual([], list(seven_days_of_week(2018, -1)))
         self.assertEqual(7, len(list(seven_days_of_week(2018, 1))))
 
-    def test_args_are_none(self):
+    def test_none_returns_none(self):
+        """Test that None returns None."""
         self.assertEqual([], list(seven_days_of_week(None, None)))
         self.assertEqual([], list(seven_days_of_week(2018, None)))
         self.assertEqual([], list(seven_days_of_week(None, 15)))
 
-    def test_over_several_years_and_weeks(self):
-
+    def test_a_couple_week_and_year_returns_the_right_monday(self):
+        """Test that a couple week/year returns the right monday."""
         expected = {
             (2014, 52): (22, 12),
             (2015, 52): (21, 12),
@@ -179,8 +200,8 @@ class TestSevenDaysOfWeek(unittest.TestCase):
                 self.assertEqual(month, monday.month)
                 self.assertEqual(day, monday.day)
 
-    def test_sequence_of_days(self):
-
+    def test_a_couple_week_and_year_returns_the_right_sequence_of_days(self):
+        """Test that a couple week/year returns the right sequence of days."""
         generator = seven_days_of_week(2018, 10)
 
         monday = next(generator)
@@ -223,35 +244,46 @@ class TestSevenDaysOfWeek(unittest.TestCase):
 
 
 class TestMinutesToTimeStr(unittest.TestCase):
+    """Tests for minutes_to_time_str function."""
 
-    def test_minutes_to_time_str_with_negative_minutes(self):
+    def test_negative_returns_none(self):
+        """Test that negative returns None."""
         self.assertIsNone(minutes_to_time_str(-1))
 
-    def test_minutes_to_time_str_with_none(self):
+    def test_none_returns_none(self):
+        """Test that None returns None."""
         self.assertIsNone(minutes_to_time_str(None))
 
-    def test_minutes_to_time_str_with_float(self):
+    def test_float_returns_correct_value(self):
+        """Test that float returns correct value."""
         self.assertEqual(minutes_to_time_str(50.3), '00:50')
 
-    def test_minutes_to_time_str_with_number_in_str(self):
+    def test_int_int_string_returns_correct_value(self):
+        """Test that int in string returns correct value."""
         self.assertEqual(minutes_to_time_str('50'), '00:50')
 
-    def test_minutes_to_time_str_without_number_in_str(self):
+    def test_non_number_string_returns_none(self):
+        """Test that non number string returns None."""
         self.assertIsNone(minutes_to_time_str('a string'))
 
-    def test_minutes_to_time_str_with_zero_minutes(self):
+    def test_zero_minutes_returns_00_00(self):
+        """Test that zero minutes returns 00:00."""
         self.assertEqual(minutes_to_time_str(0), '00:00')
 
-    def test_minutes_to_time_str_with_less_than_one_hour(self):
+    def test_less_than_60_minutes_returns_less_than_one_hour(self):
+        """Test that less than 60 minutes returns less than one hour."""
         self.assertEqual(minutes_to_time_str(50), '00:50')
 
-    def test_minutes_to_time_str_with_exactly_one_hour(self):
+    def test_60_minutes_returns_exactly_one_hour(self):
+        """Test that 60 minutes returns exactly one hour."""
         self.assertEqual(minutes_to_time_str(60), '01:00')
 
-    def test_minutes_to_time_str_with_zero_padded_result(self):
+    def test_more_than_60_minutes_returns_more_than_one_hour(self):
+        """Test that more than 60 minutes returns more than one hour."""
         self.assertEqual(minutes_to_time_str(65), '01:05')
 
-    def test_minutes_to_time_str_without_zero_padded_result(self):
+    def test_time_result_without_zero_padded_values(self):
+        """Test time result without zero padded values."""
         self.assertEqual(minutes_to_time_str(645), '10:45')
 
 

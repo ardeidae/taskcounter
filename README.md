@@ -1,0 +1,56 @@
+# Tasks counter
+
+I made this project to count time of tasks I do at work.
+
+## Getting Started
+
+These instructions will get you a copy of the project up and running on your local machine.
+
+### Prerequisites
+
+You need to install Python 3.5 or greater and pip to run this software.
+
+### Installing
+
+Clone the repository
+
+```
+git clone https://github.com/ardeidae/tasks-counter
+```
+
+Install required packages
+
+```
+cd tasks-counter
+pip install -r requirements.txt
+```
+
+Run the application
+
+```
+python3 main.py
+```
+
+## Running the tests
+
+```
+python3 tests.py
+```
+
+## Built With
+
+* [Python3](https://www.python.org/) - Python is a programming language that lets you work quickly and integrate systems more effectively.
+* [PyQt5](https://www.riverbankcomputing.com/software/pyqt/intro) - PyQt is a set of Python bindings for [Qt application framework](https://www.qt.io/).
+* [peewee](http://peewee.readthedocs.io/en/latest/) - Peewee is a simple and small ORM.
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/ardeidae/tasks-counter/tags).
+
+## Authors
+
+* **Matthieu PETIOT** - [ardeidae](https://github.com/ardeidae)
+
+## License
+
+This project is licensed under the GPLv3 License.

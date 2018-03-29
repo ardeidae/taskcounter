@@ -1,0 +1,16 @@
+<html>
+
+<h1>Third-Party Software Notices</h1>
+
+<p>This application uses the following third-party softwares or resources in accordance with the following licenses:</p>
+
+<p><a href="https://www.python.org/">Python 3</a> is a programming language that lets you work quickly and integrate systems more effectively.</p>
+
+<p><a href="https://www.riverbankcomputing.com/software/pyqt/intro">PyQt 5</a> is a set of Python v2 and v3 bindings for <a href="http://www.qt.io/">The Qt Company's</a> Qt application framework and runs on all platforms supported by Qt including Windows, OS X and Linux.</p>
+
+<p><a href="http://peewee.readthedocs.io/en/latest/">Peewee</a> is a simple and small ORM. It has few (but expressive) concepts, making it easy to learn and intuitive to use.</p>
+
+<p>Icons made by <a href="http://www.freepik.com/">Freepik</a> from <a href="https://www.flaticon.com/">www.flaticon.com</a> are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+<p>Icons made by <a href="https://smashicons.com/">Smashicons</a> from <a href="https://www.flaticon.com/">www.flaticon.com</a> are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+
+</html>

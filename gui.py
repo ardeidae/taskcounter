@@ -248,8 +248,6 @@ class MainWindow(CenterMixin, QMainWindow):
         self.dayActions = dict()
         self.model = None
         self.table = None
-        self.toolbar_days = None
-        self.toolbar_other = None
         self.week_edit = None
         self.week_wrapper = None
         self.year_edit = None
@@ -382,11 +380,11 @@ class MainWindow(CenterMixin, QMainWindow):
 
     def __create_toolbars__(self):
         """Create the toolbars."""
-        self.toolbar_other = QToolBar(self)
-        self.addToolBar(Qt.TopToolBarArea, self.toolbar_other)
+        toolbar_other = QToolBar(self)
+        self.addToolBar(Qt.TopToolBarArea, toolbar_other)
         self.addToolBarBreak()
-        self.toolbar_days = QToolBar(self)
-        self.addToolBar(Qt.TopToolBarArea, self.toolbar_days)
+        toolbar_days = QToolBar(self)
+        self.addToolBar(Qt.TopToolBarArea, toolbar_days)
 
         daysActionGroup = QActionGroup(self)
         for day in WeekDay:
@@ -397,7 +395,7 @@ class MainWindow(CenterMixin, QMainWindow):
             action.triggered.connect(self.__change_current_day__)
             daysActionGroup.addAction(action)
             self.dayActions[day] = action
-            self.toolbar_days.addAction(action)
+            toolbar_days.addAction(action)
 
         previousAct = QAction(QIcon(':/previous.png'), 'Previous Week', self)
         previousAct.triggered.connect(self.__previous_week__)
@@ -419,7 +417,7 @@ class MainWindow(CenterMixin, QMainWindow):
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit application')
         exitAct.triggered.connect(self.close)
-        self.toolbar_other.addAction(exitAct)
+        toolbar_other.addAction(exitAct)
 
         self.year_edit = QSpinBox()
         self.year_edit.setPrefix('Year: ')
@@ -436,13 +434,13 @@ class MainWindow(CenterMixin, QMainWindow):
         self.week_edit.valueChanged.connect(self.__week_changed__)
         self.year_edit.valueChanged.connect(self.__year_changed__)
 
-        self.toolbar_other.addWidget(self.year_edit)
-        self.toolbar_other.addWidget(self.week_edit)
+        toolbar_other.addWidget(self.year_edit)
+        toolbar_other.addWidget(self.week_edit)
 
-        self.toolbar_other.addAction(previousAct)
-        self.toolbar_other.addAction(nextAct)
-        self.toolbar_other.addAction(todayAct)
-        self.toolbar_other.addAction(aboutAct)
+        toolbar_other.addAction(previousAct)
+        toolbar_other.addAction(nextAct)
+        toolbar_other.addAction(todayAct)
+        toolbar_other.addAction(aboutAct)
 
     def __validate_week_and_year__(self):
         """Validate the week and the year and update a WeekWrapper."""

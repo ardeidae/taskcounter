@@ -387,9 +387,10 @@ class MainWindow(CenterMixin, QMainWindow):
         self.addToolBar(Qt.TopToolBarArea, toolbar_days)
 
         days_action_group = QActionGroup(self)
-        for day in WeekDay:
+        for counter, day in enumerate(WeekDay,start=1):
             action = QAction(
                 QIcon(':/' + day.name.lower() + '.png'), day.name, self)
+            action.setShortcut('Alt+' + str(counter))
             action.setCheckable(True)
             action.setStatusTip('Go to ' + day.name)
             action.triggered.connect(self.__change_current_day__)
@@ -398,14 +399,17 @@ class MainWindow(CenterMixin, QMainWindow):
             toolbar_days.addAction(action)
 
         previous_act = QAction(QIcon(':/previous.png'), 'Previous Week', self)
+        previous_act.setShortcut('Ctrl+P')
         previous_act.triggered.connect(self.__previous_week__)
         previous_act.setStatusTip('Go to Previous Week')
 
         next_act = QAction(QIcon(':/next.png'), 'Next Week', self)
+        next_act.setShortcut('Ctrl+N')
         next_act.triggered.connect(self.__next_week__)
         next_act.setStatusTip('Go to Next Week')
 
         today_act = QAction(QIcon(':/today.png'), 'Today', self)
+        today_act.setShortcut('Ctrl+T')
         today_act.triggered.connect(self.__today__)
         today_act.setStatusTip('Go to today')
 

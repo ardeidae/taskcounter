@@ -380,8 +380,10 @@ class MainWindow(CenterMixin, QMainWindow):
 
     def __create_toolbars_and_menus__(self):
         """Create the toolbars and menus."""
-        toolbar_other = QToolBar(self)
-        self.addToolBar(Qt.TopToolBarArea, toolbar_other)
+        toolbar_weeks = QToolBar(self)
+        self.addToolBar(Qt.TopToolBarArea, toolbar_weeks)
+        toolbar_application = QToolBar(self)
+        self.addToolBar(Qt.TopToolBarArea, toolbar_application)
         self.addToolBarBreak()
         toolbar_days = QToolBar(self)
         self.addToolBar(Qt.TopToolBarArea, toolbar_days)
@@ -425,7 +427,6 @@ class MainWindow(CenterMixin, QMainWindow):
         exit_act.setShortcut('Ctrl+Q')
         exit_act.setStatusTip('Quit application')
         exit_act.triggered.connect(self.close)
-        toolbar_other.addAction(exit_act)
 
         self.year_edit = QSpinBox()
         self.year_edit.setPrefix('Year: ')
@@ -442,13 +443,14 @@ class MainWindow(CenterMixin, QMainWindow):
         self.week_edit.valueChanged.connect(self.__week_changed__)
         self.year_edit.valueChanged.connect(self.__year_changed__)
 
-        toolbar_other.addWidget(self.year_edit)
-        toolbar_other.addWidget(self.week_edit)
+        toolbar_weeks.addAction(today_act)
+        toolbar_weeks.addWidget(self.year_edit)
+        toolbar_weeks.addWidget(self.week_edit)
+        toolbar_weeks.addAction(previous_act)
+        toolbar_weeks.addAction(next_act)
 
-        toolbar_other.addAction(previous_act)
-        toolbar_other.addAction(next_act)
-        toolbar_other.addAction(today_act)
-        toolbar_other.addAction(about_act)
+        toolbar_application.addAction(exit_act)
+        toolbar_application.addAction(about_act)
 
         menubar = self.menuBar()
         menubar.setNativeMenuBar(True)

@@ -28,7 +28,7 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QCompleter, QDesktopWidget,
                              QHeaderView, QItemDelegate, QLabel, QLCDNumber,
                              QMainWindow, QSpinBox, QTableView, QTabWidget,
                              QTextBrowser, QTextEdit, QToolBar, QVBoxLayout,
-                             QWidget)
+                             QWidget, qApp)
 
 import resources
 from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
@@ -413,6 +413,10 @@ class MainWindow(CenterMixin, QMainWindow):
         about_act.triggered.connect(self.__about__)
         about_act.setStatusTip('About this application')
 
+        about_qt_act = QAction('About Qt', self)
+        about_qt_act.triggered.connect(qApp.aboutQt)
+        about_qt_act.setStatusTip('About Qt')
+
         exit_act = QAction(QIcon(':/exit.png'), '&Quit', self)
         exit_act.setShortcut('Ctrl+Q')
         exit_act.setStatusTip('Quit application')
@@ -447,6 +451,9 @@ class MainWindow(CenterMixin, QMainWindow):
 
         exit_menu = menubar.addMenu('Quit')
         exit_menu.addAction(exit_act)
+
+        about_qt_menu = menubar.addMenu('About Qt')
+        about_qt_menu.addAction(about_qt_act)
 
         about_menu = menubar.addMenu('About')
         about_menu.addAction(about_act)

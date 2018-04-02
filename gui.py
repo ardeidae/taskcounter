@@ -20,7 +20,7 @@
 import datetime
 
 from PyQt5.QtCore import (QFile, QItemSelectionModel, QStringListModel, Qt,
-                          pyqtSignal)
+                          pyqtSignal, pyqtSlot)
 from PyQt5.QtGui import (QBrush, QColor, QFont, QIcon, QPalette, QTextCursor,
                          QTextOption)
 from PyQt5.QtWidgets import (QAction, QActionGroup, QCompleter, QDesktopWidget,
@@ -66,6 +66,7 @@ class LineEdit(QTextEdit):
             completer.activated.connect(self.__insert_completion__)
             self.completer = completer
 
+    @pyqtSlot(str)
     def __insert_completion__(self, completion):
         """When the completer is activated, inserts the completion."""
         if self.completer and self.completer.widget() == self:
@@ -97,6 +98,7 @@ class LineEdit(QTextEdit):
             self.completer.completionModel().index(0, 0))
         self.completer.complete()
 
+    @pyqtSlot()
     def __text_has_changed__(self):
         """When the text has changed."""
         # remove new lines and strip left blank characters
@@ -126,6 +128,7 @@ class TaskNameDelegate(QItemDelegate):
         editor.return_pressed.connect(self.__commit_and_close_editor__)
         return editor
 
+    @pyqtSlot()
     def __commit_and_close_editor__(self):
         """Commit changes and close the editor."""
         editor = self.sender()
@@ -487,6 +490,7 @@ class MainWindow(CenterMixin, QMainWindow):
         else:
             self.day_actions[WeekDay.Monday].activate(QAction.Trigger)
 
+    @pyqtSlot()
     def __previous_week__(self):
         """Go to the previous week."""
         current_week = int(self.week_edit.value())
@@ -498,6 +502,7 @@ class MainWindow(CenterMixin, QMainWindow):
         else:
             self.week_edit.setValue(current_week - 1)
 
+    @pyqtSlot()
     def __next_week__(self):
         """Go to the next week."""
         current_week = int(self.week_edit.value())
@@ -509,6 +514,7 @@ class MainWindow(CenterMixin, QMainWindow):
         else:
             self.week_edit.setValue(current_week + 1)
 
+    @pyqtSlot()
     def __today__(self):
         """Go to the current day, today."""
         self.year_edit.setValue(datetime.datetime.now().year)
@@ -516,11 +522,13 @@ class MainWindow(CenterMixin, QMainWindow):
         self.week_edit.setValue(datetime.date.today().isocalendar()[1])
         self.__validate_week_and_year__()
 
+    @pyqtSlot()
     def __about__(self):
         """Open the about page."""
         about = About(self)
         about.exec_()
 
+    @pyqtSlot()
     def __change_current_day__(self):
         """Change the current day for edition."""
         sender = self.sender()
@@ -549,11 +557,13 @@ class MainWindow(CenterMixin, QMainWindow):
             index = self.model.last_task_cell_index
             self.table.selectionModel().setCurrentIndex(index, flags)
 
+    @pyqtSlot(int)
     def __year_changed__(self, year):
         """Change the current year, event."""
         self.__update_week_edit__(year)
         self.__validate_week_and_year__()
 
+    @pyqtSlot(int)
     def __week_changed__(self, week):
         """Change the current week, event."""
         self.__validate_week_and_year__()
@@ -563,11 +573,13 @@ class MainWindow(CenterMixin, QMainWindow):
         weeks = weeks_for_year(int(year))
         self.week_edit.setMaximum(weeks)
 
+    @pyqtSlot()
     def __update_day_time_counter__(self):
         """Update the day time counter."""
         self.day_time_lcdnumber.display(
             minutes_to_time_str(self.model.minutes_of_day))
 
+    @pyqtSlot()
     def __update_week_time_counter__(self):
         """Update the week time counter."""
         self.week_time_lcdnumber.display(

@@ -40,7 +40,7 @@ from version import author, github_repository, version
 class LineEdit(QTextEdit):
     """Custom LineEdit."""
 
-    returnPressed = pyqtSignal()
+    return_pressed = pyqtSignal()
 
     def __init__(self, parent=None):
         """Construct a custom line edit."""
@@ -83,7 +83,7 @@ class LineEdit(QTextEdit):
                 return
         else:
             if event.key() in(Qt.Key_Return, Qt.Key_Enter):
-                self.returnPressed.emit()
+                self.return_pressed.emit()
                 return
 
         super().keyPressEvent(event)
@@ -123,7 +123,7 @@ class TaskNameDelegate(QItemDelegate):
         completer.setModel(string_list_model)
         editor = LineEdit(parent)
         editor.set_completer(completer)
-        editor.returnPressed.connect(self.__commit_and_close_editor__)
+        editor.return_pressed.connect(self.__commit_and_close_editor__)
         return editor
 
     def __commit_and_close_editor__(self):
@@ -245,7 +245,7 @@ class MainWindow(CenterMixin, QMainWindow):
     def __init__(self):
         """Construct a MainWindow."""
         super().__init__()
-        self.dayActions = dict()
+        self.day_actions = dict()
         self.model = None
         self.table = None
         self.week_edit = None
@@ -386,38 +386,38 @@ class MainWindow(CenterMixin, QMainWindow):
         toolbar_days = QToolBar(self)
         self.addToolBar(Qt.TopToolBarArea, toolbar_days)
 
-        daysActionGroup = QActionGroup(self)
+        days_action_group = QActionGroup(self)
         for day in WeekDay:
             action = QAction(
                 QIcon(':/' + day.name.lower() + '.png'), day.name, self)
             action.setCheckable(True)
             action.setStatusTip('Go to ' + day.name)
             action.triggered.connect(self.__change_current_day__)
-            daysActionGroup.addAction(action)
-            self.dayActions[day] = action
+            days_action_group.addAction(action)
+            self.day_actions[day] = action
             toolbar_days.addAction(action)
 
-        previousAct = QAction(QIcon(':/previous.png'), 'Previous Week', self)
-        previousAct.triggered.connect(self.__previous_week__)
-        previousAct.setStatusTip('Go to Previous Week')
+        previous_act = QAction(QIcon(':/previous.png'), 'Previous Week', self)
+        previous_act.triggered.connect(self.__previous_week__)
+        previous_act.setStatusTip('Go to Previous Week')
 
-        nextAct = QAction(QIcon(':/next.png'), 'Next Week', self)
-        nextAct.triggered.connect(self.__next_week__)
-        nextAct.setStatusTip('Go to Next Week')
+        next_act = QAction(QIcon(':/next.png'), 'Next Week', self)
+        next_act.triggered.connect(self.__next_week__)
+        next_act.setStatusTip('Go to Next Week')
 
-        todayAct = QAction(QIcon(':/today.png'), 'Today', self)
-        todayAct.triggered.connect(self.__today__)
-        todayAct.setStatusTip('Go to today')
+        today_act = QAction(QIcon(':/today.png'), 'Today', self)
+        today_act.triggered.connect(self.__today__)
+        today_act.setStatusTip('Go to today')
 
-        aboutAct = QAction(QIcon(':/info.png'), 'About', self)
-        aboutAct.triggered.connect(self.__about__)
-        aboutAct.setStatusTip('About this application')
+        about_act = QAction(QIcon(':/info.png'), 'About', self)
+        about_act.triggered.connect(self.__about__)
+        about_act.setStatusTip('About this application')
 
-        exitAct = QAction(QIcon(':/exit.png'), '&Exit', self)
-        exitAct.setShortcut('Ctrl+Q')
-        exitAct.setStatusTip('Exit application')
-        exitAct.triggered.connect(self.close)
-        toolbar_other.addAction(exitAct)
+        exit_act = QAction(QIcon(':/exit.png'), '&Exit', self)
+        exit_act.setShortcut('Ctrl+Q')
+        exit_act.setStatusTip('Exit application')
+        exit_act.triggered.connect(self.close)
+        toolbar_other.addAction(exit_act)
 
         self.year_edit = QSpinBox()
         self.year_edit.setPrefix('Year: ')
@@ -437,10 +437,10 @@ class MainWindow(CenterMixin, QMainWindow):
         toolbar_other.addWidget(self.year_edit)
         toolbar_other.addWidget(self.week_edit)
 
-        toolbar_other.addAction(previousAct)
-        toolbar_other.addAction(nextAct)
-        toolbar_other.addAction(todayAct)
-        toolbar_other.addAction(aboutAct)
+        toolbar_other.addAction(previous_act)
+        toolbar_other.addAction(next_act)
+        toolbar_other.addAction(today_act)
+        toolbar_other.addAction(about_act)
 
     def __validate_week_and_year__(self):
         """Validate the week and the year and update a WeekWrapper."""
@@ -450,10 +450,10 @@ class MainWindow(CenterMixin, QMainWindow):
         if (self.year_edit.value() == datetime.datetime.now().year
                 and self.week_edit.value() ==
                 datetime.date.today().isocalendar()[1]):
-            self.dayActions[weekday_from_date(
+            self.day_actions[weekday_from_date(
                 datetime.date.today())].activate(QAction.Trigger)
         else:
-            self.dayActions[WeekDay.Monday].activate(QAction.Trigger)
+            self.day_actions[WeekDay.Monday].activate(QAction.Trigger)
 
     def __previous_week__(self):
         """Go to the previous week."""

@@ -370,7 +370,7 @@ class MainWindow(CenterMixin, QMainWindow):
 
         self.__set_window_size__()
         self.center()
-        self.__create_toolbars__()
+        self.__create_toolbars_and_menus__()
         self.__init_table__()
         self.__init_layout__()
 
@@ -378,8 +378,8 @@ class MainWindow(CenterMixin, QMainWindow):
 
         self.show()
 
-    def __create_toolbars__(self):
-        """Create the toolbars."""
+    def __create_toolbars_and_menus__(self):
+        """Create the toolbars and menus."""
         toolbar_other = QToolBar(self)
         self.addToolBar(Qt.TopToolBarArea, toolbar_other)
         self.addToolBarBreak()
@@ -413,9 +413,9 @@ class MainWindow(CenterMixin, QMainWindow):
         about_act.triggered.connect(self.__about__)
         about_act.setStatusTip('About this application')
 
-        exit_act = QAction(QIcon(':/exit.png'), '&Exit', self)
+        exit_act = QAction(QIcon(':/exit.png'), '&Quit', self)
         exit_act.setShortcut('Ctrl+Q')
-        exit_act.setStatusTip('Exit application')
+        exit_act.setStatusTip('Quit application')
         exit_act.triggered.connect(self.close)
         toolbar_other.addAction(exit_act)
 
@@ -441,6 +441,25 @@ class MainWindow(CenterMixin, QMainWindow):
         toolbar_other.addAction(next_act)
         toolbar_other.addAction(today_act)
         toolbar_other.addAction(about_act)
+
+        menubar = self.menuBar()
+        menubar.setNativeMenuBar(True)
+
+        exit_menu = menubar.addMenu('Quit')
+        exit_menu.addAction(exit_act)
+
+        about_menu = menubar.addMenu('About')
+        about_menu.addAction(about_act)
+
+        weeks_menu = menubar.addMenu('Weeks')
+        weeks_menu.addAction(today_act)
+        weeks_menu.addAction(previous_act)
+        weeks_menu.addAction(next_act)
+
+        days_menu = menubar.addMenu('Days')
+        for action in days_action_group.actions():
+            days_menu.addAction(action)
+
 
     def __validate_week_and_year__(self):
         """Validate the week and the year and update a WeekWrapper."""

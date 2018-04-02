@@ -42,6 +42,7 @@ python3 tests.py
 * [Python3](https://www.python.org/) - Python is a programming language that lets you work quickly and integrate systems more effectively.
 * [PyQt5](https://www.riverbankcomputing.com/software/pyqt/intro) - PyQt is a set of Python bindings for [Qt application framework](https://www.qt.io/).
 * [peewee](http://peewee.readthedocs.io/en/latest/) - Peewee is a simple and small ORM.
+* [SQLite](https://www.sqlite.org/) - SQLite is a SQL database engine.
 
 ## Versioning
 

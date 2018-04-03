@@ -168,10 +168,11 @@ class CenterMixin:
 
     def center(self):
         """Center the window."""
-        geometry = self.frameGeometry()
-        center = QDesktopWidget().availableGeometry().center()
-        geometry.moveCenter(center)
-        self.move(geometry.topLeft())
+        if isinstance(self, QWidget):
+            geometry = self.frameGeometry()
+            center = QDesktopWidget().availableGeometry().center()
+            geometry.moveCenter(center)
+            self.move(geometry.topLeft())
 
 
 class About(CenterMixin, QDialog):

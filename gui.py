@@ -324,11 +324,11 @@ class MainWindow(CenterMixin, QMainWindow):
         main_layout.addWidget(self.current_day_label)
         main_layout.addWidget(self.table)
 
-        week_label = QLabel("Week time")
+        week_label = QLabel('Week time', self)
         self.week_time_lcdnumber = self.__build_lcd_number_widget__()
         self.__change_week_color__(Qt.darkBlue)
 
-        day_label = QLabel("Day time")
+        day_label = QLabel('Day time', self)
         self.day_time_lcdnumber = self.__build_lcd_number_widget__()
         self.__change_day_color__(Qt.darkGreen)
 
@@ -432,13 +432,13 @@ class MainWindow(CenterMixin, QMainWindow):
         exit_act.setStatusTip('Quit application')
         exit_act.triggered.connect(self.close)
 
-        self.year_edit = QSpinBox()
+        self.year_edit = QSpinBox(self)
         self.year_edit.setPrefix('Year: ')
         self.year_edit.setMinimum(2010)
         self.year_edit.setMaximum(2050)
         self.year_edit.setValue(datetime.datetime.now().year)
 
-        self.week_edit = QSpinBox()
+        self.week_edit = QSpinBox(self)
         self.week_edit.setPrefix('Week: ')
         self.week_edit.setMinimum(1)
         self.__update_week_edit__(self.year_edit.value())

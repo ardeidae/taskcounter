@@ -26,7 +26,7 @@ fn = fn
 SQL = SQL
 
 
-DB = SqliteDatabase('database.db')
+DB = SqliteDatabase('tasks-counter.db')
 
 
 class MyBaseModel(Model):
@@ -41,7 +41,7 @@ class Week(MyBaseModel):
 
     year = IntegerField()
     week_number = IntegerField()
-    week_hours = IntegerField(null=True)
+    minutes_to_work = IntegerField(default=0)
 
     class Meta:
         indexes = (
@@ -52,7 +52,7 @@ class Week(MyBaseModel):
     def __str__(self):
         """Get string representation."""
         return 'Week: {}/{}:{}h'.format(self.year, self.week_number,
-                                        self.week_hours)
+                                        self.minutes_to_work)
 
 
 class Day(MyBaseModel):

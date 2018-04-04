@@ -24,6 +24,7 @@ from PyQt5.QtCore import QAbstractTableModel, Qt, QTime, QVariant
 from PyQt5.QtGui import QBrush, QColor
 
 from database import SQL, Day, IntegrityError, Task, Week, fn
+from settings import INVALID_CELL_HIGHLIGHT_COLOR, VALID_CELL_HIGHLIGHT_COLOR
 
 
 @unique
@@ -119,19 +120,23 @@ class WeekWrapper:
 
     def __init__(self, year, week_number):
         """Construct a week wrapper object."""
+        # get the last work time entered, to use it a default value
+        last_time = self.__last_work_time_entered__()
         self._week = Week.get_or_create(year=year,
-                                        week_number=week_number)[0]
+                                        week_number=week_number,
+                                        defaults={'minutes_to_work':
+                                                  last_time})[0]
         self.__create_days__()
 
     @property
-    def week_hours(self):
-        """Get hours of this week instance."""
-        return self._week.week_hours
+    def minutes_to_work(self):
+        """Get work time in minutes of this week instance."""
+        return self._week.minutes_to_work
 
-    @week_hours.setter
-    def week_hours(self, week_hours):
-        """Set hours of this week instance."""
-        self._week.week_hours = week_hours
+    @minutes_to_work.setter
+    def minutes_to_work(self, minutes_to_work):
+        """Set work time in minutes of this week instance."""
+        self._week.minutes_to_work = minutes_to_work
         self._week.save()
 
     def __getitem__(self, week_day):
@@ -169,6 +174,12 @@ class WeekWrapper:
                           )
                    .scalar())
         return minutes or 0
+
+    def __last_work_time_entered__(self):
+        """Get the last work time entered, the newest."""
+        return (Week.select(Week.minutes_to_work)
+                    .order_by(-Week.year, -Week.week_number)
+                    .scalar()) or 0
 
 
 class DayWrapper(QAbstractTableModel):
@@ -261,12 +272,12 @@ class DayWrapper(QAbstractTableModel):
             try:
                 start = self._cached_data[row][Column.Start_Time]
                 end = self._cached_data[row][Column.End_Time]
-                red_brush = QBrush(QColor('#FFCDD2'))
+                red_brush = QBrush(QColor(VALID_CELL_HIGHLIGHT_COLOR))
                 if not start or not end:
                     return red_brush
                 if start >= end:
                     return red_brush
-                return QBrush(QColor('#DAF7A6'))
+                return QBrush(QColor(INVALID_CELL_HIGHLIGHT_COLOR))
             except KeyError:
                 pass
 

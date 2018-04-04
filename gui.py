@@ -20,7 +20,7 @@
 import datetime
 
 from PyQt5.QtCore import (QFile, QItemSelectionModel, QStringListModel, Qt,
-                          pyqtSignal)
+                          pyqtSignal, pyqtSlot)
 from PyQt5.QtGui import (QBrush, QColor, QFont, QIcon, QPalette, QTextCursor,
                          QTextOption)
 from PyQt5.QtWidgets import (QAction, QActionGroup, QCompleter, QDesktopWidget,
@@ -28,19 +28,20 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QCompleter, QDesktopWidget,
                              QHeaderView, QItemDelegate, QLabel, QLCDNumber,
                              QMainWindow, QSpinBox, QTableView, QTabWidget,
                              QTextBrowser, QTextEdit, QToolBar, QVBoxLayout,
-                             QWidget)
+                             QWidget, qApp)
 
 import resources
 from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
                      minutes_to_time_str, weekday_from_date, weeks_for_year)
 from database import close_database
 from version import author, github_repository, version
+from settings import CELL_HIGHLIGHT_COLOR, CELL_HIGHLIGHT_TEXT_COLOR
 
 
 class LineEdit(QTextEdit):
     """Custom LineEdit."""
 
-    returnPressed = pyqtSignal()
+    return_pressed = pyqtSignal()
 
     def __init__(self, parent=None):
         """Construct a custom line edit."""
@@ -66,6 +67,7 @@ class LineEdit(QTextEdit):
             completer.activated.connect(self.__insert_completion__)
             self.completer = completer
 
+    @pyqtSlot(str)
     def __insert_completion__(self, completion):
         """When the completer is activated, inserts the completion."""
         if self.completer and self.completer.widget() == self:
@@ -83,7 +85,7 @@ class LineEdit(QTextEdit):
                 return
         else:
             if event.key() in(Qt.Key_Return, Qt.Key_Enter):
-                self.returnPressed.emit()
+                self.return_pressed.emit()
                 return
 
         super().keyPressEvent(event)
@@ -97,6 +99,7 @@ class LineEdit(QTextEdit):
             self.completer.completionModel().index(0, 0))
         self.completer.complete()
 
+    @pyqtSlot()
     def __text_has_changed__(self):
         """When the text has changed."""
         # remove new lines and strip left blank characters
@@ -123,9 +126,10 @@ class TaskNameDelegate(QItemDelegate):
         completer.setModel(string_list_model)
         editor = LineEdit(parent)
         editor.set_completer(completer)
-        editor.returnPressed.connect(self.__commit_and_close_editor__)
+        editor.return_pressed.connect(self.__commit_and_close_editor__)
         return editor
 
+    @pyqtSlot()
     def __commit_and_close_editor__(self):
         """Commit changes and close the editor."""
         editor = self.sender()
@@ -165,10 +169,11 @@ class CenterMixin:
 
     def center(self):
         """Center the window."""
-        geometry = self.frameGeometry()
-        center = QDesktopWidget().availableGeometry().center()
-        geometry.moveCenter(center)
-        self.move(geometry.topLeft())
+        if isinstance(self, QWidget):
+            geometry = self.frameGeometry()
+            center = QDesktopWidget().availableGeometry().center()
+            geometry.moveCenter(center)
+            self.move(geometry.topLeft())
 
 
 class About(CenterMixin, QDialog):
@@ -245,14 +250,14 @@ class MainWindow(CenterMixin, QMainWindow):
     def __init__(self):
         """Construct a MainWindow."""
         super().__init__()
-        self.dayActions = dict()
+        self.day_actions = dict()
         self.model = None
         self.table = None
-        self.toolbar_days = None
-        self.toolbar_other = None
         self.week_edit = None
         self.week_wrapper = None
         self.year_edit = None
+        self.hours_edit = None
+        self.minutes_edit = None
         self.current_day_label = None
         self.week_time_lcdnumber = None
         self.day_time_lcdnumber = None
@@ -280,8 +285,10 @@ class MainWindow(CenterMixin, QMainWindow):
         self.table.setSelectionMode(QTableView.SingleSelection)
         self.table.setAlternatingRowColors(True)
         palette = self.table.palette()
-        palette.setBrush(QPalette.Highlight, QBrush(QColor('#fffd88')))
-        palette.setBrush(QPalette.HighlightedText, QBrush(Qt.red))
+        palette.setBrush(QPalette.Highlight,
+                         QBrush(QColor(CELL_HIGHLIGHT_COLOR)))
+        palette.setBrush(QPalette.HighlightedText,
+                         QBrush(QColor(CELL_HIGHLIGHT_TEXT_COLOR)))
         self.table.setPalette(palette)
         self.__disable_headers_click__()
         task_name_delegate = TaskNameDelegate(self.table)
@@ -322,11 +329,11 @@ class MainWindow(CenterMixin, QMainWindow):
         main_layout.addWidget(self.current_day_label)
         main_layout.addWidget(self.table)
 
-        week_label = QLabel("Week time")
+        week_label = QLabel('Week time', self)
         self.week_time_lcdnumber = self.__build_lcd_number_widget__()
         self.__change_week_color__(Qt.darkBlue)
 
-        day_label = QLabel("Day time")
+        day_label = QLabel('Day time', self)
         self.day_time_lcdnumber = self.__build_lcd_number_widget__()
         self.__change_day_color__(Qt.darkGreen)
 
@@ -372,7 +379,7 @@ class MainWindow(CenterMixin, QMainWindow):
 
         self.__set_window_size__()
         self.center()
-        self.__create_toolbars__()
+        self.__create_toolbars_and_menus__()
         self.__init_table__()
         self.__init_layout__()
 
@@ -380,54 +387,63 @@ class MainWindow(CenterMixin, QMainWindow):
 
         self.show()
 
-    def __create_toolbars__(self):
-        """Create the toolbars."""
-        self.toolbar_other = QToolBar(self)
-        self.addToolBar(Qt.TopToolBarArea, self.toolbar_other)
+    def __create_toolbars_and_menus__(self):
+        """Create the toolbars and menus."""
+        toolbar_weeks = QToolBar(self)
+        self.addToolBar(Qt.TopToolBarArea, toolbar_weeks)
+        toolbar_application = QToolBar(self)
+        self.addToolBar(Qt.TopToolBarArea, toolbar_application)
         self.addToolBarBreak()
-        self.toolbar_days = QToolBar(self)
-        self.addToolBar(Qt.TopToolBarArea, self.toolbar_days)
+        toolbar_days = QToolBar(self)
+        self.addToolBar(Qt.TopToolBarArea, toolbar_days)
 
-        daysActionGroup = QActionGroup(self)
-        for day in WeekDay:
+        days_action_group = QActionGroup(self)
+        for counter, day in enumerate(WeekDay,start=1):
             action = QAction(
                 QIcon(':/' + day.name.lower() + '.png'), day.name, self)
+            action.setShortcut('Alt+' + str(counter))
             action.setCheckable(True)
             action.setStatusTip('Go to ' + day.name)
             action.triggered.connect(self.__change_current_day__)
-            daysActionGroup.addAction(action)
-            self.dayActions[day] = action
-            self.toolbar_days.addAction(action)
+            days_action_group.addAction(action)
+            self.day_actions[day] = action
+            toolbar_days.addAction(action)
 
-        previousAct = QAction(QIcon(':/previous.png'), 'Previous Week', self)
-        previousAct.triggered.connect(self.__previous_week__)
-        previousAct.setStatusTip('Go to Previous Week')
+        previous_act = QAction(QIcon(':/previous.png'), 'Previous Week', self)
+        previous_act.setShortcut('Ctrl+P')
+        previous_act.triggered.connect(self.__previous_week__)
+        previous_act.setStatusTip('Go to Previous Week')
 
-        nextAct = QAction(QIcon(':/next.png'), 'Next Week', self)
-        nextAct.triggered.connect(self.__next_week__)
-        nextAct.setStatusTip('Go to Next Week')
+        next_act = QAction(QIcon(':/next.png'), 'Next Week', self)
+        next_act.setShortcut('Ctrl+N')
+        next_act.triggered.connect(self.__next_week__)
+        next_act.setStatusTip('Go to Next Week')
 
-        todayAct = QAction(QIcon(':/today.png'), 'Today', self)
-        todayAct.triggered.connect(self.__today__)
-        todayAct.setStatusTip('Go to today')
+        today_act = QAction(QIcon(':/today.png'), 'Today', self)
+        today_act.setShortcut('Ctrl+T')
+        today_act.triggered.connect(self.__today__)
+        today_act.setStatusTip('Go to today')
 
-        aboutAct = QAction(QIcon(':/info.png'), 'About', self)
-        aboutAct.triggered.connect(self.__about__)
-        aboutAct.setStatusTip('About this application')
+        about_act = QAction(QIcon(':/info.png'), 'About', self)
+        about_act.triggered.connect(self.__about__)
+        about_act.setStatusTip('About this application')
 
-        exitAct = QAction(QIcon(':/exit.png'), '&Exit', self)
-        exitAct.setShortcut('Ctrl+Q')
-        exitAct.setStatusTip('Exit application')
-        exitAct.triggered.connect(self.close)
-        self.toolbar_other.addAction(exitAct)
+        about_qt_act = QAction('About Qt', self)
+        about_qt_act.triggered.connect(qApp.aboutQt)
+        about_qt_act.setStatusTip('About Qt')
 
-        self.year_edit = QSpinBox()
+        exit_act = QAction(QIcon(':/exit.png'), '&Quit', self)
+        exit_act.setShortcut('Ctrl+Q')
+        exit_act.setStatusTip('Quit application')
+        exit_act.triggered.connect(self.close)
+
+        self.year_edit = QSpinBox(self)
         self.year_edit.setPrefix('Year: ')
         self.year_edit.setMinimum(2010)
         self.year_edit.setMaximum(2050)
         self.year_edit.setValue(datetime.datetime.now().year)
 
-        self.week_edit = QSpinBox()
+        self.week_edit = QSpinBox(self)
         self.week_edit.setPrefix('Week: ')
         self.week_edit.setMinimum(1)
         self.__update_week_edit__(self.year_edit.value())
@@ -436,27 +452,75 @@ class MainWindow(CenterMixin, QMainWindow):
         self.week_edit.valueChanged.connect(self.__week_changed__)
         self.year_edit.valueChanged.connect(self.__year_changed__)
 
-        self.toolbar_other.addWidget(self.year_edit)
-        self.toolbar_other.addWidget(self.week_edit)
+        self.hours_edit = QSpinBox(self)
+        self.hours_edit.setSuffix('h')
+        self.hours_edit.setMinimum(0)
+        self.hours_edit.setMaximum(84)
 
-        self.toolbar_other.addAction(previousAct)
-        self.toolbar_other.addAction(nextAct)
-        self.toolbar_other.addAction(todayAct)
-        self.toolbar_other.addAction(aboutAct)
+        self.minutes_edit = QSpinBox(self)
+        self.minutes_edit.setSuffix('m')
+        self.minutes_edit.setMinimum(0)
+        self.minutes_edit.setMaximum(59)
+
+        self.hours_edit.valueChanged.connect(self.__hours_changed__)
+        self.minutes_edit.valueChanged.connect(self.__minutes_changed__)
+
+        toolbar_weeks.addAction(today_act)
+        toolbar_weeks.addWidget(self.year_edit)
+        toolbar_weeks.addWidget(self.week_edit)
+        toolbar_weeks.addAction(previous_act)
+        toolbar_weeks.addAction(next_act)
+        toolbar_weeks.addWidget(self.hours_edit)
+        toolbar_weeks.addWidget(self.minutes_edit)
+
+        toolbar_application.addAction(exit_act)
+        toolbar_application.addAction(about_act)
+
+        menubar = self.menuBar()
+        menubar.setNativeMenuBar(True)
+
+        exit_menu = menubar.addMenu('Quit')
+        exit_menu.addAction(exit_act)
+
+        about_qt_menu = menubar.addMenu('About Qt')
+        about_qt_menu.addAction(about_qt_act)
+
+        about_menu = menubar.addMenu('About')
+        about_menu.addAction(about_act)
+
+        weeks_menu = menubar.addMenu('Weeks')
+        weeks_menu.addAction(today_act)
+        weeks_menu.addAction(previous_act)
+        weeks_menu.addAction(next_act)
+
+        days_menu = menubar.addMenu('Days')
+        for action in days_action_group.actions():
+            days_menu.addAction(action)
 
     def __validate_week_and_year__(self):
         """Validate the week and the year and update a WeekWrapper."""
         self.week_wrapper = WeekWrapper(
             self.year_edit.value(), self.week_edit.value())
 
+        minutes_time = self.week_wrapper.minutes_to_work
+        (hours, minutes) = divmod(minutes_time, 60)
+
+        self.hours_edit.blockSignals(True)
+        self.minutes_edit.blockSignals(True)
+        self.hours_edit.setValue(hours)
+        self.minutes_edit.setValue(minutes)
+        self.hours_edit.blockSignals(False)
+        self.minutes_edit.blockSignals(False)
+
         if (self.year_edit.value() == datetime.datetime.now().year
                 and self.week_edit.value() ==
                 datetime.date.today().isocalendar()[1]):
-            self.dayActions[weekday_from_date(
+            self.day_actions[weekday_from_date(
                 datetime.date.today())].activate(QAction.Trigger)
         else:
-            self.dayActions[WeekDay.Monday].activate(QAction.Trigger)
+            self.day_actions[WeekDay.Monday].activate(QAction.Trigger)
 
+    @pyqtSlot()
     def __previous_week__(self):
         """Go to the previous week."""
         current_week = int(self.week_edit.value())
@@ -468,6 +532,7 @@ class MainWindow(CenterMixin, QMainWindow):
         else:
             self.week_edit.setValue(current_week - 1)
 
+    @pyqtSlot()
     def __next_week__(self):
         """Go to the next week."""
         current_week = int(self.week_edit.value())
@@ -479,6 +544,7 @@ class MainWindow(CenterMixin, QMainWindow):
         else:
             self.week_edit.setValue(current_week + 1)
 
+    @pyqtSlot()
     def __today__(self):
         """Go to the current day, today."""
         self.year_edit.setValue(datetime.datetime.now().year)
@@ -486,11 +552,13 @@ class MainWindow(CenterMixin, QMainWindow):
         self.week_edit.setValue(datetime.date.today().isocalendar()[1])
         self.__validate_week_and_year__()
 
+    @pyqtSlot()
     def __about__(self):
         """Open the about page."""
         about = About(self)
         about.exec_()
 
+    @pyqtSlot()
     def __change_current_day__(self):
         """Change the current day for edition."""
         sender = self.sender()
@@ -519,11 +587,13 @@ class MainWindow(CenterMixin, QMainWindow):
             index = self.model.last_task_cell_index
             self.table.selectionModel().setCurrentIndex(index, flags)
 
+    @pyqtSlot(int)
     def __year_changed__(self, year):
         """Change the current year, event."""
         self.__update_week_edit__(year)
         self.__validate_week_and_year__()
 
+    @pyqtSlot(int)
     def __week_changed__(self, week):
         """Change the current week, event."""
         self.__validate_week_and_year__()
@@ -533,11 +603,13 @@ class MainWindow(CenterMixin, QMainWindow):
         weeks = weeks_for_year(int(year))
         self.week_edit.setMaximum(weeks)
 
+    @pyqtSlot()
     def __update_day_time_counter__(self):
         """Update the day time counter."""
         self.day_time_lcdnumber.display(
             minutes_to_time_str(self.model.minutes_of_day))
 
+    @pyqtSlot()
     def __update_week_time_counter__(self):
         """Update the week time counter."""
         self.week_time_lcdnumber.display(
@@ -550,3 +622,22 @@ class MainWindow(CenterMixin, QMainWindow):
         lcdnumber.setFixedHeight(40)
         lcdnumber.setFrameStyle(QFrame.NoFrame)
         return lcdnumber
+
+    @pyqtSlot()
+    def __hours_changed__(self):
+        """Change the work hours of the week, event."""
+        self.__update_week_time__()
+
+    @pyqtSlot()
+    def __minutes_changed__(self):
+        """Change the work minutes of the week, event."""
+        self.__update_week_time__()
+
+    def __update_week_time__(self):
+        """Update the work time of the week."""
+        hours = self.hours_edit.value()
+        minutes = self.minutes_edit.value()
+        minutes_time = 60 * hours + minutes
+        if self.week_wrapper:
+            self.week_wrapper.minutes_to_work = minutes_time
+

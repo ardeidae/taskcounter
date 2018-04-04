@@ -15,8 +15,9 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Tasks counter version information."""
+"""Tasks counter settings."""
 
-version = '0.2.0'
-author = 'Matthieu PETIOT'
-github_repository = 'https://github.com/ardeidae/tasks-counter'
+CELL_HIGHLIGHT_COLOR = '#fffd88'
+CELL_HIGHLIGHT_TEXT_COLOR = '#ff0000'
+VALID_CELL_HIGHLIGHT_COLOR = '#FFCDD2'
+INVALID_CELL_HIGHLIGHT_COLOR = '#DAF7A6'

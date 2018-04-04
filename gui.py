@@ -256,6 +256,8 @@ class MainWindow(CenterMixin, QMainWindow):
         self.week_edit = None
         self.week_wrapper = None
         self.year_edit = None
+        self.hours_edit = None
+        self.minutes_edit = None
         self.current_day_label = None
         self.week_time_lcdnumber = None
         self.day_time_lcdnumber = None
@@ -450,11 +452,26 @@ class MainWindow(CenterMixin, QMainWindow):
         self.week_edit.valueChanged.connect(self.__week_changed__)
         self.year_edit.valueChanged.connect(self.__year_changed__)
 
+        self.hours_edit = QSpinBox(self)
+        self.hours_edit.setSuffix('h')
+        self.hours_edit.setMinimum(0)
+        self.hours_edit.setMaximum(84)
+
+        self.minutes_edit = QSpinBox(self)
+        self.minutes_edit.setSuffix('m')
+        self.minutes_edit.setMinimum(0)
+        self.minutes_edit.setMaximum(59)
+
+        self.hours_edit.valueChanged.connect(self.__hours_changed__)
+        self.minutes_edit.valueChanged.connect(self.__minutes_changed__)
+
         toolbar_weeks.addAction(today_act)
         toolbar_weeks.addWidget(self.year_edit)
         toolbar_weeks.addWidget(self.week_edit)
         toolbar_weeks.addAction(previous_act)
         toolbar_weeks.addAction(next_act)
+        toolbar_weeks.addWidget(self.hours_edit)
+        toolbar_weeks.addWidget(self.minutes_edit)
 
         toolbar_application.addAction(exit_act)
         toolbar_application.addAction(about_act)
@@ -480,11 +497,20 @@ class MainWindow(CenterMixin, QMainWindow):
         for action in days_action_group.actions():
             days_menu.addAction(action)
 
-
     def __validate_week_and_year__(self):
         """Validate the week and the year and update a WeekWrapper."""
         self.week_wrapper = WeekWrapper(
             self.year_edit.value(), self.week_edit.value())
+
+        minutes_time = self.week_wrapper.minutes_to_work
+        (hours, minutes) = divmod(minutes_time, 60)
+
+        self.hours_edit.blockSignals(True)
+        self.minutes_edit.blockSignals(True)
+        self.hours_edit.setValue(hours)
+        self.minutes_edit.setValue(minutes)
+        self.hours_edit.blockSignals(False)
+        self.minutes_edit.blockSignals(False)
 
         if (self.year_edit.value() == datetime.datetime.now().year
                 and self.week_edit.value() ==
@@ -596,3 +622,22 @@ class MainWindow(CenterMixin, QMainWindow):
         lcdnumber.setFixedHeight(40)
         lcdnumber.setFrameStyle(QFrame.NoFrame)
         return lcdnumber
+
+    @pyqtSlot()
+    def __hours_changed__(self):
+        """Change the work hours of the week, event."""
+        self.__update_week_time__()
+
+    @pyqtSlot()
+    def __minutes_changed__(self):
+        """Change the work minutes of the week, event."""
+        self.__update_week_time__()
+
+    def __update_week_time__(self):
+        """Update the work time of the week."""
+        hours = self.hours_edit.value()
+        minutes = self.minutes_edit.value()
+        minutes_time = 60 * hours + minutes
+        if self.week_wrapper:
+            self.week_wrapper.minutes_to_work = minutes_time
+

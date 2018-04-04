@@ -120,18 +120,20 @@ class WeekWrapper:
     def __init__(self, year, week_number):
         """Construct a week wrapper object."""
         self._week = Week.get_or_create(year=year,
-                                        week_number=week_number)[0]
+                                        week_number=week_number,
+                                        defaults={'minutes_to_work':
+                                                  35 * 60})[0]
         self.__create_days__()
 
     @property
-    def week_hours(self):
-        """Get hours of this week instance."""
-        return self._week.week_hours
+    def minutes_to_work(self):
+        """Get work time in minutes of this week instance."""
+        return self._week.minutes_to_work
 
-    @week_hours.setter
-    def week_hours(self, week_hours):
-        """Set hours of this week instance."""
-        self._week.week_hours = week_hours
+    @minutes_to_work.setter
+    def minutes_to_work(self, minutes_to_work):
+        """Set work time in minutes of this week instance."""
+        self._week.minutes_to_work = minutes_to_work
         self._week.save()
 
     def __getitem__(self, week_day):

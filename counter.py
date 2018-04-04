@@ -119,10 +119,12 @@ class WeekWrapper:
 
     def __init__(self, year, week_number):
         """Construct a week wrapper object."""
+        # get the last work time entered, to use it a default value
+        last_time = self.__last_work_time_entered__()
         self._week = Week.get_or_create(year=year,
                                         week_number=week_number,
                                         defaults={'minutes_to_work':
-                                                  35 * 60})[0]
+                                                  last_time})[0]
         self.__create_days__()
 
     @property
@@ -171,6 +173,12 @@ class WeekWrapper:
                           )
                    .scalar())
         return minutes or 0
+
+    def __last_work_time_entered__(self):
+        """Get the last work time entered, the newest."""
+        return (Week.select(Week.minutes_to_work)
+                    .order_by(-Week.year, -Week.week_number)
+                    .scalar()) or 0
 
 
 class DayWrapper(QAbstractTableModel):

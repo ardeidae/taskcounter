@@ -26,7 +26,7 @@ fn = fn
 SQL = SQL
 
 
-DB = SqliteDatabase('database.db')
+DB = SqliteDatabase('tasks-counter.db')
 
 
 class MyBaseModel(Model):

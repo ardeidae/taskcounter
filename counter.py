@@ -24,6 +24,7 @@ from PyQt5.QtCore import QAbstractTableModel, Qt, QTime, QVariant
 from PyQt5.QtGui import QBrush, QColor
 
 from database import SQL, Day, IntegrityError, Task, Week, fn
+from settings import INVALID_CELL_HIGHLIGHT_COLOR, VALID_CELL_HIGHLIGHT_COLOR
 
 
 @unique
@@ -261,12 +262,12 @@ class DayWrapper(QAbstractTableModel):
             try:
                 start = self._cached_data[row][Column.Start_Time]
                 end = self._cached_data[row][Column.End_Time]
-                red_brush = QBrush(QColor('#FFCDD2'))
+                red_brush = QBrush(QColor(VALID_CELL_HIGHLIGHT_COLOR))
                 if not start or not end:
                     return red_brush
                 if start >= end:
                     return red_brush
-                return QBrush(QColor('#DAF7A6'))
+                return QBrush(QColor(INVALID_CELL_HIGHLIGHT_COLOR))
             except KeyError:
                 pass
 

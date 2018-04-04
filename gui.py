@@ -35,6 +35,7 @@ from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
                      minutes_to_time_str, weekday_from_date, weeks_for_year)
 from database import close_database
 from version import author, github_repository, version
+from settings import CELL_HIGHLIGHT_COLOR, CELL_HIGHLIGHT_TEXT_COLOR
 
 
 class LineEdit(QTextEdit):
@@ -282,8 +283,10 @@ class MainWindow(CenterMixin, QMainWindow):
         self.table.setSelectionMode(QTableView.SingleSelection)
         self.table.setAlternatingRowColors(True)
         palette = self.table.palette()
-        palette.setBrush(QPalette.Highlight, QBrush(QColor('#fffd88')))
-        palette.setBrush(QPalette.HighlightedText, QBrush(Qt.red))
+        palette.setBrush(QPalette.Highlight,
+                         QBrush(QColor(CELL_HIGHLIGHT_COLOR)))
+        palette.setBrush(QPalette.HighlightedText,
+                         QBrush(QColor(CELL_HIGHLIGHT_TEXT_COLOR)))
         self.table.setPalette(palette)
         self.__disable_headers_click__()
         task_name_delegate = TaskNameDelegate(self.table)

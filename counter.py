@@ -178,6 +178,7 @@ class WeekWrapper:
     def __last_work_time_entered__(self):
         """Get the last work time entered, the newest."""
         return (Week.select(Week.minutes_to_work)
+                    .where(Week.minutes_to_work.is_null(False))
                     .order_by(-Week.year, -Week.week_number)
                     .scalar()) or 0
 

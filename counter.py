@@ -19,6 +19,7 @@
 
 from datetime import date, timedelta
 from enum import Enum, unique
+import re
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QTime, QVariant
 from PyQt5.QtGui import QBrush, QColor
@@ -483,3 +484,34 @@ def get_last_unique_task_names():
                   .distinct()
                   .where(Day.date > last_3_months)
                   .order_by(Task.name)))
+
+
+def color_between(start_color, end_color, percent):
+    """Get a hex color between a start and end color using a percentage."""
+    if percent < 0:
+        percent = 0
+    if percent > 1:
+        percent = 1
+
+    def split_color(color):
+        """Split hex color like #rrggbb or #rgb into three int components."""
+        color = color[1:]
+        if len(color) == 6:
+            r, g, b = [int(color[i:i + 2], 16) for i in range(0, 6, 2)]
+        elif len(color) == 3:
+            r, g, b = [int(color[i:i + 1], 16) for i in range(0, 3)]
+        return (r, g, b)
+
+    regexp = r'^#(?:[0-9a-fA-F]{3}){1,2}$'
+    if (re.search(regexp, start_color)
+            and re.search(regexp, end_color)):
+
+        r1, g1, b1 = split_color(start_color)
+        r2, g2, b2 = split_color(end_color)
+
+        return ('#{:02x}{:02x}{:02x}'.format(int(r1 + (r2 - r1) * percent),
+                                             int(g1 + (g2 - g1) * percent),
+                                             int(b1 + (b2 - b1) * percent)))
+
+    else:
+        return '#000000'

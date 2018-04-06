@@ -31,11 +31,13 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QCompleter, QDesktopWidget,
                              QWidget, qApp)
 
 import resources
-from counter import (Column, WeekDay, WeekWrapper, get_last_unique_task_names,
-                     minutes_to_time_str, weekday_from_date, weeks_for_year)
+from counter import (Column, WeekDay, WeekWrapper, color_between,
+                     get_last_unique_task_names, minutes_to_time_str,
+                     weekday_from_date, weeks_for_year)
 from database import close_database
+from settings import (BAD_LIMIT_COLOR, CELL_HIGHLIGHT_COLOR,
+                      CELL_HIGHLIGHT_TEXT_COLOR, GOOD_LIMIT_COLOR)
 from version import author, github_repository, version
-from settings import CELL_HIGHLIGHT_COLOR, CELL_HIGHLIGHT_TEXT_COLOR
 
 
 class LineEdit(QTextEdit):
@@ -331,11 +333,9 @@ class MainWindow(CenterMixin, QMainWindow):
 
         week_label = QLabel('Week time', self)
         self.week_time_lcdnumber = self.__build_lcd_number_widget__()
-        self.__change_week_color__(Qt.darkBlue)
 
         day_label = QLabel('Day time', self)
         self.day_time_lcdnumber = self.__build_lcd_number_widget__()
-        self.__change_day_color__(Qt.darkGreen)
 
         footer_layout = QGridLayout()
         footer_layout.addWidget(day_label, 0, 0,
@@ -365,8 +365,8 @@ class MainWindow(CenterMixin, QMainWindow):
 
     def __change_lcd_number_color__(self, lcd_widget, color):
         """Change a given lcd number color with a given color."""
-        if isinstance(color, Qt.GlobalColor) and isinstance(lcd_widget,
-                                                            QLCDNumber):
+        if isinstance(color, QColor) and isinstance(lcd_widget,
+                                                    QLCDNumber):
             palette = QPalette()
             palette.setColor(QPalette.WindowText, color)
             lcd_widget.setPalette(palette)
@@ -398,7 +398,7 @@ class MainWindow(CenterMixin, QMainWindow):
         self.addToolBar(Qt.TopToolBarArea, toolbar_days)
 
         days_action_group = QActionGroup(self)
-        for counter, day in enumerate(WeekDay,start=1):
+        for counter, day in enumerate(WeekDay, start=1):
             action = QAction(
                 QIcon(':/' + day.name.lower() + '.png'), day.name, self)
             action.setShortcut('Alt+' + str(counter))
@@ -615,6 +615,8 @@ class MainWindow(CenterMixin, QMainWindow):
         self.week_time_lcdnumber.display(
             minutes_to_time_str(self.week_wrapper.minutes_of_week))
 
+        self.__update_week_counter_color__()
+
     def __build_lcd_number_widget__(self):
         """Build a LCD Number widget."""
         lcdnumber = QLCDNumber(self)
@@ -640,4 +642,16 @@ class MainWindow(CenterMixin, QMainWindow):
         minutes_time = 60 * hours + minutes
         if self.week_wrapper:
             self.week_wrapper.minutes_to_work = minutes_time
+        self.__update_week_counter_color__()
 
+    def __update_week_counter_color__(self):
+        """Update the week counter color depending on the time percentage."""
+        percent = 1
+        if self.week_wrapper.minutes_to_work:
+            # denominator cannot be zero
+            percent = (self.week_wrapper.minutes_of_week /
+                       self.week_wrapper.minutes_to_work)
+
+        color = color_between(BAD_LIMIT_COLOR, GOOD_LIMIT_COLOR,
+                              percent)
+        self.__change_week_color__(QColor(color))

@@ -398,7 +398,7 @@ class MainWindow(CenterMixin, QMainWindow):
         self.addToolBar(Qt.TopToolBarArea, toolbar_days)
 
         days_action_group = QActionGroup(self)
-        for counter, day in enumerate(WeekDay,start=1):
+        for counter, day in enumerate(WeekDay, start=1):
             action = QAction(
                 QIcon(':/' + day.name.lower() + '.png'), day.name, self)
             action.setShortcut('Alt+' + str(counter))
@@ -640,4 +640,3 @@ class MainWindow(CenterMixin, QMainWindow):
         minutes_time = 60 * hours + minutes
         if self.week_wrapper:
             self.week_wrapper.minutes_to_work = minutes_time
-

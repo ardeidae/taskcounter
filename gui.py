@@ -263,6 +263,7 @@ class MainWindow(CenterMixin, QMainWindow):
         self.current_day_label = None
         self.week_time_lcdnumber = None
         self.day_time_lcdnumber = None
+        self.catch_up_lcdnumber = None
 
     def closeEvent(self, event):
         """When application is about to close."""
@@ -336,15 +337,23 @@ class MainWindow(CenterMixin, QMainWindow):
 
         day_label = QLabel('Day time', self)
         self.day_time_lcdnumber = self.__build_lcd_number_widget__()
+        self.__change_day_color__(QColor('#0000ff'))
+
+        catch_up_label = QLabel('Catch-up time', self)
+        self.catch_up_lcdnumber = self.__build_lcd_number_widget__()
 
         footer_layout = QGridLayout()
         footer_layout.addWidget(day_label, 0, 0,
                                 Qt.AlignHCenter | Qt.AlignVCenter)
         footer_layout.addWidget(week_label, 0, 1,
                                 Qt.AlignHCenter | Qt.AlignVCenter)
+        footer_layout.addWidget(catch_up_label, 0, 2,
+                                Qt.AlignHCenter | Qt.AlignVCenter)
         footer_layout.addWidget(self.day_time_lcdnumber, 1, 0,
                                 Qt.AlignHCenter | Qt.AlignVCenter)
         footer_layout.addWidget(self.week_time_lcdnumber, 1, 1,
+                                Qt.AlignHCenter | Qt.AlignVCenter)
+        footer_layout.addWidget(self.catch_up_lcdnumber, 1, 2,
                                 Qt.AlignHCenter | Qt.AlignVCenter)
 
         main_layout.addLayout(footer_layout)
@@ -362,6 +371,10 @@ class MainWindow(CenterMixin, QMainWindow):
     def __change_day_color__(self, color):
         """Change the lcd day color."""
         self.__change_lcd_number_color__(self.day_time_lcdnumber, color)
+
+    def __change_catch_up_color__(self, color):
+        """Change the lcd catch-up color."""
+        self.__change_lcd_number_color__(self.catch_up_lcdnumber, color)
 
     def __change_lcd_number_color__(self, lcd_widget, color):
         """Change a given lcd number color with a given color."""
@@ -568,10 +581,13 @@ class MainWindow(CenterMixin, QMainWindow):
             self.model = self.week_wrapper[WeekDay[sender.text()]]
             self.__update_day_time_counter__()
             self.__update_week_time_counter__()
+            self.__update_catch_up_time_counter__()
             self.model.dataChanged.connect(
                 self.__update_day_time_counter__)
             self.model.dataChanged.connect(
                 self.__update_week_time_counter__)
+            self.model.dataChanged.connect(
+                self.__update_catch_up_time_counter__)
 
             # set readable date in title
             self.__set_day_title__(self.model.date.strftime('%A %d %B %Y'))
@@ -617,6 +633,28 @@ class MainWindow(CenterMixin, QMainWindow):
 
         self.__update_week_counter_color__()
 
+    @pyqtSlot()
+    def __update_catch_up_time_counter__(self):
+        """Update the catch-up time counter."""
+        to_work = self.week_wrapper.total_time_to_work
+        worked = self.week_wrapper.total_time_worked
+
+        catch_up_time = worked - to_work
+        abs_time = abs(catch_up_time)
+        time_str = minutes_to_time_str(abs_time)
+
+        if catch_up_time >= 0:
+            self.__change_catch_up_color__(QColor(GOOD_LIMIT_COLOR))
+            self.catch_up_lcdnumber.setToolTip('+' + time_str)
+        else:
+            self.__change_catch_up_color__(QColor(BAD_LIMIT_COLOR))
+            self.catch_up_lcdnumber.setToolTip('-' + time_str)
+
+        if abs_time >= 6000:
+            self.catch_up_lcdnumber.display(abs_time // 60)
+        else:
+            self.catch_up_lcdnumber.display(time_str)
+
     def __build_lcd_number_widget__(self):
         """Build a LCD Number widget."""
         lcdnumber = QLCDNumber(self)
@@ -643,6 +681,7 @@ class MainWindow(CenterMixin, QMainWindow):
         if self.week_wrapper:
             self.week_wrapper.minutes_to_work = minutes_time
         self.__update_week_counter_color__()
+        self.__update_catch_up_time_counter__()
 
     def __update_week_counter_color__(self):
         """Update the week counter color depending on the time percentage."""

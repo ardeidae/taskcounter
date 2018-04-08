@@ -183,6 +183,32 @@ class WeekWrapper:
                     .order_by(-Week.year, -Week.week_number)
                     .scalar()) or 0
 
+    @property
+    def total_time_to_work(self):
+        """Get the total time (minutes) to work for the entire period."""
+        # we ignore time of weeks that do not have tasks.
+        minutes = (Week.select(fn.SUM(Week.minutes_to_work))
+                       .where(Week.id
+                              .in_(Week.select(Week.id).distinct()
+                                   .join(Day).join(Task)
+                                   .where(Task.start_time.is_null(False) &
+                                          Task.end_time.is_null(False))))
+                   .scalar())
+        return minutes or 0
+
+    @property
+    def total_time_worked(self):
+        """Get the total worked time (minutes) for the entire period."""
+        minutes = (Task.select(fn.SUM((fn.strftime('%s', Task.end_time)
+                                       - fn.strftime('%s', Task.start_time))
+                                      .cast('real') / 60).alias('sum')
+                               )
+                   .where(Task.start_time.is_null(False)
+                          & Task.end_time.is_null(False)
+                          )
+                   .scalar())
+        return minutes or 0
+
 
 class DayWrapper(QAbstractTableModel):
     """Wrapper for the day model."""

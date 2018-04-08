@@ -337,6 +337,7 @@ class MainWindow(CenterMixin, QMainWindow):
 
         day_label = QLabel('Day time', self)
         self.day_time_lcdnumber = self.__build_lcd_number_widget__()
+        self.__change_day_color__(QColor('#0000ff'))
 
         catch_up_label = QLabel('Catch-up time', self)
         self.catch_up_lcdnumber = self.__build_lcd_number_widget__()

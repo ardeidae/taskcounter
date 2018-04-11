@@ -329,18 +329,8 @@ class MainWindow(CenterMixin, QMainWindow):
         main_layout.setSpacing(0)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.current_day_label = QLabel('', self)
-        self.current_day_label.setAlignment(Qt.AlignCenter)
-        self.current_day_label.setMargin(5)
-        title_font = self.current_day_label.font()
-        title_font.setBold(True)
-        title_font.setPointSize(16)
-        self.current_day_label.setFont(title_font)
-
-        summary_label = QLabel('Week summary', self)
-        summary_label.setAlignment(Qt.AlignCenter)
-        summary_label.setMargin(5)
-        summary_label.setFont(title_font)
+        self.current_day_label = self.__build_title_label__('')
+        summary_label = self.__build_title_label__('Week summary')
 
         main_layout.addWidget(self.current_day_label, 0, 0)
         main_layout.addWidget(summary_label, 0, 1)
@@ -708,3 +698,14 @@ class MainWindow(CenterMixin, QMainWindow):
         color = color_between(BAD_LIMIT_COLOR, GOOD_LIMIT_COLOR,
                               percent)
         self.__change_week_color__(QColor(color))
+
+    def __build_title_label__(self, title):
+        """Build a label widget with a given title."""
+        label = QLabel(title, self)
+        label.setAlignment(Qt.AlignCenter)
+        label.setMargin(5)
+        font = label.font()
+        font.setBold(True)
+        font.setPointSize(16)
+        label.setFont(font)
+        return label

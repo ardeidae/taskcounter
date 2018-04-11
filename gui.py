@@ -255,6 +255,7 @@ class MainWindow(CenterMixin, QMainWindow):
         self.day_actions = dict()
         self.model = None
         self.table = None
+        self.result_view = None
         self.week_edit = None
         self.week_wrapper = None
         self.year_edit = None
@@ -272,9 +273,9 @@ class MainWindow(CenterMixin, QMainWindow):
     def __set_window_size__(self):
         """Set the window size."""
         self.setMinimumHeight(600)
-        self.setMinimumWidth(600)
         self.setMaximumHeight(600)
-        self.setMaximumWidth(600)
+        self.setMinimumWidth(900)
+        self.setMaximumWidth(900)
 
     def __disable_headers_click__(self):
         """Disable click on table headers."""
@@ -319,9 +320,15 @@ class MainWindow(CenterMixin, QMainWindow):
         main_widget = QWidget(self)
         self.setCentralWidget(main_widget)
 
-        main_layout = QVBoxLayout()
-        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout = QGridLayout()
+        main_layout.setRowStretch(0, 1)
+        main_layout.setRowStretch(1, 20)
+        main_layout.setRowStretch(2, 1)
+        main_layout.setColumnStretch(0, 1)
+        main_layout.setColumnStretch(1, 1)
         main_layout.setSpacing(0)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
         self.current_day_label = QLabel('', self)
         self.current_day_label.setAlignment(Qt.AlignCenter)
         self.current_day_label.setMargin(5)
@@ -329,8 +336,18 @@ class MainWindow(CenterMixin, QMainWindow):
         title_font.setBold(True)
         title_font.setPointSize(16)
         self.current_day_label.setFont(title_font)
-        main_layout.addWidget(self.current_day_label)
-        main_layout.addWidget(self.table)
+
+        summary_label = QLabel('Week summary', self)
+        summary_label.setAlignment(Qt.AlignCenter)
+        summary_label.setMargin(5)
+        summary_label.setFont(title_font)
+
+        main_layout.addWidget(self.current_day_label, 0, 0)
+        main_layout.addWidget(summary_label, 0, 1)
+
+        main_layout.addWidget(self.table, 1, 0)
+        self.result_view = QTableView(self)
+        main_layout.addWidget(self.result_view, 1, 1)
 
         week_label = QLabel('Week time', self)
         self.week_time_lcdnumber = self.__build_lcd_number_widget__()
@@ -344,19 +361,16 @@ class MainWindow(CenterMixin, QMainWindow):
 
         footer_layout = QGridLayout()
         footer_layout.addWidget(day_label, 0, 0,
-                                Qt.AlignHCenter | Qt.AlignVCenter)
+                                Qt.AlignHCenter)
         footer_layout.addWidget(week_label, 0, 1,
-                                Qt.AlignHCenter | Qt.AlignVCenter)
+                                Qt.AlignHCenter)
         footer_layout.addWidget(catch_up_label, 0, 2,
-                                Qt.AlignHCenter | Qt.AlignVCenter)
-        footer_layout.addWidget(self.day_time_lcdnumber, 1, 0,
-                                Qt.AlignHCenter | Qt.AlignVCenter)
-        footer_layout.addWidget(self.week_time_lcdnumber, 1, 1,
-                                Qt.AlignHCenter | Qt.AlignVCenter)
-        footer_layout.addWidget(self.catch_up_lcdnumber, 1, 2,
-                                Qt.AlignHCenter | Qt.AlignVCenter)
+                                Qt.AlignHCenter)
+        footer_layout.addWidget(self.day_time_lcdnumber, 1, 0)
+        footer_layout.addWidget(self.week_time_lcdnumber, 1, 1)
+        footer_layout.addWidget(self.catch_up_lcdnumber, 1, 2)
 
-        main_layout.addLayout(footer_layout)
+        main_layout.addLayout(footer_layout, 2, 0, 1, 2)
 
         main_widget.setLayout(main_layout)
 

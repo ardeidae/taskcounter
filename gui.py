@@ -285,7 +285,7 @@ class MainWindow(CenterMixin, QMainWindow):
 
     def __init_table__(self):
         """Create table view and initialize some settings."""
-        self.table = QTableView()
+        self.table = QTableView(self)
         self.table.setSelectionMode(QTableView.SingleSelection)
         self.table.setAlternatingRowColors(True)
         palette = self.table.palette()

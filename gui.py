@@ -583,15 +583,9 @@ class MainWindow(CenterMixin, QMainWindow):
             if self.model:
                 self.model.dataChanged.disconnect()
             self.model = self.week_wrapper[WeekDay[sender.text()]]
-            self.__update_day_time_counter__()
-            self.__update_week_time_counter__()
-            self.__update_catch_up_time_counter__()
+            self.__update_time__()
             self.model.dataChanged.connect(
-                self.__update_day_time_counter__)
-            self.model.dataChanged.connect(
-                self.__update_week_time_counter__)
-            self.model.dataChanged.connect(
-                self.__update_catch_up_time_counter__)
+                self.__update_time__)
 
             # set readable date in title
             self.__set_day_title__(self.model.date.strftime('%A %d %B %Y'))
@@ -624,12 +618,17 @@ class MainWindow(CenterMixin, QMainWindow):
         self.week_edit.setMaximum(weeks)
 
     @pyqtSlot()
+    def __update_time__(self):
+        """Update time counters."""
+        self.__update_day_time_counter__()
+        self.__update_week_time_counter__()
+        self.__update_catch_up_time_counter__()
+
     def __update_day_time_counter__(self):
         """Update the day time counter."""
         self.day_time_lcdnumber.display(
             minutes_to_time_str(self.model.minutes_of_day))
 
-    @pyqtSlot()
     def __update_week_time_counter__(self):
         """Update the week time counter."""
         self.week_time_lcdnumber.display(
@@ -637,7 +636,6 @@ class MainWindow(CenterMixin, QMainWindow):
 
         self.__update_week_counter_color__()
 
-    @pyqtSlot()
     def __update_catch_up_time_counter__(self):
         """Update the catch-up time counter."""
         to_work = self.week_wrapper.total_time_to_work

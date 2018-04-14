@@ -237,7 +237,7 @@ class DayWrapper(QAbstractTableModel):
 
     def columnCount(self, parent=None):
         """Return the number of columns under the given parent."""
-        return 4
+        return len(Column)
 
     def __cache_data__(self):
         """Cache data."""

@@ -623,6 +623,7 @@ class MainWindow(CenterMixin, QMainWindow):
         self.__update_day_time_counter__()
         self.__update_week_time_counter__()
         self.__update_catch_up_time_counter__()
+        self.__update_week_summary__()
 
     def __update_day_time_counter__(self):
         """Update the day time counter."""
@@ -707,3 +708,8 @@ class MainWindow(CenterMixin, QMainWindow):
         font.setPointSize(16)
         label.setFont(font)
         return label
+
+    def __update_week_summary__(self):
+        """Update the week summary."""
+        if self.week_wrapper:
+            print(self.week_wrapper.week_summary)

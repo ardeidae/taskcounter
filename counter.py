@@ -209,6 +209,31 @@ class WeekWrapper:
                    .scalar())
         return minutes or 0
 
+    @property
+    def week_summary(self):
+        """Get the week summary: tasks and total time in minutes."""
+        tasks = {}
+        query = (Task.select(Task.name,
+                             fn.SUM((fn.strftime('%s', Task.end_time) -
+                                     fn.strftime('%s', Task.start_time))
+                                    .cast('real') / 60).alias('sum')
+                             )
+                 .join(Day)
+                 .where((Day.week == self._week)
+                        & Task.start_time.is_null(False)
+                        & Task.end_time.is_null(False)
+                        )
+                 .group_by(Task.name)
+                 .order_by(SQL('sum').desc()))
+
+        for counter, row in enumerate(query):
+            task = {}
+            task[ResultColumn.Task] = row.name
+            task[ResultColumn.Time] = row.sum
+            tasks[counter] = task
+
+        return tasks
+
 
 class DayWrapper(QAbstractTableModel):
     """Wrapper for the day model."""

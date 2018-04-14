@@ -51,6 +51,14 @@ class Column(Enum):
     End_Time = 3
 
 
+@unique
+class ResultColumn(Enum):
+    """Result columns Enum."""
+
+    Task = 0
+    Time = 1
+
+
 def weekday_from_date(date_):
     """From a date, returns a WeekDay."""
     if isinstance(date_, date):

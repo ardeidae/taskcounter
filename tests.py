@@ -20,8 +20,8 @@
 import unittest
 from datetime import date
 
-from counter import (Column, WeekDay, minutes_to_time_str, seven_days_of_week,
-                     weekday_from_date, weeks_for_year)
+from counter import (Column, ResultColumn, WeekDay, minutes_to_time_str,
+                     seven_days_of_week, weekday_from_date, weeks_for_year)
 
 
 class TestWeeksForYear(unittest.TestCase):
@@ -134,6 +134,19 @@ class TestColumn(unittest.TestCase):
     def test_enum_has_four_columns(self):
         """Test that enum has four columns."""
         self.assertEqual(4, len(Column))
+
+
+class TestResultColumn(unittest.TestCase):
+    """Tests for Result Column enul."""
+
+    def test_enum_values(self):
+        """Test enum values."""
+        self.assertEqual(0, ResultColumn.Task.value)
+        self.assertEqual(1, ResultColumn.Time.value)
+
+    def test_enum_has_two_columns(self):
+        """Test that enum has two columns."""
+        self.assertEqual(2, len(ResultColumn))
 
 
 class TestSevenDaysOfWeek(unittest.TestCase):

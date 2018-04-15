@@ -51,6 +51,14 @@ class Column(Enum):
     End_Time = 3
 
 
+@unique
+class ResultColumn(Enum):
+    """Result columns Enum."""
+
+    Task = 0
+    Time = 1
+
+
 def weekday_from_date(date_):
     """From a date, returns a WeekDay."""
     if isinstance(date_, date):
@@ -103,8 +111,8 @@ def seven_days_of_week(a_year, a_week_number):
             yield searched_week + timedelta(days=i)
 
 
-def minutes_to_time_str(a_total_minutes):
-    """Get a hh:mm string from a number of minutes."""
+def minutes_to_time(a_total_minutes):
+    """Get a tuple hours / minutes from a number of minutes."""
     try:
         total_minutes = int(a_total_minutes)
     except (TypeError, ValueError):
@@ -112,8 +120,16 @@ def minutes_to_time_str(a_total_minutes):
     else:
         if total_minutes < 0:
             return None
-        (hours, minutes) = divmod(total_minutes, 60)
-        return '{:02d}:{:02d}'.format(int(hours), int(minutes))
+        else:
+            return divmod(total_minutes, 60)
+
+
+def minutes_to_time_str(a_total_minutes):
+    """Get a hh:mm string from a number of minutes."""
+    time = minutes_to_time(a_total_minutes)
+    if time:
+        return '{:02d}:{:02d}'.format(*time)
+    return None
 
 
 class WeekWrapper:
@@ -209,6 +225,31 @@ class WeekWrapper:
                    .scalar())
         return minutes or 0
 
+    @property
+    def week_summary(self):
+        """Get the week summary: tasks and total time in minutes."""
+        tasks = {}
+        query = (Task.select(Task.name,
+                             fn.SUM((fn.strftime('%s', Task.end_time) -
+                                     fn.strftime('%s', Task.start_time))
+                                    .cast('real') / 60).alias('sum')
+                             )
+                 .join(Day)
+                 .where((Day.week == self._week)
+                        & Task.start_time.is_null(False)
+                        & Task.end_time.is_null(False)
+                        )
+                 .group_by(Task.name)
+                 .order_by(SQL('sum').desc()))
+
+        for counter, row in enumerate(query):
+            task = {}
+            task[ResultColumn.Task] = row.name
+            task[ResultColumn.Time] = row.sum
+            tasks[counter] = task
+
+        return tasks
+
 
 class DayWrapper(QAbstractTableModel):
     """Wrapper for the day model."""
@@ -237,7 +278,7 @@ class DayWrapper(QAbstractTableModel):
 
     def columnCount(self, parent=None):
         """Return the number of columns under the given parent."""
-        return 4
+        return len(Column)
 
     def __cache_data__(self):
         """Cache data."""
@@ -500,6 +541,88 @@ class DayWrapper(QAbstractTableModel):
                         return True
 
         return False
+
+
+class ResultSummaryModel(QAbstractTableModel):
+    """Result summary model."""
+
+    def __init__(self):
+        """Construct a result summary object."""
+        super().__init__()
+
+        self._tasks = []
+
+    def rowCount(self, parent=None):
+        """Return the number of rows under the given parent."""
+        return len(self._tasks)
+
+    def columnCount(self, parent=None):
+        """Return the number of columns under the given parent."""
+        return len(ResultColumn)
+
+    @property
+    def tasks(self):
+        """Set the tasks."""
+        return self._tasks
+
+    @tasks.setter
+    def tasks(self, _tasks):
+        """Get the tasks."""
+        self.layoutAboutToBeChanged.emit()
+
+        self._tasks = _tasks
+
+        top_left = self.index(0, 0)
+        bottom_right = self.index(
+            self.rowCount() + 1, self.columnCount())
+        self.dataChanged.emit(
+            top_left, bottom_right, [Qt.DisplayRole])
+
+        self.layoutChanged.emit()
+
+    def data(self, index, role):
+        """Return the data.
+
+        Return the data stored under the given role for the item referred
+        to by the index.
+        """
+        if not index.isValid():
+            return QVariant()
+
+        row = index.row()
+        column = index.column()
+        if role == Qt.DisplayRole:
+            try:
+                value = self._tasks[row][ResultColumn(column)]
+            except KeyError:
+                return QVariant()
+            else:
+                if column == ResultColumn.Task.value:
+                    return str(value)
+                elif column == ResultColumn.Time.value:
+                    try:
+                        a_time = QTime(*minutes_to_time(value))
+                        return QVariant(a_time)
+                    except AttributeError:
+                        return QVariant()
+        elif role == Qt.TextAlignmentRole:
+            if column == ResultColumn.Task.value:
+                return Qt.AlignLeft | Qt.AlignVCenter
+            else:
+                return Qt.AlignCenter | Qt.AlignVCenter
+
+        return QVariant()
+
+    def headerData(self, section, orientation, role):
+        """Return the header data.
+
+        Return the data for the given role and section in the header with
+        the specified orientation.
+        """
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                return ResultColumn(section).name.replace('_', ' ')
+        return QVariant()
 
 
 def get_last_unique_task_names():

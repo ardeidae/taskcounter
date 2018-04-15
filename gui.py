@@ -31,9 +31,9 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QCompleter, QDesktopWidget,
                              QWidget, qApp)
 
 import resources
-from counter import (Column, WeekDay, WeekWrapper, color_between,
-                     get_last_unique_task_names, minutes_to_time_str,
-                     weekday_from_date, weeks_for_year)
+from counter import (Column, ResultColumn, ResultSummaryModel, WeekDay,
+                     WeekWrapper, color_between, get_last_unique_task_names,
+                     minutes_to_time_str, weekday_from_date, weeks_for_year)
 from database import close_database
 from settings import (BAD_LIMIT_COLOR, CELL_HIGHLIGHT_COLOR,
                       CELL_HIGHLIGHT_TEXT_COLOR, GOOD_LIMIT_COLOR)
@@ -256,6 +256,7 @@ class MainWindow(CenterMixin, QMainWindow):
         self.task_model = None
         self.task_view = None
         self.result_view = None
+        self.result_model = ResultSummaryModel()
         self.week_edit = None
         self.week_wrapper = None
         self.year_edit = None
@@ -277,30 +278,33 @@ class MainWindow(CenterMixin, QMainWindow):
         self.setMinimumWidth(900)
         self.setMaximumWidth(900)
 
-    def __disable_headers_click__(self):
+    def __disable_headers_click__(self, _table):
         """Disable click on table headers."""
-        self.task_view.horizontalHeader().setSectionsClickable(False)
-        self.task_view.setCornerButtonEnabled(False)
-        self.task_view.verticalHeader().setSectionsClickable(False)
+        _table.horizontalHeader().setSectionsClickable(False)
+        _table.setCornerButtonEnabled(False)
+        _table.verticalHeader().setSectionsClickable(False)
 
-    def __init_table__(self):
+    def __init_table_view__(self):
         """Create table view and initialize some settings."""
-        self.task_view = QTableView(self)
-        self.task_view.setSelectionMode(QTableView.SingleSelection)
-        self.task_view.setAlternatingRowColors(True)
-        palette = self.task_view.palette()
+        table = QTableView(self)
+        palette = table.palette()
         palette.setBrush(QPalette.Highlight,
                          QBrush(QColor(CELL_HIGHLIGHT_COLOR)))
         palette.setBrush(QPalette.HighlightedText,
                          QBrush(QColor(CELL_HIGHLIGHT_TEXT_COLOR)))
-        self.task_view.setPalette(palette)
-        self.__disable_headers_click__()
-        task_name_delegate = TaskNameDelegate(self.task_view)
-        self.task_view.setItemDelegateForColumn(
-            Column.Task.value, task_name_delegate)
+        table.setPalette(palette)
+        self.__disable_headers_click__(table)
 
-    def __resize_headers__(self):
-        """Resize headers."""
+        return table
+
+    def __set_task_delegate__(self, _table):
+        """Set a task delegate on a table."""
+        delegate = TaskNameDelegate(_table)
+        _table.setItemDelegateForColumn(
+            Column.Task.value, delegate)
+
+    def __resize_task_headers__(self):
+        """Resize task headers."""
         self.task_view.hideColumn(Column.Id.value)
         self.task_view.horizontalHeader().setSectionResizeMode(
             Column.Task.value,
@@ -315,6 +319,17 @@ class MainWindow(CenterMixin, QMainWindow):
             Column.End_Time.value, QHeaderView.Fixed)
         self.task_view.horizontalHeader().resizeSection(Column.End_Time.value,
                                                         70)
+
+    def __resize_result_headers__(self):
+        """Resize result headers."""
+        self.result_view.horizontalHeader().setSectionResizeMode(
+            ResultColumn.Task.value,
+            QHeaderView.Stretch)
+        self.result_view.horizontalHeader().setSectionResizeMode(
+            ResultColumn.Time.value,
+            QHeaderView.Fixed)
+        self.result_view.horizontalHeader().resizeSection(
+            ResultColumn.Time.value, 70)
 
     def __init_layout__(self):
         """Initialize the central widget layout."""
@@ -337,7 +352,6 @@ class MainWindow(CenterMixin, QMainWindow):
         main_layout.addWidget(summary_label, 0, 1)
 
         main_layout.addWidget(self.task_view, 1, 0)
-        self.result_view = QTableView(self)
         main_layout.addWidget(self.result_view, 1, 1)
 
         week_label = QLabel('Week time', self)
@@ -398,7 +412,11 @@ class MainWindow(CenterMixin, QMainWindow):
         self.__set_window_size__()
         self.center()
         self.__create_toolbars_and_menus__()
-        self.__init_table__()
+        self.task_view = self.__init_table_view__()
+        self.task_view.setSelectionMode(QTableView.SingleSelection)
+        self.result_view = self.__init_table_view__()
+        self.result_view.setAlternatingRowColors(True)
+        self.result_view.setModel(self.result_model)
         self.__init_layout__()
 
         self.__validate_week_and_year__()
@@ -593,7 +611,8 @@ class MainWindow(CenterMixin, QMainWindow):
                 self.task_model.date.strftime('%A %d %B %Y'))
             self.task_view.setModel(self.task_model)
 
-            self.__resize_headers__()
+            self.__resize_task_headers__()
+            self.__resize_result_headers__()
 
             # the table takes the focus
             self.task_view.setFocus(Qt.OtherFocusReason)
@@ -714,4 +733,5 @@ class MainWindow(CenterMixin, QMainWindow):
     def __update_week_summary__(self):
         """Update the week summary."""
         if self.week_wrapper:
-            print(self.week_wrapper.week_summary)
+            tasks = self.week_wrapper.week_summary
+            self.result_model.tasks = tasks

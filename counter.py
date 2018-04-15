@@ -543,6 +543,88 @@ class DayWrapper(QAbstractTableModel):
         return False
 
 
+class ResultSummaryModel(QAbstractTableModel):
+    """Result summary model."""
+
+    def __init__(self):
+        """Construct a result summary object."""
+        super().__init__()
+
+        self._tasks = []
+
+    def rowCount(self, parent=None):
+        """Return the number of rows under the given parent."""
+        return len(self._tasks)
+
+    def columnCount(self, parent=None):
+        """Return the number of columns under the given parent."""
+        return len(ResultColumn)
+
+    @property
+    def tasks(self):
+        """Set the tasks."""
+        return self._tasks
+
+    @tasks.setter
+    def tasks(self, _tasks):
+        """Get the tasks."""
+        self.layoutAboutToBeChanged.emit()
+
+        self._tasks = _tasks
+
+        top_left = self.index(0, 0)
+        bottom_right = self.index(
+            self.rowCount() + 1, self.columnCount())
+        self.dataChanged.emit(
+            top_left, bottom_right, [Qt.DisplayRole])
+
+        self.layoutChanged.emit()
+
+    def data(self, index, role):
+        """Return the data.
+
+        Return the data stored under the given role for the item referred
+        to by the index.
+        """
+        if not index.isValid():
+            return QVariant()
+
+        row = index.row()
+        column = index.column()
+        if role == Qt.DisplayRole:
+            try:
+                value = self._tasks[row][ResultColumn(column)]
+            except KeyError:
+                return QVariant()
+            else:
+                if column == ResultColumn.Task.value:
+                    return str(value)
+                elif column == ResultColumn.Time.value:
+                    try:
+                        a_time = QTime(*minutes_to_time(value))
+                        return QVariant(a_time)
+                    except AttributeError:
+                        return QVariant()
+        elif role == Qt.TextAlignmentRole:
+            if column == ResultColumn.Task.value:
+                return Qt.AlignLeft | Qt.AlignVCenter
+            else:
+                return Qt.AlignCenter | Qt.AlignVCenter
+
+        return QVariant()
+
+    def headerData(self, section, orientation, role):
+        """Return the header data.
+
+        Return the data for the given role and section in the header with
+        the specified orientation.
+        """
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                return ResultColumn(section).name.replace('_', ' ')
+        return QVariant()
+
+
 def get_last_unique_task_names():
     """Return the last unique task names since last three months."""
     last_3_months = date.today() + timedelta(days=-90)

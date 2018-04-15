@@ -111,8 +111,8 @@ def seven_days_of_week(a_year, a_week_number):
             yield searched_week + timedelta(days=i)
 
 
-def minutes_to_time_str(a_total_minutes):
-    """Get a hh:mm string from a number of minutes."""
+def minutes_to_time(a_total_minutes):
+    """Get a tuple hours / minutes from a number of minutes."""
     try:
         total_minutes = int(a_total_minutes)
     except (TypeError, ValueError):
@@ -120,8 +120,16 @@ def minutes_to_time_str(a_total_minutes):
     else:
         if total_minutes < 0:
             return None
-        (hours, minutes) = divmod(total_minutes, 60)
-        return '{:02d}:{:02d}'.format(int(hours), int(minutes))
+        else:
+            return divmod(total_minutes, 60)
+
+
+def minutes_to_time_str(a_total_minutes):
+    """Get a hh:mm string from a number of minutes."""
+    time = minutes_to_time(a_total_minutes)
+    if time:
+        return '{:02d}:{:02d}'.format(*time)
+    return None
 
 
 class WeekWrapper:

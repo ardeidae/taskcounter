@@ -20,8 +20,9 @@
 import unittest
 from datetime import date
 
-from counter import (Column, ResultColumn, WeekDay, minutes_to_time_str,
-                     seven_days_of_week, weekday_from_date, weeks_for_year)
+from counter import (Column, ResultColumn, WeekDay, minutes_to_time,
+                     minutes_to_time_str, seven_days_of_week,
+                     weekday_from_date, weeks_for_year)
 
 
 class TestWeeksForYear(unittest.TestCase):
@@ -254,6 +255,50 @@ class TestSevenDaysOfWeek(unittest.TestCase):
 
         with self.assertRaises(StopIteration):
             next(generator)
+
+
+class TestMinutesToTime(unittest.TestCase):
+    """Tests for minutes_to_time function."""
+
+    def test_negative_returns_none(self):
+        """Test that negative returns None."""
+        self.assertIsNone(minutes_to_time(-1))
+
+    def test_none_returns_none(self):
+        """Test that None returns None."""
+        self.assertIsNone(minutes_to_time(None))
+
+    def test_float_returns_correct_value(self):
+        """Test that float returns correct value."""
+        self.assertEqual(minutes_to_time(50.3), (0, 50))
+
+    def test_int_int_string_returns_correct_value(self):
+        """Test that int in string returns correct value."""
+        self.assertEqual(minutes_to_time('50'), (0, 50))
+
+    def test_non_number_string_returns_none(self):
+        """Test that non number string returns None."""
+        self.assertIsNone(minutes_to_time('a string'))
+
+    def test_zero_minutes_returns_0_0(self):
+        """Test that zero minutes returns 00:00."""
+        self.assertEqual(minutes_to_time(0), (0, 0))
+
+    def test_less_than_60_minutes_returns_less_than_one_hour(self):
+        """Test that less than 60 minutes returns less than one hour."""
+        self.assertEqual(minutes_to_time(50), (0, 50))
+
+    def test_60_minutes_returns_exactly_one_hour(self):
+        """Test that 60 minutes returns exactly one hour."""
+        self.assertEqual(minutes_to_time(60), (1, 0))
+
+    def test_more_than_60_minutes_returns_more_than_one_hour(self):
+        """Test that more than 60 minutes returns more than one hour."""
+        self.assertEqual(minutes_to_time(65), (1, 5))
+
+    def test_time_result_with_more_than_10_hours(self):
+        """Test time result with more than 10 hours."""
+        self.assertEqual(minutes_to_time(645), (10, 45))
 
 
 class TestMinutesToTimeStr(unittest.TestCase):

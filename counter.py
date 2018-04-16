@@ -600,11 +600,7 @@ class ResultSummaryModel(QAbstractTableModel):
                 if column == ResultColumn.Task.value:
                     return str(value)
                 elif column == ResultColumn.Time.value:
-                    try:
-                        a_time = QTime(*minutes_to_time(value))
-                        return QVariant(a_time)
-                    except AttributeError:
-                        return QVariant()
+                    return minutes_to_time_str(value)
         elif role == Qt.TextAlignmentRole:
             if column == ResultColumn.Task.value:
                 return Qt.AlignLeft | Qt.AlignVCenter

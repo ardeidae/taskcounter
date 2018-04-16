@@ -19,16 +19,16 @@
 
 import datetime
 
-from PyQt5.QtCore import (QFile, QItemSelectionModel, QStringListModel, Qt,
-                          pyqtSignal, pyqtSlot)
-from PyQt5.QtGui import (QBrush, QColor, QFont, QIcon, QPalette, QTextCursor,
-                         QTextOption)
-from PyQt5.QtWidgets import (QAction, QActionGroup, QCompleter, QDesktopWidget,
-                             QDialog, QDialogButtonBox, QFrame, QGridLayout,
-                             QHeaderView, QItemDelegate, QLabel, QLCDNumber,
-                             QMainWindow, QSpinBox, QTableView, QTabWidget,
-                             QTextBrowser, QTextEdit, QToolBar, QVBoxLayout,
-                             QWidget, qApp)
+from PyQt5.QtCore import (QFile, QByteArray, QItemSelectionModel, QMimeData,
+                          QStringListModel, Qt, pyqtSignal, pyqtSlot)
+from PyQt5.QtGui import (QBrush, QClipboard, QColor, QFont, QIcon, QPalette,
+                         QTextCursor, QTextOption)
+from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCompleter,
+                             QDesktopWidget, QDialog, QDialogButtonBox, QFrame,
+                             QGridLayout, QHeaderView, QItemDelegate, QLabel,
+                             QLCDNumber, QMainWindow, QSpinBox, QTableView,
+                             QTabWidget, QTextBrowser, QTextEdit, QToolBar,
+                             QVBoxLayout, QWidget, qApp)
 
 import resources
 from counter import (Column, ResultColumn, ResultSummaryModel, WeekDay,
@@ -474,6 +474,11 @@ class MainWindow(CenterMixin, QMainWindow):
         exit_act.setStatusTip('Quit application')
         exit_act.triggered.connect(self.close)
 
+        export_act = QAction(QIcon(':/export.png'), 'Export', self)
+        export_act.setShortcut('Ctrl+E')
+        export_act.setStatusTip('Export week summary as html table')
+        export_act.triggered.connect(self.__export__)
+
         self.year_edit = QSpinBox(self)
         self.year_edit.setPrefix('Year: ')
         self.year_edit.setMinimum(2010)
@@ -509,6 +514,7 @@ class MainWindow(CenterMixin, QMainWindow):
         toolbar_weeks.addAction(next_act)
         toolbar_weeks.addWidget(self.hours_edit)
         toolbar_weeks.addWidget(self.minutes_edit)
+        toolbar_weeks.addAction(export_act)
 
         toolbar_application.addAction(exit_act)
         toolbar_application.addAction(about_act)
@@ -529,6 +535,7 @@ class MainWindow(CenterMixin, QMainWindow):
         weeks_menu.addAction(today_act)
         weeks_menu.addAction(previous_act)
         weeks_menu.addAction(next_act)
+        weeks_menu.addAction(export_act)
 
         days_menu = menubar.addMenu('Days')
         for action in days_action_group.actions():
@@ -594,6 +601,11 @@ class MainWindow(CenterMixin, QMainWindow):
         """Open the about page."""
         about = About(self)
         about.exec_()
+
+    @pyqtSlot()
+    def __export__(self):
+        """Export data."""
+        self.__export_cells_as_table__()
 
     @pyqtSlot()
     def __change_current_day__(self):
@@ -736,3 +748,32 @@ class MainWindow(CenterMixin, QMainWindow):
         if self.week_wrapper:
             tasks = self.week_wrapper.week_summary
             self.result_model.tasks = tasks
+
+    def __export_cells_as_table__(self):
+        """Copy all cells as html table."""
+        model = self.result_view.model()
+
+        table_text = '<html><head>'
+        table_text += '<meta http-equiv="content-type" '
+        table_text += 'content="text/html; charset=utf-8">'
+        table_text += '</head><body><table>'
+
+        row = model.rowCount()
+        column = model.columnCount()
+
+        for i in range(0, row):
+            table_text += '<tr>'
+            for j in range(0, column):
+                content = model.data(model.index(i, j), Qt.DisplayRole)
+                table_text += '<td>{}</td>'.format(content)
+            table_text += '</tr>'
+
+        table_text += '</tr></table></body></html>'
+
+        clipboard = QApplication.clipboard()
+        mime_data = QMimeData()
+        bytes_array = QByteArray()
+        bytes_array.append(table_text)
+        mime_data.setData('text/html', bytes_array)
+
+        clipboard.setMimeData(mime_data, QClipboard.Clipboard)

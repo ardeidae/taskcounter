@@ -414,6 +414,7 @@ class MainWindow(CenterMixin, QMainWindow):
         self.__create_toolbars_and_menus__()
         self.task_view = self.__init_table_view__()
         self.task_view.setSelectionMode(QTableView.SingleSelection)
+        self.__set_task_delegate__(self.task_view)
         self.result_view = self.__init_table_view__()
         self.result_view.setAlternatingRowColors(True)
         self.result_view.setModel(self.result_model)

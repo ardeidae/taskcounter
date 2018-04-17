@@ -339,8 +339,6 @@ class DayWrapper(QAbstractTableModel):
                             return QVariant(QTime(0, 0))
                         else:
                             return QVariant()
-        elif role == Qt.FontRole:
-            pass
         elif role == Qt.BackgroundRole:
             try:
                 start = self._cached_data[row][Column.Start_Time]

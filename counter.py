@@ -315,7 +315,7 @@ class DayWrapper(QAbstractTableModel):
 
         row = index.row()
         column = index.column()
-        if role in (Qt.DisplayRole, Qt.EditRole):
+        if role in (Qt.DisplayRole, Qt.EditRole, Qt.ToolTipRole):
             try:
                 value = self._cached_data[row][Column(column)]
             except KeyError:
@@ -324,7 +324,11 @@ class DayWrapper(QAbstractTableModel):
                 if column == Column.Id.value:
                     return int(value)
                 elif column == Column.Task.value:
-                    return str(value)
+                    if role == Qt.ToolTipRole:
+                        # html text allows automatic word-wrapping on tooltip.
+                        return '<html>{}</html>'.format(str(value))
+                    else:
+                        return str(value)
                 elif column in (Column.Start_Time.value,
                                 Column.End_Time.value):
                     try:
@@ -335,8 +339,6 @@ class DayWrapper(QAbstractTableModel):
                             return QVariant(QTime(0, 0))
                         else:
                             return QVariant()
-        elif role == Qt.FontRole:
-            pass
         elif role == Qt.BackgroundRole:
             try:
                 start = self._cached_data[row][Column.Start_Time]
@@ -591,14 +593,18 @@ class ResultSummaryModel(QAbstractTableModel):
 
         row = index.row()
         column = index.column()
-        if role == Qt.DisplayRole:
+        if role in (Qt.DisplayRole, Qt.ToolTipRole):
             try:
                 value = self._tasks[row][ResultColumn(column)]
             except KeyError:
                 return QVariant()
             else:
                 if column == ResultColumn.Task.value:
-                    return str(value)
+                    if role == Qt.ToolTipRole:
+                        # html text allows automatic word-wrapping on tooltip.
+                        return '<html>{}</html>'.format(str(value))
+                    else:
+                        return str(value)
                 elif column == ResultColumn.Time.value:
                     return minutes_to_time_str(value)
         elif role == Qt.TextAlignmentRole:

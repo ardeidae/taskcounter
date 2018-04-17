@@ -19,6 +19,8 @@
         <file alias="today.png">resources/images/today.png</file>
         <!-- https://www.flaticon.com/free-icon/info_147277 -->
         <file alias="info.png">resources/images/info.png</file>
+        <!-- https://www.flaticon.com/free-icon/folder_126782 -->
+        <file alias="export.png">resources/images/export.png</file>
 
         <file alias="LICENSE">resources/LICENSE</file>
         <file alias="ABOUT">resources/ABOUT</file>

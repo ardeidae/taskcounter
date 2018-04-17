@@ -756,7 +756,9 @@ class MainWindow(CenterMixin, QMainWindow):
         table_text = '<html><head>'
         table_text += '<meta http-equiv="content-type" '
         table_text += 'content="text/html; charset=utf-8">'
-        table_text += '</head><body><table>'
+        table_text += '</head><body>'
+        table_text += '<table cellpadding="0" cellspacing="0" border="0" '
+        table_text += 'style="width:100%;">'
 
         row = model.rowCount()
         column = model.columnCount()
@@ -765,7 +767,16 @@ class MainWindow(CenterMixin, QMainWindow):
             table_text += '<tr>'
             for j in range(0, column):
                 content = model.data(model.index(i, j), Qt.DisplayRole)
-                table_text += '<td>{}</td>'.format(content)
+                if j == 0:
+                    table_text += ('<th style="border:2px solid black;'
+                                   'margin:0;padding:2px;text-align:left;'
+                                   'background-color:#ddd;">{}</th>'
+                                   ).format(content)
+                else:
+                    table_text += ('<td style="border:2px solid black;'
+                                   'margin:0;padding:2px;text-align:center;'
+                                   'width:20%;">{}</td>'
+                                   ).format(content)
             table_text += '</tr>'
 
         table_text += '</tr></table></body></html>'

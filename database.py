@@ -17,6 +17,8 @@
 
 """"Tasks counter database model."""
 
+from os import path
+
 from peewee import (SQL, CharField, Check, DateField, ForeignKeyField,
                     IntegerField, IntegrityError, Model, SqliteDatabase,
                     TimeField, fn)
@@ -26,7 +28,7 @@ fn = fn
 SQL = SQL
 
 
-DB = SqliteDatabase('tasks-counter.db')
+DB = SqliteDatabase(path.join(path.expanduser('~'), 'tasks-counter.db'))
 
 
 class MyBaseModel(Model):

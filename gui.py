@@ -19,7 +19,7 @@
 
 import datetime
 
-from PyQt5.QtCore import (QFile, QByteArray, QItemSelectionModel, QMimeData,
+from PyQt5.QtCore import (QByteArray, QFile, QItemSelectionModel, QMimeData,
                           QStringListModel, Qt, pyqtSignal, pyqtSlot)
 from PyQt5.QtGui import (QBrush, QClipboard, QColor, QFont, QIcon, QPalette,
                          QTextCursor, QTextOption)

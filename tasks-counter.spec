@@ -1,7 +1,16 @@
 # -*- mode: python -*-
 
+import os
+import sys
+
 block_cipher = None
 
+if os.name == 'nt':
+	icon = 'tasks.ico'
+elif sys.platform == 'darwin':
+	icon = 'tasks.icns'
+else:
+	icon = None
 
 a = Analysis(['main.py'],
              pathex=['.'],
@@ -26,10 +35,10 @@ exe = EXE(pyz,
           strip=False,
           upx=False,
           runtime_tmpdir=None,
-          console=False , icon='tasks.icns')
+          console=False , icon=icon)
 app = BUNDLE(exe,
              name='Tasks counter.app',
-             icon='tasks.icns',
+             icon=icon,
              bundle_identifier='com.ardeidae.tasks-counter',
              info_plist={
              'NSHighResolutionCapable': 'True'

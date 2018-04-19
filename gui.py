@@ -625,7 +625,6 @@ class MainWindow(CenterMixin, QMainWindow):
             self.task_view.setModel(self.task_model)
 
             self.__resize_task_headers__()
-            self.__resize_result_headers__()
 
             # the table takes the focus
             self.task_view.setFocus(Qt.OtherFocusReason)
@@ -748,6 +747,7 @@ class MainWindow(CenterMixin, QMainWindow):
         if self.week_wrapper:
             tasks = self.week_wrapper.week_summary
             self.result_model.tasks = tasks
+            self.__resize_result_headers__()
 
     def __export_cells_as_table__(self):
         """Copy all cells as html table."""

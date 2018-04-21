@@ -565,12 +565,12 @@ class ResultSummaryModel(QAbstractTableModel):
 
     @property
     def tasks(self):
-        """Set the tasks."""
+        """Get the tasks."""
         return self._tasks
 
     @tasks.setter
     def tasks(self, _tasks):
-        """Get the tasks."""
+        """Set the tasks."""
         self.layoutAboutToBeChanged.emit()
 
         self._tasks = _tasks

@@ -57,6 +57,7 @@ class ResultColumn(Enum):
 
     Task = 0
     Time = 1
+    Man_Day = 2
 
 
 def weekday_from_date(date_):

@@ -328,8 +328,13 @@ class MainWindow(CenterMixin, QMainWindow):
         self.result_view.horizontalHeader().setSectionResizeMode(
             ResultColumn.Time.value,
             QHeaderView.Fixed)
+        self.result_view.horizontalHeader().setSectionResizeMode(
+            ResultColumn.Man_Day.value,
+            QHeaderView.Fixed)
         self.result_view.horizontalHeader().resizeSection(
             ResultColumn.Time.value, 70)
+        self.result_view.horizontalHeader().resizeSection(
+            ResultColumn.Man_Day.value, 70)
 
     def __init_layout__(self):
         """Initialize the central widget layout."""

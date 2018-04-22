@@ -19,16 +19,16 @@
 
 import datetime
 
-from PyQt5.QtCore import (QFile, QByteArray, QItemSelectionModel, QMimeData,
-                          QStringListModel, Qt, pyqtSignal, pyqtSlot)
+from PyQt5.QtCore import (QByteArray, QFile, QItemSelectionModel, QMimeData,
+                          QStringListModel, QTime, Qt, pyqtSignal, pyqtSlot)
 from PyQt5.QtGui import (QBrush, QClipboard, QColor, QFont, QIcon, QPalette,
                          QTextCursor, QTextOption)
 from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCompleter,
                              QDesktopWidget, QDialog, QDialogButtonBox, QFrame,
                              QGridLayout, QHeaderView, QItemDelegate, QLabel,
                              QLCDNumber, QMainWindow, QSpinBox, QTableView,
-                             QTabWidget, QTextBrowser, QTextEdit, QToolBar,
-                             QVBoxLayout, QWidget, qApp)
+                             QTabWidget, QTextBrowser, QTextEdit, QTimeEdit,
+                             QToolBar, QVBoxLayout, QWidget, qApp)
 
 import resources
 from counter import (Column, ResultColumn, ResultSummaryModel, WeekDay,
@@ -262,6 +262,7 @@ class MainWindow(CenterMixin, QMainWindow):
         self.year_edit = None
         self.hours_edit = None
         self.minutes_edit = None
+        self.manday_tedit = None
         self.current_day_label = None
         self.week_time_lcdnumber = None
         self.day_time_lcdnumber = None
@@ -328,8 +329,13 @@ class MainWindow(CenterMixin, QMainWindow):
         self.result_view.horizontalHeader().setSectionResizeMode(
             ResultColumn.Time.value,
             QHeaderView.Fixed)
+        self.result_view.horizontalHeader().setSectionResizeMode(
+            ResultColumn.Man_Day.value,
+            QHeaderView.Fixed)
         self.result_view.horizontalHeader().resizeSection(
             ResultColumn.Time.value, 70)
+        self.result_view.horizontalHeader().resizeSection(
+            ResultColumn.Man_Day.value, 70)
 
     def __init_layout__(self):
         """Initialize the central widget layout."""
@@ -418,6 +424,7 @@ class MainWindow(CenterMixin, QMainWindow):
         self.result_view = self.__init_table_view__()
         self.result_view.setAlternatingRowColors(True)
         self.result_view.setModel(self.result_model)
+        self.result_view.setSelectionMode(QTableView.NoSelection)
         self.__init_layout__()
 
         self.__validate_week_and_year__()
@@ -507,6 +514,9 @@ class MainWindow(CenterMixin, QMainWindow):
         self.hours_edit.valueChanged.connect(self.__hours_changed__)
         self.minutes_edit.valueChanged.connect(self.__minutes_changed__)
 
+        self.manday_tedit = QTimeEdit(QTime(7, 0), self)
+        self.manday_tedit.timeChanged.connect(self.__update_week_summary__)
+
         toolbar_weeks.addAction(today_act)
         toolbar_weeks.addWidget(self.year_edit)
         toolbar_weeks.addWidget(self.week_edit)
@@ -515,6 +525,7 @@ class MainWindow(CenterMixin, QMainWindow):
         toolbar_weeks.addWidget(self.hours_edit)
         toolbar_weeks.addWidget(self.minutes_edit)
         toolbar_weeks.addAction(export_act)
+        toolbar_weeks.addWidget(self.manday_tedit)
 
         toolbar_application.addAction(exit_act)
         toolbar_application.addAction(about_act)
@@ -625,7 +636,6 @@ class MainWindow(CenterMixin, QMainWindow):
             self.task_view.setModel(self.task_model)
 
             self.__resize_task_headers__()
-            self.__resize_result_headers__()
 
             # the table takes the focus
             self.task_view.setFocus(Qt.OtherFocusReason)
@@ -746,11 +756,16 @@ class MainWindow(CenterMixin, QMainWindow):
     def __update_week_summary__(self):
         """Update the week summary."""
         if self.week_wrapper:
-            tasks = self.week_wrapper.week_summary
+
+            manday_time = self.manday_tedit.time()
+            manday_minutes = manday_time.hour() * 60 + manday_time.minute()
+
+            tasks = self.week_wrapper.week_summary(manday_minutes)
             self.result_model.tasks = tasks
+            self.__resize_result_headers__()
 
     def __export_cells_as_table__(self):
-        """Copy all cells as html table."""
+        """Copy tasks and time cells as html table."""
         model = self.result_view.model()
 
         table_text = '<html><head>'
@@ -760,12 +775,12 @@ class MainWindow(CenterMixin, QMainWindow):
         table_text += '<table cellpadding="0" cellspacing="0" border="0" '
         table_text += 'style="width:100%;">'
 
-        row = model.rowCount()
-        column = model.columnCount()
+        rows = model.rowCount()
+        columns_to_export = (ResultColumn.Task.value, ResultColumn.Time.value)
 
-        for i in range(0, row):
+        for i in range(0, rows):
             table_text += '<tr>'
-            for j in range(0, column):
+            for j in columns_to_export:
                 content = model.data(model.index(i, j), Qt.DisplayRole)
                 if j == 0:
                     table_text += ('<th style="border:2px solid black;'

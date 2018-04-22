@@ -424,6 +424,7 @@ class MainWindow(CenterMixin, QMainWindow):
         self.result_view = self.__init_table_view__()
         self.result_view.setAlternatingRowColors(True)
         self.result_view.setModel(self.result_model)
+        self.result_view.setSelectionMode(QTableView.NoSelection)
         self.__init_layout__()
 
         self.__validate_week_and_year__()

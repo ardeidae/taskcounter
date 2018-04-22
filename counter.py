@@ -57,6 +57,7 @@ class ResultColumn(Enum):
 
     Task = 0
     Time = 1
+    Man_Day = 2
 
 
 def weekday_from_date(date_):
@@ -225,8 +226,7 @@ class WeekWrapper:
                    .scalar())
         return minutes or 0
 
-    @property
-    def week_summary(self):
+    def week_summary(self, _manday_minutes):
         """Get the week summary: tasks and total time in minutes."""
         tasks = {}
         query = (Task.select(Task.name,
@@ -246,6 +246,11 @@ class WeekWrapper:
             task = {}
             task[ResultColumn.Task] = row.name
             task[ResultColumn.Time] = row.sum
+            if _manday_minutes:
+                task[ResultColumn.Man_Day] = round(row.sum /
+                                                   _manday_minutes, 2)
+            else:
+                task[ResultColumn.Man_Day] = ''
             tasks[counter] = task
 
         return tasks
@@ -553,6 +558,7 @@ class ResultSummaryModel(QAbstractTableModel):
         super().__init__()
 
         self._tasks = []
+        self._manday_minutes = 0
 
     def rowCount(self, parent=None):
         """Return the number of rows under the given parent."""
@@ -564,12 +570,12 @@ class ResultSummaryModel(QAbstractTableModel):
 
     @property
     def tasks(self):
-        """Set the tasks."""
+        """Get the tasks."""
         return self._tasks
 
     @tasks.setter
     def tasks(self, _tasks):
-        """Get the tasks."""
+        """Set the tasks."""
         self.layoutAboutToBeChanged.emit()
 
         self._tasks = _tasks
@@ -581,6 +587,16 @@ class ResultSummaryModel(QAbstractTableModel):
             top_left, bottom_right, [Qt.DisplayRole])
 
         self.layoutChanged.emit()
+
+    @property
+    def manday_minutes(self):
+        """Get the manday minutes."""
+        return self._manday_minutes
+
+    @manday_minutes.setter
+    def manday_minutes(self, _manday_minutes):
+        """Set the manday minutes."""
+        self._manday_minutes = _manday_minutes
 
     def data(self, index, role):
         """Return the data.
@@ -607,6 +623,8 @@ class ResultSummaryModel(QAbstractTableModel):
                         return str(value)
                 elif column == ResultColumn.Time.value:
                     return minutes_to_time_str(value)
+                elif column == ResultColumn.Man_Day.value:
+                    return value
         elif role == Qt.TextAlignmentRole:
             if column == ResultColumn.Task.value:
                 return Qt.AlignLeft | Qt.AlignVCenter

@@ -135,6 +135,11 @@ class TaskNameDelegate(QItemDelegate):
     def __commit_and_close_editor__(self):
         """Commit changes and close the editor."""
         editor = self.sender()
+
+        # remove left and right whitespace.
+        text = editor.toPlainText()
+        editor.setPlainText(' '.join(text.splitlines()).strip())
+
         self.commitData.emit(editor)
         self.closeEditor.emit(editor)
 

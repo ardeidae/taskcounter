@@ -106,8 +106,16 @@ class LineEdit(QTextEdit):
         """When the text has changed."""
         # remove new lines and strip left blank characters
         self.blockSignals(True)
+        cursor_position = self.textCursor().position()
+
+        origin = self.toPlainText()
+        # count first whitespaces
+        whitespaces = len(origin) - len(origin.lstrip())
+
+        self.setPlainText(' '.join(origin.splitlines()).lstrip())
         cursor = self.textCursor()
-        self.setPlainText(' '.join(self.toPlainText().splitlines()).lstrip())
+        # to avoid offset when setting cursor position, substract whitespaces.
+        cursor.setPosition(max(cursor_position - whitespaces, 0))
         self.setTextCursor(cursor)
         self.ensureCursorVisible()
         self.blockSignals(False)
@@ -135,6 +143,11 @@ class TaskNameDelegate(QItemDelegate):
     def __commit_and_close_editor__(self):
         """Commit changes and close the editor."""
         editor = self.sender()
+
+        # remove left and right whitespace.
+        text = editor.toPlainText()
+        editor.setPlainText(' '.join(text.splitlines()).strip())
+
         self.commitData.emit(editor)
         self.closeEditor.emit(editor)
 
@@ -424,7 +437,7 @@ class MainWindow(CenterMixin, QMainWindow):
         self.result_view = self.__init_table_view__()
         self.result_view.setAlternatingRowColors(True)
         self.result_view.setModel(self.result_model)
-        self.result_view.setSelectionMode(QTableView.NoSelection)
+        self.result_view.setSelectionBehavior(QTableView.SelectRows)
         self.__init_layout__()
 
         self.__validate_week_and_year__()

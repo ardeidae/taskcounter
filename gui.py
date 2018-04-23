@@ -106,8 +106,16 @@ class LineEdit(QTextEdit):
         """When the text has changed."""
         # remove new lines and strip left blank characters
         self.blockSignals(True)
+        cursor_position = self.textCursor().position()
+
+        origin = self.toPlainText()
+        # count first whitespaces
+        whitespaces = len(origin) - len(origin.lstrip())
+
+        self.setPlainText(' '.join(origin.splitlines()).lstrip())
         cursor = self.textCursor()
-        self.setPlainText(' '.join(self.toPlainText().splitlines()).lstrip())
+        # to avoid offset when setting cursor position, substract whitespaces.
+        cursor.setPosition(max(cursor_position - whitespaces, 0))
         self.setTextCursor(cursor)
         self.ensureCursorVisible()
         self.blockSignals(False)

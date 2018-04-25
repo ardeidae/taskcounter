@@ -191,7 +191,7 @@ class CenterMixin:
             self.move(geometry.topLeft())
 
 
-class Settings(CenterMixin, QDialog):
+class SettingsDialog(CenterMixin, QDialog):
     """Settings dialog."""
 
     def __init__(self, parent=None):
@@ -211,7 +211,7 @@ class Settings(CenterMixin, QDialog):
         self.setLayout(main_layout)
 
 
-class About(CenterMixin, QDialog):
+class AboutDialog(CenterMixin, QDialog):
     """Application about dialog."""
 
     def __init__(self, parent=None):
@@ -643,7 +643,7 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def __about__(self):
         """Open the about page."""
-        about = About(self)
+        about = AboutDialog(self)
         about.exec_()
 
     @pyqtSlot()
@@ -654,7 +654,7 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def __edit_preferences__(self):
         """Edit preferences."""
-        settings = Settings(self)
+        settings = SettingsDialog(self)
         settings.exec_()
 
     @pyqtSlot()

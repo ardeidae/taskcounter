@@ -544,14 +544,10 @@ class MainWindow(QMainWindow):
         menubar = self.menuBar()
         menubar.setNativeMenuBar(True)
 
-        exit_menu = menubar.addMenu('Quit')
-        exit_menu.addAction(exit_act)
-
-        about_qt_menu = menubar.addMenu('About Qt')
-        about_qt_menu.addAction(about_qt_act)
-
-        about_menu = menubar.addMenu('About')
-        about_menu.addAction(about_act)
+        app_menu = menubar.addMenu('Application')
+        app_menu.addAction(about_act)
+        app_menu.addAction(about_qt_act)
+        app_menu.addAction(exit_act)
 
         weeks_menu = menubar.addMenu('Weeks')
         weeks_menu.addAction(today_act)

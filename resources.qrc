@@ -21,6 +21,8 @@
         <file alias="info.png">resources/images/info.png</file>
         <!-- https://www.flaticon.com/free-icon/folder_126782 -->
         <file alias="export.png">resources/images/export.png</file>
+        <!-- https://www.flaticon.com/free-icon/settings_841425 -->
+        <file alias="settings.png">resources/images/settings.png</file>
 
         <file alias="LICENSE">resources/LICENSE</file>
         <file alias="ABOUT">resources/ABOUT</file>

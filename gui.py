@@ -191,6 +191,18 @@ class CenterMixin:
             self.move(geometry.topLeft())
 
 
+class Settings(CenterMixin, QDialog):
+    """Settings dialog."""
+
+    def __init__(self, parent=None):
+        """Construct a settings dialog."""
+        super().__init__(parent)
+        self.setWindowTitle('Edit preferences')
+        self.setMinimumHeight(600)
+        self.setMinimumWidth(600)
+        self.center()
+
+
 class About(CenterMixin, QDialog):
     """Application about dialog."""
 
@@ -487,6 +499,10 @@ class MainWindow(QMainWindow):
         about_qt_act.triggered.connect(qApp.aboutQt)
         about_qt_act.setStatusTip('About Qt')
 
+        settings_act = QAction(QIcon(':/settings.png'), 'Preferences', self)
+        settings_act.triggered.connect(self.__edit_preferences__)
+        settings_act.setStatusTip('Edit preferences')
+
         exit_act = QAction(QIcon(':/exit.png'), '&Quit', self)
         exit_act.setShortcut('Ctrl+Q')
         exit_act.setStatusTip('Quit application')
@@ -539,6 +555,7 @@ class MainWindow(QMainWindow):
         toolbar_weeks.addWidget(self.manday_tedit)
 
         toolbar_application.addAction(exit_act)
+        toolbar_application.addAction(settings_act)
         toolbar_application.addAction(about_act)
 
         menubar = self.menuBar()
@@ -547,6 +564,7 @@ class MainWindow(QMainWindow):
         app_menu = menubar.addMenu('Application')
         app_menu.addAction(about_act)
         app_menu.addAction(about_qt_act)
+        app_menu.addAction(settings_act)
         app_menu.addAction(exit_act)
 
         weeks_menu = menubar.addMenu('Weeks')
@@ -624,6 +642,12 @@ class MainWindow(QMainWindow):
     def __export__(self):
         """Export data."""
         self.__export_cells_as_table__()
+
+    @pyqtSlot()
+    def __edit_preferences__(self):
+        """Edit preferences."""
+        settings = Settings(self)
+        settings.exec_()
 
     @pyqtSlot()
     def __change_current_day__(self):

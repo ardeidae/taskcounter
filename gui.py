@@ -198,9 +198,17 @@ class Settings(CenterMixin, QDialog):
         """Construct a settings dialog."""
         super().__init__(parent)
         self.setWindowTitle('Edit preferences')
-        self.setMinimumHeight(600)
-        self.setMinimumWidth(600)
         self.center()
+
+        manday_time_label = QLabel('Default man day time', self)
+        manday_time = QTimeEdit(self)
+
+        main_layout = QGridLayout()
+
+        main_layout.addWidget(manday_time_label, 0, 0)
+        main_layout.addWidget(manday_time, 0, 1)
+
+        self.setLayout(main_layout)
 
 
 class About(CenterMixin, QDialog):

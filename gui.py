@@ -200,8 +200,6 @@ class About(CenterMixin, QDialog):
         self.setWindowTitle('About this software')
         self.setMinimumHeight(600)
         self.setMinimumWidth(600)
-        self.setMaximumHeight(600)
-        self.setMaximumWidth(600)
         self.center()
 
         self.license = self.__build_text_browser__()
@@ -259,7 +257,7 @@ class About(CenterMixin, QDialog):
             return ''
 
 
-class MainWindow(CenterMixin, QMainWindow):
+class MainWindow(QMainWindow):
     """The main window of the application."""
 
     def __init__(self):
@@ -287,10 +285,11 @@ class MainWindow(CenterMixin, QMainWindow):
 
     def __set_window_size__(self):
         """Set the window size."""
-        self.setMinimumHeight(600)
-        self.setMaximumHeight(600)
-        self.setMinimumWidth(900)
-        self.setMaximumWidth(900)
+        w = 700
+        h = 400
+        self.setMinimumWidth(w)
+        self.setMinimumHeight(h)
+        self.showMaximized()
 
     def __disable_headers_click__(self, _table):
         """Disable click on table headers."""
@@ -429,7 +428,6 @@ class MainWindow(CenterMixin, QMainWindow):
         self.statusBar()
 
         self.__set_window_size__()
-        self.center()
         self.__create_toolbars_and_menus__()
         self.task_view = self.__init_table_view__()
         self.task_view.setSelectionMode(QTableView.SingleSelection)
@@ -546,14 +544,10 @@ class MainWindow(CenterMixin, QMainWindow):
         menubar = self.menuBar()
         menubar.setNativeMenuBar(True)
 
-        exit_menu = menubar.addMenu('Quit')
-        exit_menu.addAction(exit_act)
-
-        about_qt_menu = menubar.addMenu('About Qt')
-        about_qt_menu.addAction(about_qt_act)
-
-        about_menu = menubar.addMenu('About')
-        about_menu.addAction(about_act)
+        app_menu = menubar.addMenu('Application')
+        app_menu.addAction(about_act)
+        app_menu.addAction(about_qt_act)
+        app_menu.addAction(exit_act)
 
         weeks_menu = menubar.addMenu('Weeks')
         weeks_menu.addAction(today_act)

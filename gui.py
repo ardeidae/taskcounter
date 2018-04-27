@@ -20,7 +20,7 @@
 import datetime
 
 from PyQt5.QtCore import (QByteArray, QFile, QItemSelectionModel, QMimeData,
-                          QStringListModel, QTime, Qt, pyqtSignal, pyqtSlot)
+                          QStringListModel, Qt, QTime, pyqtSignal, pyqtSlot)
 from PyQt5.QtGui import (QBrush, QClipboard, QColor, QFont, QIcon, QPalette,
                          QTextCursor, QTextOption)
 from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCompleter,
@@ -31,9 +31,10 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCompleter,
                              QToolBar, QVBoxLayout, QWidget, qApp)
 
 import resources
-from counter import (Column, ResultColumn, ResultSummaryModel, WeekDay,
-                     WeekWrapper, color_between, get_last_unique_task_names,
-                     minutes_to_time_str, weekday_from_date, weeks_for_year)
+from counter import (Column, ResultColumn, ResultSummaryModel, SettingWrapper,
+                     WeekDay, WeekWrapper, color_between,
+                     get_last_unique_task_names, minutes_to_time_str,
+                     weekday_from_date, weeks_for_year)
 from database import close_database
 from settings import (BAD_LIMIT_COLOR, CELL_HIGHLIGHT_COLOR,
                       CELL_HIGHLIGHT_TEXT_COLOR, GOOD_LIMIT_COLOR)
@@ -201,14 +202,22 @@ class SettingsDialog(CenterMixin, QDialog):
         self.center()
 
         manday_time_label = QLabel('Default man day time', self)
-        manday_time = QTimeEdit(self)
+        self.manday_time = QTimeEdit(
+            SettingWrapper.default_manday_time(), self)
+        self.manday_time.timeChanged.connect(
+            self.__manday_time_changed__)
 
         main_layout = QGridLayout()
 
         main_layout.addWidget(manday_time_label, 0, 0)
-        main_layout.addWidget(manday_time, 0, 1)
+        main_layout.addWidget(self.manday_time, 0, 1)
 
         self.setLayout(main_layout)
+
+    @pyqtSlot()
+    def __manday_time_changed__(self):
+        """Update the man day time."""
+        SettingWrapper.set_default_manday_time(self.manday_time.time())
 
 
 class AboutDialog(CenterMixin, QDialog):
@@ -549,7 +558,8 @@ class MainWindow(QMainWindow):
         self.hours_edit.valueChanged.connect(self.__hours_changed__)
         self.minutes_edit.valueChanged.connect(self.__minutes_changed__)
 
-        self.manday_tedit = QTimeEdit(QTime(7, 0), self)
+        self.manday_tedit = QTimeEdit(SettingWrapper.default_manday_time(),
+                                      self)
         self.manday_tedit.timeChanged.connect(self.__update_week_summary__)
 
         toolbar_weeks.addAction(today_act)

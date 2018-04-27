@@ -17,14 +17,15 @@
 
 """Tasks counter model."""
 
+import pickle
+import re
 from datetime import date, timedelta
 from enum import Enum, unique
-import re
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QTime, QVariant
 from PyQt5.QtGui import QBrush, QColor
 
-from database import SQL, Day, IntegrityError, Task, Week, fn
+from database import SQL, Day, IntegrityError, Setting, Task, Week, fn
 from settings import INVALID_CELL_HIGHLIGHT_COLOR, VALID_CELL_HIGHLIGHT_COLOR
 
 
@@ -548,6 +549,50 @@ class DayWrapper(QAbstractTableModel):
                         return True
 
         return False
+
+
+class SettingWrapper:
+    """Wrapper for the setting model."""
+
+    MANDAY_TIME_PROPERTY = 'default_manday_time'
+
+    @staticmethod
+    def insert_or_update(name, value):
+        """Insert or update a value for a named setting."""
+        dump = pickle.dumps(value).hex()
+        try:
+            Setting.create(name=name, value=dump)
+        except IntegrityError:
+            query = Setting.update(value=dump).where(Setting.name == name)
+            print('>>> query: ' + str(query.sql()))
+            query.execute()
+
+    @staticmethod
+    def get_value(name):
+        """Get value for a named setting."""
+        value = None
+        hex_value = (Setting.select(Setting.value)
+                            .where(Setting.name == name)
+                            .scalar())
+        if hex_value:
+            try:
+                bytes_value = bytes.fromhex(hex_value)
+                value = pickle.loads(bytes_value)
+            except (pickle.PickleError, ValueError):
+                print('>>> Error when reading setting {}'.format(name))
+
+        return value
+
+    @classmethod
+    def default_manday_time(cls):
+        """Get the default manday time."""
+        return cls.get_value(cls.MANDAY_TIME_PROPERTY) or QTime(7, 0)
+
+    @classmethod
+    def set_default_manday_time(cls, default_manday_time):
+        """Set the default manday time."""
+        cls.insert_or_update(cls.MANDAY_TIME_PROPERTY,
+                             default_manday_time)
 
 
 class ResultSummaryModel(QAbstractTableModel):

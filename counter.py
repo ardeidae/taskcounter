@@ -26,7 +26,6 @@ from PyQt5.QtCore import QAbstractTableModel, Qt, QTime, QVariant
 from PyQt5.QtGui import QBrush, QColor
 
 from database import SQL, Day, IntegrityError, Setting, Task, Week, fn
-from settings import INVALID_CELL_HIGHLIGHT_COLOR, VALID_CELL_HIGHLIGHT_COLOR
 
 
 @unique
@@ -349,12 +348,12 @@ class DayWrapper(QAbstractTableModel):
             try:
                 start = self._cached_data[row][Column.Start_Time]
                 end = self._cached_data[row][Column.End_Time]
-                red_brush = QBrush(QColor(VALID_CELL_HIGHLIGHT_COLOR))
+                red_brush = QBrush(SettingWrapper.invalid_color())
                 if not start or not end:
                     return red_brush
                 if start >= end:
                     return red_brush
-                return QBrush(QColor(INVALID_CELL_HIGHLIGHT_COLOR))
+                return QBrush(SettingWrapper.valid_color())
             except KeyError:
                 pass
 
@@ -555,6 +554,8 @@ class SettingWrapper:
     """Wrapper for the setting model."""
 
     MANDAY_TIME_PROPERTY = 'default_manday_time'
+    INVALID_COLOR_PROPERTY = 'invalid_color'
+    VALID_COLOR_PROPERTY = 'valid_color'
 
     @staticmethod
     def insert_or_update(name, value):
@@ -593,6 +594,28 @@ class SettingWrapper:
         """Set the default manday time."""
         cls.insert_or_update(cls.MANDAY_TIME_PROPERTY,
                              default_manday_time)
+
+    @classmethod
+    def invalid_color(cls):
+        """Get the invalid color setting."""
+        return (cls.get_value(cls.INVALID_COLOR_PROPERTY) or
+                QColor('#FFCDD2'))
+
+    @classmethod
+    def set_invalid_color(cls, invalid_color):
+        """Set the invalid color setting."""
+        cls.insert_or_update(cls.INVALID_COLOR_PROPERTY, invalid_color)
+
+    @classmethod
+    def valid_color(cls):
+        """Get the valid color setting."""
+        return (cls.get_value(cls.VALID_COLOR_PROPERTY) or
+                QColor('#DAF7A6'))
+
+    @classmethod
+    def set_valid_color(cls, valid_color):
+        """Set the valid color setting."""
+        cls.insert_or_update(cls.VALID_COLOR_PROPERTY, valid_color)
 
 
 class ResultSummaryModel(QAbstractTableModel):

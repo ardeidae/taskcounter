@@ -23,10 +23,11 @@ from PyQt5.QtCore import (QByteArray, QFile, QItemSelectionModel, QMimeData,
                           QStringListModel, Qt, QTime, pyqtSignal, pyqtSlot)
 from PyQt5.QtGui import (QBrush, QClipboard, QColor, QFont, QIcon, QPalette,
                          QTextCursor, QTextOption)
-from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCompleter,
-                             QDesktopWidget, QDialog, QDialogButtonBox, QFrame,
-                             QGridLayout, QHeaderView, QItemDelegate, QLabel,
-                             QLCDNumber, QMainWindow, QSpinBox, QTableView,
+from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QColorDialog,
+                             QCompleter, QDesktopWidget, QDialog,
+                             QDialogButtonBox, QFrame, QGridLayout,
+                             QHeaderView, QItemDelegate, QLabel, QLCDNumber,
+                             QMainWindow, QPushButton, QSpinBox, QTableView,
                              QTabWidget, QTextBrowser, QTextEdit, QTimeEdit,
                              QToolBar, QVBoxLayout, QWidget, qApp)
 
@@ -36,8 +37,7 @@ from counter import (Column, ResultColumn, ResultSummaryModel, SettingWrapper,
                      get_last_unique_task_names, minutes_to_time_str,
                      weekday_from_date, weeks_for_year)
 from database import close_database
-from settings import (BAD_LIMIT_COLOR, CELL_HIGHLIGHT_COLOR,
-                      CELL_HIGHLIGHT_TEXT_COLOR, GOOD_LIMIT_COLOR)
+from settings import CELL_HIGHLIGHT_COLOR, CELL_HIGHLIGHT_TEXT_COLOR
 from version import author, github_repository, version
 
 
@@ -201,23 +201,86 @@ class SettingsDialog(CenterMixin, QDialog):
         self.setWindowTitle('Edit preferences')
         self.center()
 
+        self.invalid_color = None
+        self.valid_color = None
+
+        self.__update_colors__()
+
         manday_time_label = QLabel('Default man day time', self)
         self.manday_time = QTimeEdit(
             SettingWrapper.default_manday_time(), self)
         self.manday_time.timeChanged.connect(
             self.__manday_time_changed__)
 
+        invalid_color_label = QLabel('Invalid color', self)
+        self.invalid_color_button = QPushButton(self)
+        self.invalid_color_button.clicked.connect(
+            self.__open_invalid_color_dialog__)
+
+        valid_color_label = QLabel('Valid color', self)
+        self.valid_color_button = QPushButton(self)
+        self.valid_color_button.clicked.connect(
+            self.__open_valid_color_dialog__)
+
+        self.__update_buttons_colors__()
+
         main_layout = QGridLayout()
 
         main_layout.addWidget(manday_time_label, 0, 0)
         main_layout.addWidget(self.manday_time, 0, 1)
 
+        main_layout.addWidget(invalid_color_label, 1, 0)
+        main_layout.addWidget(self.invalid_color_button, 1, 1)
+
+        main_layout.addWidget(valid_color_label, 2, 0)
+        main_layout.addWidget(self.valid_color_button, 2, 1)
+
         self.setLayout(main_layout)
 
     @pyqtSlot()
     def __manday_time_changed__(self):
-        """Update the man day time."""
+        """Update the man day time setting."""
         SettingWrapper.set_default_manday_time(self.manday_time.time())
+
+    @pyqtSlot()
+    def __open_invalid_color_dialog__(self):
+        """Update the invalid color setting."""
+        color = QColorDialog.getColor(self.invalid_color, self,
+                                      'Select invalid color',
+                                      QColorDialog.DontUseNativeDialog)
+        if color.isValid():
+            SettingWrapper.set_invalid_color(color)
+
+        self.__update_colors__()
+        self.__update_buttons_colors__()
+
+    @pyqtSlot()
+    def __open_valid_color_dialog__(self):
+        """Update the valid color setting."""
+        color = QColorDialog.getColor(self.valid_color, self,
+                                      'Select invalid color',
+                                      QColorDialog.DontUseNativeDialog)
+        if color.isValid():
+            SettingWrapper.set_valid_color(color)
+
+        self.__update_colors__()
+        self.__update_buttons_colors__()
+
+    def __update_colors__(self):
+        """Update the local colors values."""
+        self.invalid_color = SettingWrapper.invalid_color()
+        self.valid_color = SettingWrapper.valid_color()
+
+    def __update_buttons_colors__(self):
+        """Update the buttons colors."""
+        self.invalid_color_button.setStyleSheet('background-color: {}'
+                                                .format(
+                                                    self.invalid_color.name())
+                                                )
+        self.valid_color_button.setStyleSheet('background-color: {}'
+                                              .format(
+                                                  self.valid_color.name())
+                                              )
 
 
 class AboutDialog(CenterMixin, QDialog):
@@ -740,10 +803,10 @@ class MainWindow(QMainWindow):
         time_str = minutes_to_time_str(abs_time)
 
         if catch_up_time >= 0:
-            self.__change_catch_up_color__(QColor(GOOD_LIMIT_COLOR))
+            self.__change_catch_up_color__(SettingWrapper.valid_color())
             self.catch_up_lcdnumber.setToolTip('+' + time_str)
         else:
-            self.__change_catch_up_color__(QColor(BAD_LIMIT_COLOR))
+            self.__change_catch_up_color__(SettingWrapper.invalid_color())
             self.catch_up_lcdnumber.setToolTip('-' + time_str)
 
         if abs_time >= 6000:
@@ -787,8 +850,8 @@ class MainWindow(QMainWindow):
             percent = (self.week_wrapper.minutes_of_week /
                        self.week_wrapper.minutes_to_work)
 
-        color = color_between(BAD_LIMIT_COLOR, GOOD_LIMIT_COLOR,
-                              percent)
+        color = color_between(SettingWrapper.invalid_color().name(),
+                              SettingWrapper.valid_color().name(), percent)
         self.__change_week_color__(QColor(color))
 
     def __build_title_label__(self, title):

@@ -17,15 +17,15 @@
 
 """Tasks counter model."""
 
+import pickle
+import re
 from datetime import date, timedelta
 from enum import Enum, unique
-import re
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QTime, QVariant
 from PyQt5.QtGui import QBrush, QColor
 
-from database import SQL, Day, IntegrityError, Task, Week, fn
-from settings import INVALID_CELL_HIGHLIGHT_COLOR, VALID_CELL_HIGHLIGHT_COLOR
+from database import SQL, Day, IntegrityError, Setting, Task, Week, fn
 
 
 @unique
@@ -177,7 +177,7 @@ class WeekWrapper:
         """Create the days of this week."""
         for date_ in seven_days_of_week(self._week.year,
                                         self._week.week_number):
-            DayWrapper(date_=date_, week=self._week)
+            DayWrapper(date=date_, week=self._week)
 
     @property
     def minutes_of_week(self):
@@ -226,7 +226,7 @@ class WeekWrapper:
                    .scalar())
         return minutes or 0
 
-    def week_summary(self, _manday_minutes):
+    def week_summary(self, manday_minutes):
         """Get the week summary: tasks and total time in minutes."""
         tasks = {}
         query = (Task.select(Task.name,
@@ -246,9 +246,9 @@ class WeekWrapper:
             task = {}
             task[ResultColumn.Task] = row.name
             task[ResultColumn.Time] = row.sum
-            if _manday_minutes:
+            if manday_minutes:
                 task[ResultColumn.Man_Day] = round(row.sum /
-                                                   _manday_minutes, 2)
+                                                   manday_minutes, 2)
             else:
                 task[ResultColumn.Man_Day] = ''
             tasks[counter] = task
@@ -259,10 +259,10 @@ class WeekWrapper:
 class DayWrapper(QAbstractTableModel):
     """Wrapper for the day model."""
 
-    def __init__(self, date_, week):
+    def __init__(self, date, week):
         """Construct a day wrapper object."""
         super().__init__()
-        self._day = Day.get_or_create(date=date_,
+        self._day = Day.get_or_create(date=date,
                                       week=week)[0]
         self._cached_data = None
         self.__cache_data__()
@@ -344,16 +344,18 @@ class DayWrapper(QAbstractTableModel):
                             return QVariant(QTime(0, 0))
                         else:
                             return QVariant()
-        elif role == Qt.BackgroundRole:
+        elif role in (Qt.BackgroundRole, Qt.ForegroundRole):
             try:
                 start = self._cached_data[row][Column.Start_Time]
                 end = self._cached_data[row][Column.End_Time]
-                red_brush = QBrush(QColor(VALID_CELL_HIGHLIGHT_COLOR))
-                if not start or not end:
-                    return red_brush
-                if start >= end:
-                    return red_brush
-                return QBrush(QColor(INVALID_CELL_HIGHLIGHT_COLOR))
+                background_color = SettingWrapper.valid_color()
+                if role == Qt.BackgroundRole:
+                    if not start or not end or start >= end:
+                        background_color = SettingWrapper.invalid_color()
+                    return QBrush(background_color)
+                elif role == Qt.ForegroundRole:
+                    text_color = contrast_color(background_color.name())
+                    return QBrush(QColor(text_color))
             except KeyError:
                 pass
 
@@ -550,6 +552,87 @@ class DayWrapper(QAbstractTableModel):
         return False
 
 
+class SettingWrapper:
+    """Wrapper for the setting model."""
+
+    MANDAY_TIME_PROPERTY = 'default_manday_time'
+    INVALID_COLOR_PROPERTY = 'invalid_color'
+    VALID_COLOR_PROPERTY = 'valid_color'
+    CURRENT_CELL_COLOR_PROPERTY = 'current_cell_color'
+
+    @staticmethod
+    def insert_or_update(name, value):
+        """Insert or update a value for a named setting."""
+        dump = pickle.dumps(value).hex()
+        try:
+            Setting.create(name=name, value=dump)
+        except IntegrityError:
+            query = Setting.update(value=dump).where(Setting.name == name)
+            print('>>> query: ' + str(query.sql()))
+            query.execute()
+
+    @staticmethod
+    def get_value(name):
+        """Get value for a named setting."""
+        value = None
+        hex_value = (Setting.select(Setting.value)
+                            .where(Setting.name == name)
+                            .scalar())
+        if hex_value:
+            try:
+                bytes_value = bytes.fromhex(hex_value)
+                value = pickle.loads(bytes_value)
+            except (pickle.PickleError, ValueError):
+                print('>>> Error when reading setting {}'.format(name))
+
+        return value
+
+    @classmethod
+    def default_manday_time(cls):
+        """Get the default manday time."""
+        return cls.get_value(cls.MANDAY_TIME_PROPERTY) or QTime(7, 0)
+
+    @classmethod
+    def set_default_manday_time(cls, default_manday_time):
+        """Set the default manday time."""
+        cls.insert_or_update(cls.MANDAY_TIME_PROPERTY,
+                             default_manday_time)
+
+    @classmethod
+    def invalid_color(cls):
+        """Get the invalid color setting."""
+        return (cls.get_value(cls.INVALID_COLOR_PROPERTY) or
+                QColor('#FFCDD2'))
+
+    @classmethod
+    def set_invalid_color(cls, invalid_color):
+        """Set the invalid color setting."""
+        cls.insert_or_update(cls.INVALID_COLOR_PROPERTY, invalid_color)
+
+    @classmethod
+    def valid_color(cls):
+        """Get the valid color setting."""
+        return (cls.get_value(cls.VALID_COLOR_PROPERTY) or
+                QColor('#DAF7A6'))
+
+    @classmethod
+    def set_valid_color(cls, valid_color):
+        """Set the valid color setting."""
+        cls.insert_or_update(cls.VALID_COLOR_PROPERTY, valid_color)
+
+    @classmethod
+    def current_cell_color(cls):
+        """Get the current cell color setting."""
+        return (cls.get_value(cls.CURRENT_CELL_COLOR_PROPERTY) or
+                QColor('#fffd88'))
+
+    @classmethod
+    def set_current_cell_color(cls, current_cell_color):
+        """Set the current cell color setting."""
+        cls.insert_or_update(cls.CURRENT_CELL_COLOR_PROPERTY,
+                             current_cell_color)
+
+
 class ResultSummaryModel(QAbstractTableModel):
     """Result summary model."""
 
@@ -574,11 +657,11 @@ class ResultSummaryModel(QAbstractTableModel):
         return self._tasks
 
     @tasks.setter
-    def tasks(self, _tasks):
+    def tasks(self, tasks):
         """Set the tasks."""
         self.layoutAboutToBeChanged.emit()
 
-        self._tasks = _tasks
+        self._tasks = tasks
 
         top_left = self.index(0, 0)
         bottom_right = self.index(
@@ -594,9 +677,9 @@ class ResultSummaryModel(QAbstractTableModel):
         return self._manday_minutes
 
     @manday_minutes.setter
-    def manday_minutes(self, _manday_minutes):
+    def manday_minutes(self, manday_minutes):
         """Set the manday minutes."""
-        self._manday_minutes = _manday_minutes
+        self._manday_minutes = manday_minutes
 
     def data(self, index, role):
         """Return the data.
@@ -655,21 +738,22 @@ def get_last_unique_task_names():
                   .order_by(Task.name)))
 
 
+def split_color(color):
+    """Split hex color like #rrggbb or #rgb into three int components."""
+    color = color[1:]
+    if len(color) == 6:
+        r, g, b = [int(color[i:i + 2], 16) for i in range(0, 6, 2)]
+    elif len(color) == 3:
+        r, g, b = [int(color[i:i + 1], 16) for i in range(0, 3)]
+    return (r, g, b)
+
+
 def color_between(start_color, end_color, percent):
     """Get a hex color between a start and end color using a percentage."""
     if percent < 0:
         percent = 0
     if percent > 1:
         percent = 1
-
-    def split_color(color):
-        """Split hex color like #rrggbb or #rgb into three int components."""
-        color = color[1:]
-        if len(color) == 6:
-            r, g, b = [int(color[i:i + 2], 16) for i in range(0, 6, 2)]
-        elif len(color) == 3:
-            r, g, b = [int(color[i:i + 1], 16) for i in range(0, 3)]
-        return (r, g, b)
 
     regexp = r'^#(?:[0-9a-fA-F]{3}){1,2}$'
     if (re.search(regexp, start_color)
@@ -682,5 +766,17 @@ def color_between(start_color, end_color, percent):
                                              int(g1 + (g2 - g1) * percent),
                                              int(b1 + (b2 - b1) * percent)))
 
+    else:
+        return '#000000'
+
+
+def contrast_color(color):
+    """Get black or white contrast depending on a given color."""
+    regexp = r'^#(?:[0-9a-fA-F]{3}){1,2}$'
+
+    if re.search(regexp, color):
+        r, g, b = split_color(color)
+        lightness = r * 0.299 + g * 0.587 + b * 0.114
+        return '#000000' if lightness > 160 else '#ffffff'
     else:
         return '#000000'

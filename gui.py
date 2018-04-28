@@ -20,23 +20,23 @@
 import datetime
 
 from PyQt5.QtCore import (QByteArray, QFile, QItemSelectionModel, QMimeData,
-                          QStringListModel, QTime, Qt, pyqtSignal, pyqtSlot)
+                          QStringListModel, Qt, QTime, pyqtSignal, pyqtSlot)
 from PyQt5.QtGui import (QBrush, QClipboard, QColor, QFont, QIcon, QPalette,
                          QTextCursor, QTextOption)
-from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCompleter,
-                             QDesktopWidget, QDialog, QDialogButtonBox, QFrame,
-                             QGridLayout, QHeaderView, QItemDelegate, QLabel,
-                             QLCDNumber, QMainWindow, QSpinBox, QTableView,
+from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QColorDialog,
+                             QCompleter, QDesktopWidget, QDialog,
+                             QDialogButtonBox, QFrame, QGridLayout,
+                             QHeaderView, QItemDelegate, QLabel, QLCDNumber,
+                             QMainWindow, QPushButton, QSpinBox, QTableView,
                              QTabWidget, QTextBrowser, QTextEdit, QTimeEdit,
                              QToolBar, QVBoxLayout, QWidget, qApp)
 
 import resources
-from counter import (Column, ResultColumn, ResultSummaryModel, WeekDay,
-                     WeekWrapper, color_between, get_last_unique_task_names,
-                     minutes_to_time_str, weekday_from_date, weeks_for_year)
+from counter import (Column, ResultColumn, ResultSummaryModel, SettingWrapper,
+                     WeekDay, WeekWrapper, color_between, contrast_color,
+                     get_last_unique_task_names, minutes_to_time_str,
+                     weekday_from_date, weeks_for_year)
 from database import close_database
-from settings import (BAD_LIMIT_COLOR, CELL_HIGHLIGHT_COLOR,
-                      CELL_HIGHLIGHT_TEXT_COLOR, GOOD_LIMIT_COLOR)
 from version import author, github_repository, version
 
 
@@ -191,7 +191,133 @@ class CenterMixin:
             self.move(geometry.topLeft())
 
 
-class About(CenterMixin, QDialog):
+class SettingsDialog(CenterMixin, QDialog):
+    """Settings dialog."""
+
+    def __init__(self, parent=None):
+        """Construct a settings dialog."""
+        super().__init__(parent)
+        self.setWindowTitle('Edit preferences')
+        self.center()
+
+        self.invalid_color = None
+        self.valid_color = None
+        self.current_cell_color = None
+
+        self.__update_colors__()
+
+        manday_time_label = QLabel('Default man day time', self)
+        self.manday_time = QTimeEdit(
+            SettingWrapper.default_manday_time(), self)
+        self.manday_time.timeChanged.connect(
+            self.__manday_time_changed__)
+
+        invalid_color_label = QLabel('Invalid color', self)
+        self.invalid_color_button = QPushButton('Text', self)
+        self.invalid_color_button.clicked.connect(
+            self.__open_invalid_color_dialog__)
+
+        valid_color_label = QLabel('Valid color', self)
+        self.valid_color_button = QPushButton('Text', self)
+        self.valid_color_button.clicked.connect(
+            self.__open_valid_color_dialog__)
+
+        current_cell_color_label = QLabel('Current cell color', self)
+        self.current_cell_color_button = QPushButton('Text', self)
+        self.current_cell_color_button.clicked.connect(
+            self.__open_current_cell_color_dialog__)
+
+        self.__update_buttons_colors__()
+
+        main_layout = QGridLayout()
+
+        main_layout.addWidget(manday_time_label, 0, 0)
+        main_layout.addWidget(self.manday_time, 0, 1)
+
+        main_layout.addWidget(invalid_color_label, 1, 0)
+        main_layout.addWidget(self.invalid_color_button, 1, 1)
+
+        main_layout.addWidget(valid_color_label, 2, 0)
+        main_layout.addWidget(self.valid_color_button, 2, 1)
+
+        main_layout.addWidget(current_cell_color_label, 3, 0)
+        main_layout.addWidget(self.current_cell_color_button, 3, 1)
+
+        self.setLayout(main_layout)
+
+    @pyqtSlot()
+    def __manday_time_changed__(self):
+        """Update the man day time setting."""
+        SettingWrapper.set_default_manday_time(self.manday_time.time())
+
+    @pyqtSlot()
+    def __open_invalid_color_dialog__(self):
+        """Update the invalid color setting."""
+        color = QColorDialog.getColor(self.invalid_color, self,
+                                      'Select invalid color',
+                                      QColorDialog.DontUseNativeDialog)
+        if color.isValid():
+            SettingWrapper.set_invalid_color(color)
+
+        self.__update_colors__()
+        self.__update_buttons_colors__()
+
+    @pyqtSlot()
+    def __open_valid_color_dialog__(self):
+        """Update the valid color setting."""
+        color = QColorDialog.getColor(self.valid_color, self,
+                                      'Select invalid color',
+                                      QColorDialog.DontUseNativeDialog)
+        if color.isValid():
+            SettingWrapper.set_valid_color(color)
+
+        self.__update_colors__()
+        self.__update_buttons_colors__()
+
+    @pyqtSlot()
+    def __open_current_cell_color_dialog__(self):
+        """Update the current cell color setting."""
+        color = QColorDialog.getColor(self.valid_color, self,
+                                      'Select current cell color',
+                                      QColorDialog.DontUseNativeDialog)
+        if color.isValid():
+            SettingWrapper.set_current_cell_color(color)
+
+        self.__update_colors__()
+        self.__update_buttons_colors__()
+
+    def __update_colors__(self):
+        """Update the local colors values."""
+        self.invalid_color = SettingWrapper.invalid_color()
+        self.valid_color = SettingWrapper.valid_color()
+        self.current_cell_color = SettingWrapper.current_cell_color()
+
+    def __update_buttons_colors__(self):
+        """Update the buttons colors."""
+        invalid_color = self.invalid_color.name()
+        invalid_color_constrast = contrast_color(invalid_color)
+        invalid_style = ('background-color:{}; color:{};'
+                         .format(invalid_color, invalid_color_constrast)
+                         )
+        self.invalid_color_button.setStyleSheet(invalid_style)
+
+        valid_color = self.valid_color.name()
+        valid_color_constrast = contrast_color(valid_color)
+        valid_style = ('background-color:{}; color:{};'
+                       .format(valid_color, valid_color_constrast)
+                       )
+        self.valid_color_button.setStyleSheet(valid_style)
+
+        current_cell_color = self.current_cell_color.name()
+        current_cell_color_constrast = contrast_color(current_cell_color)
+        current_cell_style = ('background-color:{}; color:{};'
+                              .format(current_cell_color,
+                                      current_cell_color_constrast)
+                              )
+        self.current_cell_color_button.setStyleSheet(current_cell_style)
+
+
+class AboutDialog(CenterMixin, QDialog):
     """Application about dialog."""
 
     def __init__(self, parent=None):
@@ -200,8 +326,6 @@ class About(CenterMixin, QDialog):
         self.setWindowTitle('About this software')
         self.setMinimumHeight(600)
         self.setMinimumWidth(600)
-        self.setMaximumHeight(600)
-        self.setMaximumWidth(600)
         self.center()
 
         self.license = self.__build_text_browser__()
@@ -259,7 +383,7 @@ class About(CenterMixin, QDialog):
             return ''
 
 
-class MainWindow(CenterMixin, QMainWindow):
+class MainWindow(QMainWindow):
     """The main window of the application."""
 
     def __init__(self):
@@ -287,34 +411,33 @@ class MainWindow(CenterMixin, QMainWindow):
 
     def __set_window_size__(self):
         """Set the window size."""
-        self.setMinimumHeight(600)
-        self.setMaximumHeight(600)
-        self.setMinimumWidth(900)
-        self.setMaximumWidth(900)
+        w = 700
+        h = 400
+        self.setMinimumWidth(w)
+        self.setMinimumHeight(h)
+        self.showMaximized()
 
-    def __disable_headers_click__(self, _table):
+    def __disable_headers_click__(self, table):
         """Disable click on table headers."""
-        _table.horizontalHeader().setSectionsClickable(False)
-        _table.setCornerButtonEnabled(False)
-        _table.verticalHeader().setSectionsClickable(False)
+        table.horizontalHeader().setSectionsClickable(False)
+        table.setCornerButtonEnabled(False)
+        table.verticalHeader().setSectionsClickable(False)
 
-    def __init_table_view__(self):
-        """Create table view and initialize some settings."""
-        table = QTableView(self)
+    def __init_current_cell_color__(self, table):
+        """Initialize current cell color."""
         palette = table.palette()
+        current_cell_color = SettingWrapper.current_cell_color()
+        current_text_color = contrast_color(current_cell_color.name())
         palette.setBrush(QPalette.Highlight,
-                         QBrush(QColor(CELL_HIGHLIGHT_COLOR)))
+                         QBrush(QColor(current_cell_color)))
         palette.setBrush(QPalette.HighlightedText,
-                         QBrush(QColor(CELL_HIGHLIGHT_TEXT_COLOR)))
+                         QBrush(QColor(current_text_color)))
         table.setPalette(palette)
-        self.__disable_headers_click__(table)
 
-        return table
-
-    def __set_task_delegate__(self, _table):
+    def __set_task_delegate__(self, table):
         """Set a task delegate on a table."""
-        delegate = TaskNameDelegate(_table)
-        _table.setItemDelegateForColumn(
+        delegate = TaskNameDelegate(table)
+        table.setItemDelegateForColumn(
             Column.Task.value, delegate)
 
     def __resize_task_headers__(self):
@@ -429,12 +552,17 @@ class MainWindow(CenterMixin, QMainWindow):
         self.statusBar()
 
         self.__set_window_size__()
-        self.center()
         self.__create_toolbars_and_menus__()
-        self.task_view = self.__init_table_view__()
+
+        self.task_view = QTableView(self)
+        self.__init_current_cell_color__(self.task_view)
+        self.__disable_headers_click__(self.task_view)
         self.task_view.setSelectionMode(QTableView.SingleSelection)
         self.__set_task_delegate__(self.task_view)
-        self.result_view = self.__init_table_view__()
+
+        self.result_view = QTableView(self)
+        self.__init_current_cell_color__(self.result_view)
+        self.__disable_headers_click__(self.result_view)
         self.result_view.setAlternatingRowColors(True)
         self.result_view.setModel(self.result_model)
         self.result_view.setSelectionBehavior(QTableView.SelectRows)
@@ -489,6 +617,10 @@ class MainWindow(CenterMixin, QMainWindow):
         about_qt_act.triggered.connect(qApp.aboutQt)
         about_qt_act.setStatusTip('About Qt')
 
+        settings_act = QAction(QIcon(':/settings.png'), 'Preferences', self)
+        settings_act.triggered.connect(self.__edit_preferences__)
+        settings_act.setStatusTip('Edit preferences')
+
         exit_act = QAction(QIcon(':/exit.png'), '&Quit', self)
         exit_act.setShortcut('Ctrl+Q')
         exit_act.setStatusTip('Quit application')
@@ -527,7 +659,8 @@ class MainWindow(CenterMixin, QMainWindow):
         self.hours_edit.valueChanged.connect(self.__hours_changed__)
         self.minutes_edit.valueChanged.connect(self.__minutes_changed__)
 
-        self.manday_tedit = QTimeEdit(QTime(7, 0), self)
+        self.manday_tedit = QTimeEdit(SettingWrapper.default_manday_time(),
+                                      self)
         self.manday_tedit.timeChanged.connect(self.__update_week_summary__)
 
         toolbar_weeks.addAction(today_act)
@@ -541,19 +674,17 @@ class MainWindow(CenterMixin, QMainWindow):
         toolbar_weeks.addWidget(self.manday_tedit)
 
         toolbar_application.addAction(exit_act)
+        toolbar_application.addAction(settings_act)
         toolbar_application.addAction(about_act)
 
         menubar = self.menuBar()
         menubar.setNativeMenuBar(True)
 
-        exit_menu = menubar.addMenu('Quit')
-        exit_menu.addAction(exit_act)
-
-        about_qt_menu = menubar.addMenu('About Qt')
-        about_qt_menu.addAction(about_qt_act)
-
-        about_menu = menubar.addMenu('About')
-        about_menu.addAction(about_act)
+        app_menu = menubar.addMenu('Application')
+        app_menu.addAction(about_act)
+        app_menu.addAction(about_qt_act)
+        app_menu.addAction(settings_act)
+        app_menu.addAction(exit_act)
 
         weeks_menu = menubar.addMenu('Weeks')
         weeks_menu.addAction(today_act)
@@ -623,13 +754,21 @@ class MainWindow(CenterMixin, QMainWindow):
     @pyqtSlot()
     def __about__(self):
         """Open the about page."""
-        about = About(self)
+        about = AboutDialog(self)
         about.exec_()
 
     @pyqtSlot()
     def __export__(self):
         """Export data."""
         self.__export_cells_as_table__()
+
+    @pyqtSlot()
+    def __edit_preferences__(self):
+        """Edit preferences."""
+        settings = SettingsDialog(self)
+        settings.exec_()
+
+        self.__update_settings__()
 
     @pyqtSlot()
     def __change_current_day__(self):
@@ -704,10 +843,10 @@ class MainWindow(CenterMixin, QMainWindow):
         time_str = minutes_to_time_str(abs_time)
 
         if catch_up_time >= 0:
-            self.__change_catch_up_color__(QColor(GOOD_LIMIT_COLOR))
+            self.__change_catch_up_color__(SettingWrapper.valid_color())
             self.catch_up_lcdnumber.setToolTip('+' + time_str)
         else:
-            self.__change_catch_up_color__(QColor(BAD_LIMIT_COLOR))
+            self.__change_catch_up_color__(SettingWrapper.invalid_color())
             self.catch_up_lcdnumber.setToolTip('-' + time_str)
 
         if abs_time >= 6000:
@@ -718,7 +857,7 @@ class MainWindow(CenterMixin, QMainWindow):
     def __build_lcd_number_widget__(self):
         """Build a LCD Number widget."""
         lcdnumber = QLCDNumber(self)
-        lcdnumber.setSegmentStyle(QLCDNumber.Flat)
+        lcdnumber.setSegmentStyle(QLCDNumber.Filled)
         lcdnumber.setFixedHeight(40)
         lcdnumber.setFrameStyle(QFrame.NoFrame)
         return lcdnumber
@@ -751,8 +890,8 @@ class MainWindow(CenterMixin, QMainWindow):
             percent = (self.week_wrapper.minutes_of_week /
                        self.week_wrapper.minutes_to_work)
 
-        color = color_between(BAD_LIMIT_COLOR, GOOD_LIMIT_COLOR,
-                              percent)
+        color = color_between(SettingWrapper.invalid_color().name(),
+                              SettingWrapper.valid_color().name(), percent)
         self.__change_week_color__(QColor(color))
 
     def __build_title_label__(self, title):
@@ -816,3 +955,10 @@ class MainWindow(CenterMixin, QMainWindow):
         mime_data.setData('text/html', bytes_array)
 
         clipboard.setMimeData(mime_data, QClipboard.Clipboard)
+
+    def __update_settings__(self):
+        """Update user interface with new settings."""
+        self.__init_current_cell_color__(self.task_view)
+        self.__init_current_cell_color__(self.result_view)
+        self.__update_time__()
+        self.manday_tedit.setTime(SettingWrapper.default_manday_time())

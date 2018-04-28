@@ -344,16 +344,18 @@ class DayWrapper(QAbstractTableModel):
                             return QVariant(QTime(0, 0))
                         else:
                             return QVariant()
-        elif role == Qt.BackgroundRole:
+        elif role in (Qt.BackgroundRole, Qt.ForegroundRole):
             try:
                 start = self._cached_data[row][Column.Start_Time]
                 end = self._cached_data[row][Column.End_Time]
-                red_brush = QBrush(SettingWrapper.invalid_color())
-                if not start or not end:
-                    return red_brush
-                if start >= end:
-                    return red_brush
-                return QBrush(SettingWrapper.valid_color())
+                background_color = SettingWrapper.valid_color()
+                if role == Qt.BackgroundRole:
+                    if not start or not end or start >= end:
+                        background_color = SettingWrapper.invalid_color()
+                    return QBrush(background_color)
+                elif role == Qt.ForegroundRole:
+                    text_color = contrast_color(background_color.name())
+                    return QBrush(QColor(text_color))
             except KeyError:
                 pass
 
@@ -723,21 +725,22 @@ def get_last_unique_task_names():
                   .order_by(Task.name)))
 
 
+def split_color(color):
+    """Split hex color like #rrggbb or #rgb into three int components."""
+    color = color[1:]
+    if len(color) == 6:
+        r, g, b = [int(color[i:i + 2], 16) for i in range(0, 6, 2)]
+    elif len(color) == 3:
+        r, g, b = [int(color[i:i + 1], 16) for i in range(0, 3)]
+    return (r, g, b)
+
+
 def color_between(start_color, end_color, percent):
     """Get a hex color between a start and end color using a percentage."""
     if percent < 0:
         percent = 0
     if percent > 1:
         percent = 1
-
-    def split_color(color):
-        """Split hex color like #rrggbb or #rgb into three int components."""
-        color = color[1:]
-        if len(color) == 6:
-            r, g, b = [int(color[i:i + 2], 16) for i in range(0, 6, 2)]
-        elif len(color) == 3:
-            r, g, b = [int(color[i:i + 1], 16) for i in range(0, 3)]
-        return (r, g, b)
 
     regexp = r'^#(?:[0-9a-fA-F]{3}){1,2}$'
     if (re.search(regexp, start_color)
@@ -750,5 +753,17 @@ def color_between(start_color, end_color, percent):
                                              int(g1 + (g2 - g1) * percent),
                                              int(b1 + (b2 - b1) * percent)))
 
+    else:
+        return '#000000'
+
+
+def contrast_color(color):
+    """Get black or white contrast depending on a given color."""
+    regexp = r'^#(?:[0-9a-fA-F]{3}){1,2}$'
+
+    if re.search(regexp, color):
+        r, g, b = split_color(color)
+        lightness = r * 0.299 + g * 0.587 + b * 0.114
+        return '#000000' if lightness > 160 else '#ffffff'
     else:
         return '#000000'

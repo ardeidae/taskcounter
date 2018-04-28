@@ -33,7 +33,7 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QColorDialog,
 
 import resources
 from counter import (Column, ResultColumn, ResultSummaryModel, SettingWrapper,
-                     WeekDay, WeekWrapper, color_between,
+                     WeekDay, WeekWrapper, color_between, contrast_color,
                      get_last_unique_task_names, minutes_to_time_str,
                      weekday_from_date, weeks_for_year)
 from database import close_database
@@ -213,12 +213,12 @@ class SettingsDialog(CenterMixin, QDialog):
             self.__manday_time_changed__)
 
         invalid_color_label = QLabel('Invalid color', self)
-        self.invalid_color_button = QPushButton(self)
+        self.invalid_color_button = QPushButton('Text', self)
         self.invalid_color_button.clicked.connect(
             self.__open_invalid_color_dialog__)
 
         valid_color_label = QLabel('Valid color', self)
-        self.valid_color_button = QPushButton(self)
+        self.valid_color_button = QPushButton('Text', self)
         self.valid_color_button.clicked.connect(
             self.__open_valid_color_dialog__)
 
@@ -273,14 +273,19 @@ class SettingsDialog(CenterMixin, QDialog):
 
     def __update_buttons_colors__(self):
         """Update the buttons colors."""
-        self.invalid_color_button.setStyleSheet('background-color: {}'
-                                                .format(
-                                                    self.invalid_color.name())
-                                                )
-        self.valid_color_button.setStyleSheet('background-color: {}'
-                                              .format(
-                                                  self.valid_color.name())
-                                              )
+        invalid_color = self.invalid_color.name()
+        invalid_color_constrast = contrast_color(invalid_color)
+        invalid_style = ('background-color:{}; color:{};'
+                         .format(invalid_color, invalid_color_constrast)
+                         )
+        self.invalid_color_button.setStyleSheet(invalid_style)
+
+        valid_color = self.valid_color.name()
+        valid_color_constrast = contrast_color(valid_color)
+        valid_style = ('background-color:{}; color:{};'
+                       .format(valid_color, valid_color_constrast)
+                       )
+        self.valid_color_button.setStyleSheet(valid_style)
 
 
 class AboutDialog(CenterMixin, QDialog):

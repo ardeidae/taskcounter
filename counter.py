@@ -558,6 +558,7 @@ class SettingWrapper:
     MANDAY_TIME_PROPERTY = 'default_manday_time'
     INVALID_COLOR_PROPERTY = 'invalid_color'
     VALID_COLOR_PROPERTY = 'valid_color'
+    CURRENT_CELL_COLOR_PROPERTY = 'current_cell_color'
 
     @staticmethod
     def insert_or_update(name, value):
@@ -618,6 +619,18 @@ class SettingWrapper:
     def set_valid_color(cls, valid_color):
         """Set the valid color setting."""
         cls.insert_or_update(cls.VALID_COLOR_PROPERTY, valid_color)
+
+    @classmethod
+    def current_cell_color(cls):
+        """Get the current cell color setting."""
+        return (cls.get_value(cls.CURRENT_CELL_COLOR_PROPERTY) or
+                QColor('#fffd88'))
+
+    @classmethod
+    def set_current_cell_color(cls, current_cell_color):
+        """Set the current cell color setting."""
+        cls.insert_or_update(cls.CURRENT_CELL_COLOR_PROPERTY,
+                             current_cell_color)
 
 
 class ResultSummaryModel(QAbstractTableModel):

@@ -37,7 +37,6 @@ from counter import (Column, ResultColumn, ResultSummaryModel, SettingWrapper,
                      get_last_unique_task_names, minutes_to_time_str,
                      weekday_from_date, weeks_for_year)
 from database import close_database
-from settings import CELL_HIGHLIGHT_COLOR, CELL_HIGHLIGHT_TEXT_COLOR
 from version import author, github_repository, version
 
 
@@ -203,6 +202,7 @@ class SettingsDialog(CenterMixin, QDialog):
 
         self.invalid_color = None
         self.valid_color = None
+        self.current_cell_color = None
 
         self.__update_colors__()
 
@@ -222,6 +222,11 @@ class SettingsDialog(CenterMixin, QDialog):
         self.valid_color_button.clicked.connect(
             self.__open_valid_color_dialog__)
 
+        current_cell_color_label = QLabel('Current cell color', self)
+        self.current_cell_color_button = QPushButton('Text', self)
+        self.current_cell_color_button.clicked.connect(
+            self.__open_current_cell_color_dialog__)
+
         self.__update_buttons_colors__()
 
         main_layout = QGridLayout()
@@ -234,6 +239,9 @@ class SettingsDialog(CenterMixin, QDialog):
 
         main_layout.addWidget(valid_color_label, 2, 0)
         main_layout.addWidget(self.valid_color_button, 2, 1)
+
+        main_layout.addWidget(current_cell_color_label, 3, 0)
+        main_layout.addWidget(self.current_cell_color_button, 3, 1)
 
         self.setLayout(main_layout)
 
@@ -266,10 +274,23 @@ class SettingsDialog(CenterMixin, QDialog):
         self.__update_colors__()
         self.__update_buttons_colors__()
 
+    @pyqtSlot()
+    def __open_current_cell_color_dialog__(self):
+        """Update the current cell color setting."""
+        color = QColorDialog.getColor(self.valid_color, self,
+                                      'Select current cell color',
+                                      QColorDialog.DontUseNativeDialog)
+        if color.isValid():
+            SettingWrapper.set_current_cell_color(color)
+
+        self.__update_colors__()
+        self.__update_buttons_colors__()
+
     def __update_colors__(self):
         """Update the local colors values."""
         self.invalid_color = SettingWrapper.invalid_color()
         self.valid_color = SettingWrapper.valid_color()
+        self.current_cell_color = SettingWrapper.current_cell_color()
 
     def __update_buttons_colors__(self):
         """Update the buttons colors."""
@@ -286,6 +307,14 @@ class SettingsDialog(CenterMixin, QDialog):
                        .format(valid_color, valid_color_constrast)
                        )
         self.valid_color_button.setStyleSheet(valid_style)
+
+        current_cell_color = self.current_cell_color.name()
+        current_cell_color_constrast = contrast_color(current_cell_color)
+        current_cell_style = ('background-color:{}; color:{};'
+                              .format(current_cell_color,
+                                      current_cell_color_constrast)
+                              )
+        self.current_cell_color_button.setStyleSheet(current_cell_style)
 
 
 class AboutDialog(CenterMixin, QDialog):
@@ -394,18 +423,16 @@ class MainWindow(QMainWindow):
         _table.setCornerButtonEnabled(False)
         _table.verticalHeader().setSectionsClickable(False)
 
-    def __init_table_view__(self):
-        """Create table view and initialize some settings."""
-        table = QTableView(self)
+    def __init_current_cell_color__(self, table):
+        """Initialize current cell color."""
         palette = table.palette()
+        current_cell_color = SettingWrapper.current_cell_color()
+        current_text_color = contrast_color(current_cell_color.name())
         palette.setBrush(QPalette.Highlight,
-                         QBrush(QColor(CELL_HIGHLIGHT_COLOR)))
+                         QBrush(QColor(current_cell_color)))
         palette.setBrush(QPalette.HighlightedText,
-                         QBrush(QColor(CELL_HIGHLIGHT_TEXT_COLOR)))
+                         QBrush(QColor(current_text_color)))
         table.setPalette(palette)
-        self.__disable_headers_click__(table)
-
-        return table
 
     def __set_task_delegate__(self, _table):
         """Set a task delegate on a table."""
@@ -526,10 +553,16 @@ class MainWindow(QMainWindow):
 
         self.__set_window_size__()
         self.__create_toolbars_and_menus__()
-        self.task_view = self.__init_table_view__()
+
+        self.task_view = QTableView(self)
+        self.__init_current_cell_color__(self.task_view)
+        self.__disable_headers_click__(self.task_view)
         self.task_view.setSelectionMode(QTableView.SingleSelection)
         self.__set_task_delegate__(self.task_view)
-        self.result_view = self.__init_table_view__()
+
+        self.result_view = QTableView(self)
+        self.__init_current_cell_color__(self.result_view)
+        self.__disable_headers_click__(self.result_view)
         self.result_view.setAlternatingRowColors(True)
         self.result_view.setModel(self.result_model)
         self.result_view.setSelectionBehavior(QTableView.SelectRows)
@@ -735,6 +768,8 @@ class MainWindow(QMainWindow):
         settings = SettingsDialog(self)
         settings.exec_()
 
+        self.__update_settings__()
+
     @pyqtSlot()
     def __change_current_day__(self):
         """Change the current day for edition."""
@@ -822,7 +857,7 @@ class MainWindow(QMainWindow):
     def __build_lcd_number_widget__(self):
         """Build a LCD Number widget."""
         lcdnumber = QLCDNumber(self)
-        lcdnumber.setSegmentStyle(QLCDNumber.Flat)
+        lcdnumber.setSegmentStyle(QLCDNumber.Filled)
         lcdnumber.setFixedHeight(40)
         lcdnumber.setFrameStyle(QFrame.NoFrame)
         return lcdnumber
@@ -920,3 +955,10 @@ class MainWindow(QMainWindow):
         mime_data.setData('text/html', bytes_array)
 
         clipboard.setMimeData(mime_data, QClipboard.Clipboard)
+
+    def __update_settings__(self):
+        """Update user interface with new settings."""
+        self.__init_current_cell_color__(self.task_view)
+        self.__init_current_cell_color__(self.result_view)
+        self.__update_time__()
+        self.manday_tedit.setTime(SettingWrapper.default_manday_time())

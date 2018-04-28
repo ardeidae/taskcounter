@@ -417,11 +417,11 @@ class MainWindow(QMainWindow):
         self.setMinimumHeight(h)
         self.showMaximized()
 
-    def __disable_headers_click__(self, _table):
+    def __disable_headers_click__(self, table):
         """Disable click on table headers."""
-        _table.horizontalHeader().setSectionsClickable(False)
-        _table.setCornerButtonEnabled(False)
-        _table.verticalHeader().setSectionsClickable(False)
+        table.horizontalHeader().setSectionsClickable(False)
+        table.setCornerButtonEnabled(False)
+        table.verticalHeader().setSectionsClickable(False)
 
     def __init_current_cell_color__(self, table):
         """Initialize current cell color."""
@@ -434,10 +434,10 @@ class MainWindow(QMainWindow):
                          QBrush(QColor(current_text_color)))
         table.setPalette(palette)
 
-    def __set_task_delegate__(self, _table):
+    def __set_task_delegate__(self, table):
         """Set a task delegate on a table."""
-        delegate = TaskNameDelegate(_table)
-        _table.setItemDelegateForColumn(
+        delegate = TaskNameDelegate(table)
+        table.setItemDelegateForColumn(
             Column.Task.value, delegate)
 
     def __resize_task_headers__(self):

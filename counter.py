@@ -177,7 +177,7 @@ class WeekWrapper:
         """Create the days of this week."""
         for date_ in seven_days_of_week(self._week.year,
                                         self._week.week_number):
-            DayWrapper(date_=date_, week=self._week)
+            DayWrapper(date=date_, week=self._week)
 
     @property
     def minutes_of_week(self):
@@ -226,7 +226,7 @@ class WeekWrapper:
                    .scalar())
         return minutes or 0
 
-    def week_summary(self, _manday_minutes):
+    def week_summary(self, manday_minutes):
         """Get the week summary: tasks and total time in minutes."""
         tasks = {}
         query = (Task.select(Task.name,
@@ -246,9 +246,9 @@ class WeekWrapper:
             task = {}
             task[ResultColumn.Task] = row.name
             task[ResultColumn.Time] = row.sum
-            if _manday_minutes:
+            if manday_minutes:
                 task[ResultColumn.Man_Day] = round(row.sum /
-                                                   _manday_minutes, 2)
+                                                   manday_minutes, 2)
             else:
                 task[ResultColumn.Man_Day] = ''
             tasks[counter] = task
@@ -259,10 +259,10 @@ class WeekWrapper:
 class DayWrapper(QAbstractTableModel):
     """Wrapper for the day model."""
 
-    def __init__(self, date_, week):
+    def __init__(self, date, week):
         """Construct a day wrapper object."""
         super().__init__()
-        self._day = Day.get_or_create(date=date_,
+        self._day = Day.get_or_create(date=date,
                                       week=week)[0]
         self._cached_data = None
         self.__cache_data__()
@@ -657,11 +657,11 @@ class ResultSummaryModel(QAbstractTableModel):
         return self._tasks
 
     @tasks.setter
-    def tasks(self, _tasks):
+    def tasks(self, tasks):
         """Set the tasks."""
         self.layoutAboutToBeChanged.emit()
 
-        self._tasks = _tasks
+        self._tasks = tasks
 
         top_left = self.index(0, 0)
         bottom_right = self.index(
@@ -677,9 +677,9 @@ class ResultSummaryModel(QAbstractTableModel):
         return self._manday_minutes
 
     @manday_minutes.setter
-    def manday_minutes(self, _manday_minutes):
+    def manday_minutes(self, manday_minutes):
         """Set the manday minutes."""
-        self._manday_minutes = _manday_minutes
+        self._manday_minutes = manday_minutes
 
     def data(self, index, role):
         """Return the data.

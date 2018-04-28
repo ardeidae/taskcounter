@@ -86,10 +86,21 @@ class Task(MyBaseModel):
                                        self.end_time)
 
 
+class Setting(MyBaseModel):
+    """Setting Model."""
+
+    name = CharField(unique=True, null=False)
+    value = CharField(null=False)
+
+    def __str__(self):
+        """Get string representation."""
+        return 'Setting: {} -> {}'.format(self.name, self.value)
+
+
 def create_database():
     """Create the database."""
     DB.connect()
-    DB.create_tables([Week, Day, Task], safe=True)
+    DB.create_tables([Week, Day, Task, Setting], safe=True)
 
 
 def close_database():

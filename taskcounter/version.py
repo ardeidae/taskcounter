@@ -1,6 +1,6 @@
 #     Copyright (C) 2018  Matthieu PETIOT
 #
-#     https://github.com/ardeidae/tasks-counter
+#     https://github.com/ardeidae/taskcounter
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Tasks counter version information."""
+"""Task counter version information."""
 
 version = '0.8.0'
 author = 'Matthieu PETIOT'
-github_repository = 'https://github.com/ardeidae/tasks-counter'
+github_repository = 'https://github.com/ardeidae/taskcounter'

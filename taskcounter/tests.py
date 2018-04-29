@@ -1,6 +1,6 @@
 #     Copyright (C) 2018  Matthieu PETIOT
 #
-#     https://github.com/ardeidae/tasks-counter
+#     https://github.com/ardeidae/taskcounter
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Tasks counter tests."""
+"""Task counter tests."""
 
 import unittest
 from datetime import date

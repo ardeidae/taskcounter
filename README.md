@@ -1,4 +1,4 @@
-# Tasks counter
+# Task counter
 
 I made this project to count time of tasks I do at work.
 
@@ -15,20 +15,20 @@ You need to install Python 3.5 or greater and pip to run this software.
 Clone the repository
 
 ```
-git clone https://github.com/ardeidae/tasks-counter
+git clone https://github.com/ardeidae/taskcounter
 ```
 
 Install required packages
 
 ```
-cd tasks-counter
+cd taskcounter
 pip install -r requirements.txt
 ```
 
 Run the application
 
 ```
-python3 taskscounter.py
+python3 main.py
 ```
 
 ## Running the tests
@@ -46,7 +46,7 @@ python3 tests.py
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/ardeidae/tasks-counter/tags).
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/ardeidae/taskcounter/tags).
 
 ## Authors
 

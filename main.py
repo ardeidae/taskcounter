@@ -1,6 +1,6 @@
 #     Copyright (C) 2018  Matthieu PETIOT
 #
-#     https://github.com/ardeidae/tasks-counter
+#     https://github.com/ardeidae/taskcounter
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -15,10 +15,10 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Simple launcher for taskscounter."""
+"""Simple launcher for task counter."""
 
 import sys
-import taskscounter.taskscounter
+import taskcounter.taskcounter
 
 if __name__ == '__main__':
-    sys.exit(taskscounter.taskscounter.main())
+    sys.exit(taskcounter.taskcounter.main())

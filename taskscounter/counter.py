@@ -25,7 +25,7 @@ from enum import Enum, unique
 from PyQt5.QtCore import QAbstractTableModel, Qt, QTime, QVariant
 from PyQt5.QtGui import QBrush, QColor
 
-from database import SQL, Day, IntegrityError, Setting, Task, Week, fn
+from .database import SQL, Day, IntegrityError, Setting, Task, Week, fn
 
 
 @unique
@@ -136,8 +136,9 @@ def minutes_to_time_str(a_total_minutes):
 class WeekWrapper:
     """Wrapper for the week model."""
 
-    def __init__(self, year, week_number):
+    def __init__(self, year, week_number, parent=None):
         """Construct a week wrapper object."""
+        self.parent = parent
         # get the last work time entered, to use it a default value
         last_time = self.__last_work_time_entered__()
         self._week = Week.get_or_create(year=year,
@@ -170,14 +171,14 @@ class WeekWrapper:
                                (Week.year == self._week.year))
                         .order_by(Day.date)):
                 if week_day is weekday_from_date(day.date):
-                    return DayWrapper(day.date, day.week)
+                    return DayWrapper(day.date, day.week, self.parent)
         return None
 
     def __create_days__(self):
         """Create the days of this week."""
         for date_ in seven_days_of_week(self._week.year,
                                         self._week.week_number):
-            DayWrapper(date=date_, week=self._week)
+            DayWrapper(date_, self._week, self.parent)
 
     @property
     def minutes_of_week(self):
@@ -259,10 +260,10 @@ class WeekWrapper:
 class DayWrapper(QAbstractTableModel):
     """Wrapper for the day model."""
 
-    def __init__(self, date, week):
+    def __init__(self, date_, week, parent=None):
         """Construct a day wrapper object."""
-        super().__init__()
-        self._day = Day.get_or_create(date=date,
+        super().__init__(parent)
+        self._day = Day.get_or_create(date=date_,
                                       week=week)[0]
         self._cached_data = None
         self.__cache_data__()
@@ -636,9 +637,9 @@ class SettingWrapper:
 class ResultSummaryModel(QAbstractTableModel):
     """Result summary model."""
 
-    def __init__(self):
+    def __init__(self, parent=None):
         """Construct a result summary object."""
-        super().__init__()
+        super().__init__(parent)
 
         self._tasks = []
         self._manday_minutes = 0
@@ -741,11 +742,12 @@ def get_last_unique_task_names():
 def split_color(color):
     """Split hex color like #rrggbb or #rgb into three int components."""
     color = color[1:]
+    r = g = b = 0
     if len(color) == 6:
         r, g, b = [int(color[i:i + 2], 16) for i in range(0, 6, 2)]
     elif len(color) == 3:
         r, g, b = [int(color[i:i + 1], 16) for i in range(0, 3)]
-    return (r, g, b)
+    return r, g, b
 
 
 def color_between(start_color, end_color, percent):

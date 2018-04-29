@@ -15,10 +15,22 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Simple launcher for taskscounter."""
+"""Tasks counter main entry point."""
 
 import sys
-import taskscounter.taskscounter
 
-if __name__ == '__main__':
-    sys.exit(taskscounter.taskscounter.main())
+from PyQt5.QtWidgets import QApplication
+
+from .database import create_database
+from .gui import MainWindow
+
+
+def main():
+    app = QApplication(sys.argv)
+
+    create_database()
+
+    mw = MainWindow()
+    mw.initUI()
+
+    return app.exec_()

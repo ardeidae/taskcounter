@@ -20,9 +20,9 @@
 import unittest
 from datetime import date
 
-from counter import (Column, ResultColumn, WeekDay, minutes_to_time,
-                     minutes_to_time_str, seven_days_of_week,
-                     weekday_from_date, weeks_for_year)
+from .counter import (Column, ResultColumn, WeekDay, minutes_to_time,
+                      minutes_to_time_str, seven_days_of_week,
+                      weekday_from_date, weeks_for_year)
 
 
 class TestWeeksForYear(unittest.TestCase):

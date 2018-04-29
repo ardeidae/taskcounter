@@ -31,13 +31,13 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QColorDialog,
                              QTabWidget, QTextBrowser, QTextEdit, QTimeEdit,
                              QToolBar, QVBoxLayout, QWidget, qApp)
 
-import resources
-from counter import (Column, ResultColumn, ResultSummaryModel, SettingWrapper,
-                     WeekDay, WeekWrapper, color_between, contrast_color,
-                     get_last_unique_task_names, minutes_to_time_str,
-                     weekday_from_date, weeks_for_year)
-from database import close_database
-from version import author, github_repository, version
+from . import resources
+from .counter import (Column, ResultColumn, ResultSummaryModel, SettingWrapper,
+                      WeekDay, WeekWrapper, color_between, contrast_color,
+                      get_last_unique_task_names, minutes_to_time_str,
+                      weekday_from_date, weeks_for_year)
+from .database import close_database
+from .version import author, github_repository, version
 
 
 class LineEdit(QTextEdit):
@@ -393,7 +393,7 @@ class MainWindow(QMainWindow):
         self.task_model = None
         self.task_view = None
         self.result_view = None
-        self.result_model = ResultSummaryModel()
+        self.result_model = ResultSummaryModel(self)
         self.week_edit = None
         self.week_wrapper = None
         self.year_edit = None
@@ -699,7 +699,7 @@ class MainWindow(QMainWindow):
     def __validate_week_and_year__(self):
         """Validate the week and the year and update a WeekWrapper."""
         self.week_wrapper = WeekWrapper(
-            self.year_edit.value(), self.week_edit.value())
+            self.year_edit.value(), self.week_edit.value(), self)
 
         minutes_time = self.week_wrapper.minutes_to_work
         (hours, minutes) = divmod(minutes_time, 60)

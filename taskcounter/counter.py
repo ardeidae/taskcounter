@@ -20,44 +20,13 @@
 import pickle
 import re
 from datetime import date, timedelta
-from enum import Enum, unique
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QTime, QVariant
 from PyQt5.QtGui import QBrush, QColor
 
-from .database import SQL, Day, IntegrityError, Setting, Task, Week, fn
+from taskcounter.enum import ResultColumn, TaskColumn, WeekDay
 
-
-@unique
-class WeekDay(Enum):
-    """Week day name Enum."""
-
-    Monday = 0
-    Tuesday = 1
-    Wednesday = 2
-    Thursday = 3
-    Friday = 4
-    Saturday = 5
-    Sunday = 6
-
-
-@unique
-class Column(Enum):
-    """Columns Enum."""
-
-    Id = 0
-    Task = 1
-    Start_Time = 2
-    End_Time = 3
-
-
-@unique
-class ResultColumn(Enum):
-    """Result columns Enum."""
-
-    Task = 0
-    Time = 1
-    Man_Day = 2
+from.database import SQL, Day, IntegrityError, Setting, Task, Week, fn
 
 
 def weekday_from_date(date_):
@@ -284,7 +253,7 @@ class DayWrapper(QAbstractTableModel):
 
     def columnCount(self, parent=None):
         """Return the number of columns under the given parent."""
-        return len(Column)
+        return len(TaskColumn)
 
     def __cache_data__(self):
         """Cache data."""
@@ -300,10 +269,10 @@ class DayWrapper(QAbstractTableModel):
                                            "IFNULL(start_time, '24:00')"
                                        ))):
             row = {}
-            row[Column.Id] = task.id
-            row[Column.Task] = task.name
-            row[Column.Start_Time] = task.start_time
-            row[Column.End_Time] = task.end_time
+            row[TaskColumn.Id] = task.id
+            row[TaskColumn.Task] = task.name
+            row[TaskColumn.Start_Time] = task.start_time
+            row[TaskColumn.End_Time] = task.end_time
             self._cached_data[counter] = row
 
     def get_cached_data(self, row, column):
@@ -323,20 +292,20 @@ class DayWrapper(QAbstractTableModel):
         column = index.column()
         if role in (Qt.DisplayRole, Qt.EditRole, Qt.ToolTipRole):
             try:
-                value = self._cached_data[row][Column(column)]
+                value = self._cached_data[row][TaskColumn(column)]
             except KeyError:
                 return QVariant()
             else:
-                if column == Column.Id.value:
+                if column == TaskColumn.Id.value:
                     return int(value)
-                elif column == Column.Task.value:
+                elif column == TaskColumn.Task.value:
                     if role == Qt.ToolTipRole:
                         # html text allows automatic word-wrapping on tooltip.
                         return '<html>{}</html>'.format(str(value))
                     else:
                         return str(value)
-                elif column in (Column.Start_Time.value,
-                                Column.End_Time.value):
+                elif column in (TaskColumn.Start_Time.value,
+                                TaskColumn.End_Time.value):
                     try:
                         a_time = QTime(value.hour, value.minute, value.second)
                         return QVariant(a_time)
@@ -347,8 +316,8 @@ class DayWrapper(QAbstractTableModel):
                             return QVariant()
         elif role in (Qt.BackgroundRole, Qt.ForegroundRole):
             try:
-                start = self._cached_data[row][Column.Start_Time]
-                end = self._cached_data[row][Column.End_Time]
+                start = self._cached_data[row][TaskColumn.Start_Time]
+                end = self._cached_data[row][TaskColumn.End_Time]
                 background_color = SettingWrapper.valid_color()
                 if role == Qt.BackgroundRole:
                     if not start or not end or start >= end:
@@ -361,7 +330,7 @@ class DayWrapper(QAbstractTableModel):
                 pass
 
         elif role == Qt.TextAlignmentRole:
-            if column == Column.Task.value:
+            if column == TaskColumn.Task.value:
                 return Qt.AlignLeft | Qt.AlignVCenter
             else:
                 return Qt.AlignCenter | Qt.AlignVCenter
@@ -374,12 +343,12 @@ class DayWrapper(QAbstractTableModel):
             row = index.row()
             column = index.column()
 
-            field = Column(column)
+            field = TaskColumn(column)
 
             if row in self._cached_data:
-                task_id = self._cached_data[row][Column.Id]
+                task_id = self._cached_data[row][TaskColumn.Id]
 
-                if field == Column.Task and not value:
+                if field == TaskColumn.Task and not value:
                     if self.delete_task(task_id):
                         self.__cache_data__()
                         self.layoutAboutToBeChanged.emit()
@@ -394,15 +363,15 @@ class DayWrapper(QAbstractTableModel):
                     if not value:
                         return False
 
-                    if field == Column.Start_Time:
-                        end = self._cached_data[row][Column.End_Time]
+                    if field == TaskColumn.Start_Time:
+                        end = self._cached_data[row][TaskColumn.End_Time]
                         if end and value >= end:
                             return False
-                    elif field == Column.End_Time:
-                        start = self._cached_data[row][Column.Start_Time]
+                    elif field == TaskColumn.End_Time:
+                        start = self._cached_data[row][TaskColumn.Start_Time]
                         if start and value <= start:
                             return False
-                    if field in (Column.Start_Time, Column.End_Time):
+                    if field in (TaskColumn.Start_Time, TaskColumn.End_Time):
                         if self.__overlaps_other_range__(task_id,
                                                          field, value):
                             return False
@@ -419,7 +388,7 @@ class DayWrapper(QAbstractTableModel):
                         self.layoutChanged.emit()
                         return True
             else:
-                if field == Column.Task and value:
+                if field == TaskColumn.Task and value:
                     # insert only when task name is not empty
                     if self.create_task(value):
                         self.__cache_data__()
@@ -446,7 +415,7 @@ class DayWrapper(QAbstractTableModel):
         """
         if role == Qt.DisplayRole:
             if orientation == Qt.Horizontal:
-                return Column(section).name.replace('_', ' ')
+                return TaskColumn(section).name.replace('_', ' ')
         return QVariant()
 
     def flags(self, index):
@@ -458,12 +427,12 @@ class DayWrapper(QAbstractTableModel):
         """Update task field with a given value for a given id."""
         args = dict()
 
-        if field == Column.Task:
+        if field == TaskColumn.Task:
             args['name'] = value
-        elif field == Column.Start_Time:
+        elif field == TaskColumn.Start_Time:
             args['start_time'] = '{:02d}:{:02d}'.format(
                 value.hour(), value.minute())
-        elif field == Column.End_Time:
+        elif field == TaskColumn.End_Time:
             args['end_time'] = '{:02d}:{:02d}'.format(
                 value.hour(), value.minute())
 
@@ -497,7 +466,7 @@ class DayWrapper(QAbstractTableModel):
     @property
     def last_task_cell_index(self):
         """Get the QModelIndex of the last task cell."""
-        return self.index(self.rowCount() - 1, Column.Task.value)
+        return self.index(self.rowCount() - 1, TaskColumn.Task.value)
 
     @property
     def minutes_of_day(self):
@@ -520,33 +489,33 @@ class DayWrapper(QAbstractTableModel):
 
         # find start and end times of task_id.
         for r in self._cached_data:
-            if self._cached_data[r][Column.Id] == task_id:
-                if field == Column.Start_Time:
+            if self._cached_data[r][TaskColumn.Id] == task_id:
+                if field == TaskColumn.Start_Time:
                     start_time = value
-                    end_time = self._cached_data[r][Column.End_Time]
-                if field == Column.End_Time:
-                    start_time = self._cached_data[r][Column.Start_Time]
+                    end_time = self._cached_data[r][TaskColumn.End_Time]
+                if field == TaskColumn.End_Time:
+                    start_time = self._cached_data[r][TaskColumn.Start_Time]
                     end_time = value
                 break
 
         # check new value is not in another range and current range does not
         # overlap another start or end time.
         for r in self._cached_data:
-            if self._cached_data[r][Column.Id] != task_id:
+            if self._cached_data[r][TaskColumn.Id] != task_id:
 
-                if (self._cached_data[r][Column.Start_Time]
-                        and self._cached_data[r][Column.End_Time]):
+                if (self._cached_data[r][TaskColumn.Start_Time]
+                        and self._cached_data[r][TaskColumn.End_Time]):
 
-                    if (self._cached_data[r][Column.Start_Time] < value
-                            < self._cached_data[r][Column.End_Time]):
+                    if (self._cached_data[r][TaskColumn.Start_Time] < value
+                            < self._cached_data[r][TaskColumn.End_Time]):
                         return True
 
                     if (start_time and end_time
                         and(start_time
-                            < self._cached_data[r][Column.Start_Time]
+                            < self._cached_data[r][TaskColumn.Start_Time]
                             < end_time
                             or start_time
-                            < self._cached_data[r][Column.End_Time]
+                            < self._cached_data[r][TaskColumn.End_Time]
                             < end_time)):
                         return True
 

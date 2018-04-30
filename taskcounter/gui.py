@@ -31,9 +31,11 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QColorDialog,
                              QTabWidget, QTextBrowser, QTextEdit, QTimeEdit,
                              QToolBar, QVBoxLayout, QWidget, qApp)
 
+from taskcounter.enum import ResultColumn, TaskColumn, WeekDay
+
 from . import resources
-from .counter import (Column, ResultColumn, ResultSummaryModel, SettingWrapper,
-                      WeekDay, WeekWrapper, color_between, contrast_color,
+from .counter import (ResultSummaryModel, SettingWrapper, WeekWrapper,
+                      color_between, contrast_color,
                       get_last_unique_task_names, minutes_to_time_str,
                       weekday_from_date, weeks_for_year)
 from .database import close_database
@@ -163,7 +165,7 @@ class TaskNameDelegate(QItemDelegate):
             try:
                 editor.setText(index.model()
                                .get_cached_data(row,
-                                                Column(column)))
+                                                TaskColumn(column)))
                 editor.selectAll()
             except KeyError:
                 print('>>> KeyError')
@@ -438,23 +440,23 @@ class MainWindow(QMainWindow):
         """Set a task delegate on a table."""
         delegate = TaskNameDelegate(table)
         table.setItemDelegateForColumn(
-            Column.Task.value, delegate)
+            TaskColumn.Task.value, delegate)
 
     def __resize_task_headers__(self):
         """Resize task headers."""
-        self.task_view.hideColumn(Column.Id.value)
+        self.task_view.hideColumn(TaskColumn.Id.value)
         self.task_view.horizontalHeader().setSectionResizeMode(
-            Column.Task.value,
+            TaskColumn.Task.value,
             QHeaderView.Stretch)
         self.task_view.horizontalHeader().setSectionResizeMode(
-            Column.Start_Time.value,
+            TaskColumn.Start_Time.value,
             QHeaderView.Fixed)
         self.task_view.horizontalHeader().resizeSection(
-            Column.Start_Time.value, 70)
+            TaskColumn.Start_Time.value, 70)
 
         self.task_view.horizontalHeader().setSectionResizeMode(
-            Column.End_Time.value, QHeaderView.Fixed)
-        self.task_view.horizontalHeader().resizeSection(Column.End_Time.value,
+            TaskColumn.End_Time.value, QHeaderView.Fixed)
+        self.task_view.horizontalHeader().resizeSection(TaskColumn.End_Time.value,
                                                         70)
 
     def __resize_result_headers__(self):

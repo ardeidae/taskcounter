@@ -15,22 +15,27 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Task counter main entry point."""
+"""Task counter task database model."""
 
-import sys
+from peewee import CharField, Check, ForeignKeyField, TimeField
 
-from PyQt5.QtWidgets import QApplication
-
-from taskcounter.db import create_database
-from .gui import MainWindow
+from .day import Day
+from .model import BaseModel
 
 
-def main():
-    app = QApplication(sys.argv)
+class Task(BaseModel):
+    """Task Model."""
 
-    create_database()
+    name = CharField()
+    start_time = TimeField(null=True)
+    end_time = TimeField(null=True)
+    day = ForeignKeyField(Day, related_name='tasks')
 
-    mw = MainWindow()
-    mw.initUI()
+    class Meta:
+        constraints = [Check("start_time is NULL or start_time LIKE '__:__'"),
+                       Check("end_time is NULL or end_time LIKE '__:__'")]
 
-    return app.exec_()
+    def __str__(self):
+        """Get string representation."""
+        return 'Task: {} {}/{}'.format(self.name, self.start_time,
+                                       self.end_time)

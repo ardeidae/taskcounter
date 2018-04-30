@@ -24,9 +24,8 @@ from datetime import date, timedelta
 from PyQt5.QtCore import QAbstractTableModel, Qt, QTime, QVariant
 from PyQt5.QtGui import QBrush, QColor
 
+from taskcounter.db import SQL, Day, IntegrityError, Setting, Task, Week, fn
 from taskcounter.enum import ResultColumn, TaskColumn, WeekDay
-
-from.database import SQL, Day, IntegrityError, Setting, Task, Week, fn
 
 
 def weekday_from_date(date_):

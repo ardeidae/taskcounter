@@ -15,22 +15,21 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Task counter main entry point."""
+"""Task counter utils functions."""
 
-import sys
+from .model import DB
+from .day import Day
+from .setting import Setting
+from .task import Task
+from .week import Week
 
-from PyQt5.QtWidgets import QApplication
 
-from taskcounter.db import create_database
-from .gui import MainWindow
+def create_database():
+    """Create the database."""
+    DB.connect()
+    DB.create_tables([Week, Day, Task, Setting], safe=True)
 
 
-def main():
-    app = QApplication(sys.argv)
-
-    create_database()
-
-    mw = MainWindow()
-    mw.initUI()
-
-    return app.exec_()
+def close_database():
+    """Close the database."""
+    DB.close()

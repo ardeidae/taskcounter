@@ -15,22 +15,17 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Task counter main entry point."""
+"""Task counter base database model."""
 
-import sys
+from os import path
 
-from PyQt5.QtWidgets import QApplication
+from peewee import Model, SqliteDatabase
 
-from taskcounter.db import create_database
-from .gui import MainWindow
+DB = SqliteDatabase(path.join(path.expanduser('~'), 'taskcounter.db'))
 
 
-def main():
-    app = QApplication(sys.argv)
+class BaseModel(Model):
+    """Base for model classes."""
 
-    create_database()
-
-    mw = MainWindow()
-    mw.initUI()
-
-    return app.exec_()
+    class Meta:
+        database = DB

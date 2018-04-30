@@ -38,7 +38,7 @@ from .counter import (ResultSummaryModel, SettingWrapper, WeekWrapper,
                       color_between, contrast_color,
                       get_last_unique_task_names, minutes_to_time_str,
                       weekday_from_date, weeks_for_year)
-from .database import close_database
+from taskcounter.db import close_database
 from .version import author, github_repository, version
 
 

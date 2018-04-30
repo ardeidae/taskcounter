@@ -15,22 +15,19 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Task counter main entry point."""
+"""Task counter setting database model."""
 
-import sys
+from peewee import CharField
 
-from PyQt5.QtWidgets import QApplication
-
-from taskcounter.db import create_database
-from .gui import MainWindow
+from .model import BaseModel
 
 
-def main():
-    app = QApplication(sys.argv)
+class Setting(BaseModel):
+    """Setting Model."""
 
-    create_database()
+    name = CharField(unique=True, null=False)
+    value = CharField(null=False)
 
-    mw = MainWindow()
-    mw.initUI()
-
-    return app.exec_()
+    def __str__(self):
+        """Get string representation."""
+        return 'Setting: {} -> {}'.format(self.name, self.value)

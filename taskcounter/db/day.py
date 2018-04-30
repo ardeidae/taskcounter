@@ -15,22 +15,20 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Task counter main entry point."""
+"""Task counter day database model."""
 
-import sys
+from peewee import DateField, ForeignKeyField
 
-from PyQt5.QtWidgets import QApplication
-
-from taskcounter.db import create_database
-from .gui import MainWindow
+from .model import BaseModel
+from .week import Week
 
 
-def main():
-    app = QApplication(sys.argv)
+class Day(BaseModel):
+    """Day model."""
 
-    create_database()
+    date = DateField(unique=True)
+    week = ForeignKeyField(Week, related_name='days')
 
-    mw = MainWindow()
-    mw.initUI()
-
-    return app.exec_()
+    def __str__(self):
+        """Get string representation."""
+        return 'Day: {}'.format(self.date)

@@ -15,22 +15,18 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Task counter main entry point."""
+"""Task counter center mixin."""
 
-import sys
-
-from PyQt5.QtWidgets import QApplication
-
-from taskcounter.db import create_database
-from taskcounter.gui import MainWindow
+from PyQt5.QtWidgets import QDesktopWidget, QWidget
 
 
-def main():
-    app = QApplication(sys.argv)
+class CenterMixin:
+    """This mixin allows the centering of window."""
 
-    create_database()
-
-    main_window = MainWindow()
-    main_window.init_ui()
-
-    return app.exec_()
+    def center(self):
+        """Center the window."""
+        if isinstance(self, QWidget):
+            geometry = self.frameGeometry()
+            center = QDesktopWidget().availableGeometry().center()
+            geometry.moveCenter(center)
+            self.move(geometry.topLeft())

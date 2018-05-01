@@ -109,8 +109,9 @@ class MainWindow(QMainWindow):
 
         self.task_view.horizontalHeader().setSectionResizeMode(
             TaskColumn.End_Time.value, QHeaderView.Fixed)
-        self.task_view.horizontalHeader().resizeSection(TaskColumn.End_Time.value,
-                                                        70)
+        self.task_view.horizontalHeader().resizeSection(
+            TaskColumn.End_Time.value,
+            70)
 
     def __resize_result_headers__(self):
         """Resize result headers."""

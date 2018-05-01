@@ -1,6 +1,6 @@
 #     Copyright (C) 2018  Matthieu PETIOT
 #
-#     https://github.com/ardeidae/tasks-counter
+#     https://github.com/ardeidae/taskcounter
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -15,372 +15,27 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Tasks counter user interface."""
+"""Task counter main window."""
 
 import datetime
 
-from PyQt5.QtCore import (QByteArray, QFile, QItemSelectionModel, QMimeData,
-                          QStringListModel, Qt, QTime, pyqtSignal, pyqtSlot)
-from PyQt5.QtGui import (QBrush, QClipboard, QColor, QFont, QIcon, QPalette,
-                         QTextCursor, QTextOption)
-from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QColorDialog,
-                             QCompleter, QDesktopWidget, QDialog,
-                             QDialogButtonBox, QFrame, QGridLayout,
-                             QHeaderView, QItemDelegate, QLabel, QLCDNumber,
-                             QMainWindow, QPushButton, QSpinBox, QTableView,
-                             QTabWidget, QTextBrowser, QTextEdit, QTimeEdit,
-                             QToolBar, QVBoxLayout, QWidget, qApp)
-
-import resources
-from counter import (Column, ResultColumn, ResultSummaryModel, SettingWrapper,
-                     WeekDay, WeekWrapper, color_between, contrast_color,
-                     get_last_unique_task_names, minutes_to_time_str,
-                     weekday_from_date, weeks_for_year)
-from database import close_database
-from version import author, github_repository, version
-
-
-class LineEdit(QTextEdit):
-    """Custom LineEdit."""
-
-    return_pressed = pyqtSignal()
-
-    def __init__(self, parent=None):
-        """Construct a custom line edit."""
-        super().__init__(parent)
-        self.setAcceptRichText(False)
-        self.setWordWrapMode(QTextOption.NoWrap)
-        self.setUndoRedoEnabled(False)
-        self.setTabChangesFocus(True)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.completer = None
-        self.textChanged.connect(self.__text_has_changed__)
-
-    def set_completer(self, completer):
-        """Set the completer on the editor."""
-        if completer:
-            completer.setWidget(self)
-            completer.setCompletionMode(QCompleter.PopupCompletion)
-            completer.setCaseSensitivity(Qt.CaseInsensitive)
-            completer.setModelSorting(
-                QCompleter.CaseSensitivelySortedModel)
-            completer.setMaxVisibleItems(15)
-            completer.activated.connect(self.__insert_completion__)
-            self.completer = completer
-
-    @pyqtSlot(str)
-    def __insert_completion__(self, completion):
-        """When the completer is activated, inserts the completion."""
-        if self.completer and self.completer.widget() == self:
-            self.completer.widget().setPlainText(completion)
-            self.completer.widget().moveCursor(QTextCursor.EndOfLine)
-            self.completer.widget().ensureCursorVisible()
-
-    def keyPressEvent(self, event):
-        """When a key is pressed."""
-        if self.completer and self.completer.popup().isVisible():
-
-            if event.key() in (Qt.Key_Return, Qt.Key_Enter,
-                               Qt.Key_Tab, Qt.Key_Backtab, Qt.Key_Escape):
-                event.ignore()
-                return
-        else:
-            if event.key() in(Qt.Key_Return, Qt.Key_Enter):
-                self.return_pressed.emit()
-                return
-
-        super().keyPressEvent(event)
-
-        if not self.toPlainText():
-            self.completer.popup().hide()
-            return
-
-        self.completer.setCompletionPrefix(self.toPlainText())
-        self.completer.popup().setCurrentIndex(
-            self.completer.completionModel().index(0, 0))
-        self.completer.complete()
-
-    @pyqtSlot()
-    def __text_has_changed__(self):
-        """When the text has changed."""
-        # remove new lines and strip left blank characters
-        self.blockSignals(True)
-        cursor_position = self.textCursor().position()
-
-        origin = self.toPlainText()
-        # count first whitespaces
-        whitespaces = len(origin) - len(origin.lstrip())
-
-        self.setPlainText(' '.join(origin.splitlines()).lstrip())
-        cursor = self.textCursor()
-        # to avoid offset when setting cursor position, substract whitespaces.
-        cursor.setPosition(max(cursor_position - whitespaces, 0))
-        self.setTextCursor(cursor)
-        self.ensureCursorVisible()
-        self.blockSignals(False)
-
-
-class TaskNameDelegate(QItemDelegate):
-    """Delegate with completion for the task name."""
-
-    def __init__(self, parent):
-        """Construct a task name delegate."""
-        super().__init__(parent)
-
-    def createEditor(self, parent, option, index):
-        """Return the widget used to edit the item specified by index."""
-        completer = QCompleter(self)
-        string_list_model = QStringListModel(
-            get_last_unique_task_names(), completer)
-        completer.setModel(string_list_model)
-        editor = LineEdit(parent)
-        editor.set_completer(completer)
-        editor.return_pressed.connect(self.__commit_and_close_editor__)
-        return editor
-
-    @pyqtSlot()
-    def __commit_and_close_editor__(self):
-        """Commit changes and close the editor."""
-        editor = self.sender()
-
-        # remove left and right whitespace.
-        text = editor.toPlainText()
-        editor.setPlainText(' '.join(text.splitlines()).strip())
-
-        self.commitData.emit(editor)
-        self.closeEditor.emit(editor)
-
-    def setEditorData(self, editor, index):
-        """Set the data to be displayed and edited.
-
-        Set the data to be displayed and edited by the editor from the
-        data model item specified by the model index.
-        """
-        if editor:
-            row = index.row()
-            column = index.column()
-            try:
-                editor.setText(index.model()
-                               .get_cached_data(row,
-                                                Column(column)))
-                editor.selectAll()
-            except KeyError:
-                print('>>> KeyError')
-                pass
-
-    def setModelData(self, editor, model, index):
-        """Get data from the editor widget and store it.
-
-        Get data from the editor widget and store it in the specified
-        model at the item index.
-        """
-        if editor:
-            model.setData(index, editor.toPlainText(), Qt.EditRole)
-
-
-class CenterMixin:
-    """This mixin allows the centering of window."""
-
-    def center(self):
-        """Center the window."""
-        if isinstance(self, QWidget):
-            geometry = self.frameGeometry()
-            center = QDesktopWidget().availableGeometry().center()
-            geometry.moveCenter(center)
-            self.move(geometry.topLeft())
-
-
-class SettingsDialog(CenterMixin, QDialog):
-    """Settings dialog."""
-
-    def __init__(self, parent=None):
-        """Construct a settings dialog."""
-        super().__init__(parent)
-        self.setWindowTitle('Edit preferences')
-        self.center()
-
-        self.invalid_color = None
-        self.valid_color = None
-        self.current_cell_color = None
-
-        self.__update_colors__()
-
-        manday_time_label = QLabel('Default man day time', self)
-        self.manday_time = QTimeEdit(
-            SettingWrapper.default_manday_time(), self)
-        self.manday_time.timeChanged.connect(
-            self.__manday_time_changed__)
-
-        invalid_color_label = QLabel('Invalid color', self)
-        self.invalid_color_button = QPushButton('Text', self)
-        self.invalid_color_button.clicked.connect(
-            self.__open_invalid_color_dialog__)
-
-        valid_color_label = QLabel('Valid color', self)
-        self.valid_color_button = QPushButton('Text', self)
-        self.valid_color_button.clicked.connect(
-            self.__open_valid_color_dialog__)
-
-        current_cell_color_label = QLabel('Current cell color', self)
-        self.current_cell_color_button = QPushButton('Text', self)
-        self.current_cell_color_button.clicked.connect(
-            self.__open_current_cell_color_dialog__)
-
-        self.__update_buttons_colors__()
-
-        main_layout = QGridLayout()
-
-        main_layout.addWidget(manday_time_label, 0, 0)
-        main_layout.addWidget(self.manday_time, 0, 1)
-
-        main_layout.addWidget(invalid_color_label, 1, 0)
-        main_layout.addWidget(self.invalid_color_button, 1, 1)
-
-        main_layout.addWidget(valid_color_label, 2, 0)
-        main_layout.addWidget(self.valid_color_button, 2, 1)
-
-        main_layout.addWidget(current_cell_color_label, 3, 0)
-        main_layout.addWidget(self.current_cell_color_button, 3, 1)
-
-        self.setLayout(main_layout)
-
-    @pyqtSlot()
-    def __manday_time_changed__(self):
-        """Update the man day time setting."""
-        SettingWrapper.set_default_manday_time(self.manday_time.time())
-
-    @pyqtSlot()
-    def __open_invalid_color_dialog__(self):
-        """Update the invalid color setting."""
-        color = QColorDialog.getColor(self.invalid_color, self,
-                                      'Select invalid color',
-                                      QColorDialog.DontUseNativeDialog)
-        if color.isValid():
-            SettingWrapper.set_invalid_color(color)
-
-        self.__update_colors__()
-        self.__update_buttons_colors__()
-
-    @pyqtSlot()
-    def __open_valid_color_dialog__(self):
-        """Update the valid color setting."""
-        color = QColorDialog.getColor(self.valid_color, self,
-                                      'Select invalid color',
-                                      QColorDialog.DontUseNativeDialog)
-        if color.isValid():
-            SettingWrapper.set_valid_color(color)
-
-        self.__update_colors__()
-        self.__update_buttons_colors__()
-
-    @pyqtSlot()
-    def __open_current_cell_color_dialog__(self):
-        """Update the current cell color setting."""
-        color = QColorDialog.getColor(self.valid_color, self,
-                                      'Select current cell color',
-                                      QColorDialog.DontUseNativeDialog)
-        if color.isValid():
-            SettingWrapper.set_current_cell_color(color)
-
-        self.__update_colors__()
-        self.__update_buttons_colors__()
-
-    def __update_colors__(self):
-        """Update the local colors values."""
-        self.invalid_color = SettingWrapper.invalid_color()
-        self.valid_color = SettingWrapper.valid_color()
-        self.current_cell_color = SettingWrapper.current_cell_color()
-
-    def __update_buttons_colors__(self):
-        """Update the buttons colors."""
-        invalid_color = self.invalid_color.name()
-        invalid_color_constrast = contrast_color(invalid_color)
-        invalid_style = ('background-color:{}; color:{};'
-                         .format(invalid_color, invalid_color_constrast)
-                         )
-        self.invalid_color_button.setStyleSheet(invalid_style)
-
-        valid_color = self.valid_color.name()
-        valid_color_constrast = contrast_color(valid_color)
-        valid_style = ('background-color:{}; color:{};'
-                       .format(valid_color, valid_color_constrast)
-                       )
-        self.valid_color_button.setStyleSheet(valid_style)
-
-        current_cell_color = self.current_cell_color.name()
-        current_cell_color_constrast = contrast_color(current_cell_color)
-        current_cell_style = ('background-color:{}; color:{};'
-                              .format(current_cell_color,
-                                      current_cell_color_constrast)
-                              )
-        self.current_cell_color_button.setStyleSheet(current_cell_style)
-
-
-class AboutDialog(CenterMixin, QDialog):
-    """Application about dialog."""
-
-    def __init__(self, parent=None):
-        """Construct an about dialog."""
-        super().__init__(parent)
-        self.setWindowTitle('About this software')
-        self.setMinimumHeight(600)
-        self.setMinimumWidth(600)
-        self.center()
-
-        self.license = self.__build_text_browser__()
-        self.about = self.__build_text_browser__()
-
-        repository_label = QLabel(
-            '<html>Source repository URL: <a href="{link}">{link}</a></html>'
-            .format(link=github_repository), self)
-        repository_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        repository_label.setOpenExternalLinks(True)
-        author_label = QLabel('Author: {}'.format(author))
-        version_label = QLabel(
-            'Version: {}'.format(version), self)
-
-        self.tab_widget = QTabWidget(self)
-
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-        layout.addWidget(repository_label)
-        layout.addWidget(author_label)
-        layout.addWidget(version_label)
-        layout.addWidget(self.tab_widget)
-
-        self.tab_widget.addTab(self.license, 'License')
-        self.tab_widget.addTab(self.about, 'Third-Party Software Notices')
-
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok)
-        button_box.accepted.connect(self.accept)
-        layout.addWidget(button_box)
-
-        self.license.setText(self.__get_file_content__(':/LICENSE'))
-        self.about.setText(self.__get_file_content__(':/ABOUT'))
-
-    def __build_text_browser__(self):
-        """Build a text browser."""
-        edit = QTextBrowser()
-        edit.setReadOnly(True)
-        edit.setOpenExternalLinks(True)
-        font = QFont('Courier')
-        font.setStyleHint(QFont.Monospace)
-        font.setPointSize(11)
-        font.setFixedPitch(True)
-        edit.setFont(font)
-        return edit
-
-    def __get_file_content__(self, resource_file):
-        """Get the content of a given resource file."""
-        file = QFile(resource_file)
-        if file.open(QFile.ReadOnly):
-            string = str(file.readAll(), 'utf-8')
-            file.close()
-            return str(string)
-        else:
-            print('>>> ' + file.errorString())
-            return ''
+from PyQt5.QtCore import (QByteArray, QItemSelectionModel, QMimeData, Qt,
+                          pyqtSlot)
+from PyQt5.QtGui import QBrush, QClipboard, QColor, QIcon, QPalette
+from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QFrame,
+                             QGridLayout, QHeaderView, QLabel, QLCDNumber,
+                             QMainWindow, QSpinBox, QTableView, QTimeEdit,
+                             QToolBar, QWidget, qApp)
+
+from taskcounter import resources
+from taskcounter.db import close_database
+from taskcounter.enum import ResultColumn, TaskColumn, WeekDay
+from taskcounter.model import (SummaryModel, SettingModel, WeekModel)
+from taskcounter.utility import (color_between, contrast_color,
+                                 minutes_to_time_str, weekday_from_date,
+                                 weeks_for_year)
+
+from taskcounter.gui import AboutDialog, SettingDialog, TaskNameDelegate
 
 
 class MainWindow(QMainWindow):
@@ -393,7 +48,7 @@ class MainWindow(QMainWindow):
         self.task_model = None
         self.task_view = None
         self.result_view = None
-        self.result_model = ResultSummaryModel()
+        self.result_model = SummaryModel(self)
         self.week_edit = None
         self.week_wrapper = None
         self.year_edit = None
@@ -426,7 +81,7 @@ class MainWindow(QMainWindow):
     def __init_current_cell_color__(self, table):
         """Initialize current cell color."""
         palette = table.palette()
-        current_cell_color = SettingWrapper.current_cell_color()
+        current_cell_color = SettingModel.current_cell_color()
         current_text_color = contrast_color(current_cell_color.name())
         palette.setBrush(QPalette.Highlight,
                          QBrush(QColor(current_cell_color)))
@@ -438,23 +93,23 @@ class MainWindow(QMainWindow):
         """Set a task delegate on a table."""
         delegate = TaskNameDelegate(table)
         table.setItemDelegateForColumn(
-            Column.Task.value, delegate)
+            TaskColumn.Task.value, delegate)
 
     def __resize_task_headers__(self):
         """Resize task headers."""
-        self.task_view.hideColumn(Column.Id.value)
+        self.task_view.hideColumn(TaskColumn.Id.value)
         self.task_view.horizontalHeader().setSectionResizeMode(
-            Column.Task.value,
+            TaskColumn.Task.value,
             QHeaderView.Stretch)
         self.task_view.horizontalHeader().setSectionResizeMode(
-            Column.Start_Time.value,
+            TaskColumn.Start_Time.value,
             QHeaderView.Fixed)
         self.task_view.horizontalHeader().resizeSection(
-            Column.Start_Time.value, 70)
+            TaskColumn.Start_Time.value, 70)
 
         self.task_view.horizontalHeader().setSectionResizeMode(
-            Column.End_Time.value, QHeaderView.Fixed)
-        self.task_view.horizontalHeader().resizeSection(Column.End_Time.value,
+            TaskColumn.End_Time.value, QHeaderView.Fixed)
+        self.task_view.horizontalHeader().resizeSection(TaskColumn.End_Time.value,
                                                         70)
 
     def __resize_result_headers__(self):
@@ -545,9 +200,9 @@ class MainWindow(QMainWindow):
             palette.setColor(QPalette.WindowText, color)
             lcd_widget.setPalette(palette)
 
-    def initUI(self):
+    def init_ui(self):
         """Initialize the user interface."""
-        self.setWindowTitle('Tasks counter')
+        self.setWindowTitle('Task counter')
         self.setWindowIcon(QIcon(':/tasks.png'))
         self.statusBar()
 
@@ -659,7 +314,7 @@ class MainWindow(QMainWindow):
         self.hours_edit.valueChanged.connect(self.__hours_changed__)
         self.minutes_edit.valueChanged.connect(self.__minutes_changed__)
 
-        self.manday_tedit = QTimeEdit(SettingWrapper.default_manday_time(),
+        self.manday_tedit = QTimeEdit(SettingModel.default_manday_time(),
                                       self)
         self.manday_tedit.timeChanged.connect(self.__update_week_summary__)
 
@@ -697,9 +352,9 @@ class MainWindow(QMainWindow):
             days_menu.addAction(action)
 
     def __validate_week_and_year__(self):
-        """Validate the week and the year and update a WeekWrapper."""
-        self.week_wrapper = WeekWrapper(
-            self.year_edit.value(), self.week_edit.value())
+        """Validate the week and the year and update a WeekModel."""
+        self.week_wrapper = WeekModel(
+            self.year_edit.value(), self.week_edit.value(), self)
 
         minutes_time = self.week_wrapper.minutes_to_work
         (hours, minutes) = divmod(minutes_time, 60)
@@ -765,7 +420,7 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def __edit_preferences__(self):
         """Edit preferences."""
-        settings = SettingsDialog(self)
+        settings = SettingDialog(self)
         settings.exec_()
 
         self.__update_settings__()
@@ -803,8 +458,8 @@ class MainWindow(QMainWindow):
         self.__update_week_edit__(year)
         self.__validate_week_and_year__()
 
-    @pyqtSlot(int)
-    def __week_changed__(self, week):
+    @pyqtSlot()
+    def __week_changed__(self):
         """Change the current week, event."""
         self.__validate_week_and_year__()
 
@@ -843,10 +498,10 @@ class MainWindow(QMainWindow):
         time_str = minutes_to_time_str(abs_time)
 
         if catch_up_time >= 0:
-            self.__change_catch_up_color__(SettingWrapper.valid_color())
+            self.__change_catch_up_color__(SettingModel.valid_color())
             self.catch_up_lcdnumber.setToolTip('+' + time_str)
         else:
-            self.__change_catch_up_color__(SettingWrapper.invalid_color())
+            self.__change_catch_up_color__(SettingModel.invalid_color())
             self.catch_up_lcdnumber.setToolTip('-' + time_str)
 
         if abs_time >= 6000:
@@ -890,8 +545,8 @@ class MainWindow(QMainWindow):
             percent = (self.week_wrapper.minutes_of_week /
                        self.week_wrapper.minutes_to_work)
 
-        color = color_between(SettingWrapper.invalid_color().name(),
-                              SettingWrapper.valid_color().name(), percent)
+        color = color_between(SettingModel.invalid_color().name(),
+                              SettingModel.valid_color().name(), percent)
         self.__change_week_color__(QColor(color))
 
     def __build_title_label__(self, title):
@@ -961,4 +616,4 @@ class MainWindow(QMainWindow):
         self.__init_current_cell_color__(self.task_view)
         self.__init_current_cell_color__(self.result_view)
         self.__update_time__()
-        self.manday_tedit.setTime(SettingWrapper.default_manday_time())
+        self.manday_tedit.setTime(SettingModel.default_manday_time())

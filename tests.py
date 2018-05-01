@@ -1,6 +1,6 @@
 #     Copyright (C) 2018  Matthieu PETIOT
 #
-#     https://github.com/ardeidae/tasks-counter
+#     https://github.com/ardeidae/taskcounter
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -15,14 +15,15 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Tasks counter tests."""
+"""Task counter tests."""
 
 import unittest
 from datetime import date
 
-from counter import (Column, ResultColumn, WeekDay, minutes_to_time,
-                     minutes_to_time_str, seven_days_of_week,
-                     weekday_from_date, weeks_for_year)
+from taskcounter.enum import ResultColumn, TaskColumn, WeekDay
+from taskcounter.utility import (minutes_to_time, minutes_to_time_str,
+                                 seven_days_of_week, weekday_from_date,
+                                 weeks_for_year)
 
 
 class TestWeeksForYear(unittest.TestCase):
@@ -122,23 +123,23 @@ class TestWeekDay(unittest.TestCase):
                 self.assertEqual(a_day, weekday_from_date(a_date))
 
 
-class TestColumn(unittest.TestCase):
-    """Tests for Column enum."""
+class TestTaskColumn(unittest.TestCase):
+    """Tests for TaskColumn enum."""
 
     def test_enum_values(self):
         """Test enum values."""
-        self.assertEqual(0, Column.Id.value)
-        self.assertEqual(1, Column.Task.value)
-        self.assertEqual(2, Column.Start_Time.value)
-        self.assertEqual(3, Column.End_Time.value)
+        self.assertEqual(0, TaskColumn.Id.value)
+        self.assertEqual(1, TaskColumn.Task.value)
+        self.assertEqual(2, TaskColumn.Start_Time.value)
+        self.assertEqual(3, TaskColumn.End_Time.value)
 
     def test_enum_has_four_columns(self):
         """Test that enum has four columns."""
-        self.assertEqual(4, len(Column))
+        self.assertEqual(4, len(TaskColumn))
 
 
 class TestResultColumn(unittest.TestCase):
-    """Tests for Result Column enul."""
+    """Tests for Result Column enum."""
 
     def test_enum_values(self):
         """Test enum values."""

@@ -15,10 +15,27 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Simple launcher for task counter."""
+"""Task counter task database model."""
 
-import sys
-import taskcounter.taskcounter
+from peewee import CharField, Check, ForeignKeyField, TimeField
 
-if __name__ == '__main__':
-    sys.exit(taskcounter.taskcounter.main())
+from .day import Day
+from .model import BaseModel
+
+
+class Task(BaseModel):
+    """Task Model."""
+
+    name = CharField()
+    start_time = TimeField(null=True)
+    end_time = TimeField(null=True)
+    day = ForeignKeyField(Day, related_name='tasks')
+
+    class Meta:
+        constraints = [Check("start_time is NULL or start_time LIKE '__:__'"),
+                       Check("end_time is NULL or end_time LIKE '__:__'")]
+
+    def __str__(self):
+        """Get string representation."""
+        return 'Task: {} {}/{}'.format(self.name, self.start_time,
+                                       self.end_time)

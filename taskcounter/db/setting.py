@@ -15,10 +15,19 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Simple launcher for task counter."""
+"""Task counter setting database model."""
 
-import sys
-import taskcounter.taskcounter
+from peewee import CharField
 
-if __name__ == '__main__':
-    sys.exit(taskcounter.taskcounter.main())
+from .model import BaseModel
+
+
+class Setting(BaseModel):
+    """Setting Model."""
+
+    name = CharField(unique=True, null=False)
+    value = CharField(null=False)
+
+    def __str__(self):
+        """Get string representation."""
+        return 'Setting: {} -> {}'.format(self.name, self.value)

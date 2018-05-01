@@ -30,16 +30,16 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          name='Tasks counter',
+          name='Task counter',
           debug=False,
           strip=False,
           upx=False,
           runtime_tmpdir=None,
           console=False , icon=icon)
 app = BUNDLE(exe,
-             name='Tasks counter.app',
+             name='Task counter.app',
              icon=icon,
-             bundle_identifier='com.ardeidae.tasks-counter',
+             bundle_identifier='com.ardeidae.taskcounter',
              info_plist={
              'NSHighResolutionCapable': 'True'
              },)

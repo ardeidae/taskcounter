@@ -1,6 +1,6 @@
 #     Copyright (C) 2018  Matthieu PETIOT
 #
-#     https://github.com/ardeidae/tasks-counter
+#     https://github.com/ardeidae/taskcounter
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -15,8 +15,18 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Tasks counter version information."""
+"""Task counter model utility functions."""
 
-version = '0.8.0'
-author = 'Matthieu PETIOT'
-github_repository = 'https://github.com/ardeidae/tasks-counter'
+from datetime import date, timedelta
+
+from taskcounter.db import Day, Task
+
+
+def get_last_unique_task_names():
+    """Return the last unique task names since last three months."""
+    last_3_months = date.today() + timedelta(days=-90)
+    return (tuple(x.name for x in Task.select(Task.name)
+                  .join(Day)
+                  .distinct()
+                  .where(Day.date > last_3_months)
+                  .order_by(Task.name)))

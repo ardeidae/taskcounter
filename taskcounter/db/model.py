@@ -15,10 +15,17 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Simple launcher for task counter."""
+"""Task counter base database model."""
 
-import sys
-import taskcounter.taskcounter
+from os import path
 
-if __name__ == '__main__':
-    sys.exit(taskcounter.taskcounter.main())
+from peewee import Model, SqliteDatabase
+
+DB = SqliteDatabase(path.join(path.expanduser('~'), 'taskcounter.db'))
+
+
+class BaseModel(Model):
+    """Base for model classes."""
+
+    class Meta:
+        database = DB

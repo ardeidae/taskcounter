@@ -15,10 +15,8 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Simple launcher for task counter."""
+"""Task counter version information."""
 
-import sys
-import taskcounter.taskcounter
-
-if __name__ == '__main__':
-    sys.exit(taskcounter.taskcounter.main())
+version = '0.8.0'
+author = 'Matthieu PETIOT'
+github_repository = 'https://github.com/ardeidae/taskcounter'

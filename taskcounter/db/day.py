@@ -15,10 +15,20 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Simple launcher for task counter."""
+"""Task counter day database model."""
 
-import sys
-import taskcounter.taskcounter
+from peewee import DateField, ForeignKeyField
 
-if __name__ == '__main__':
-    sys.exit(taskcounter.taskcounter.main())
+from .model import BaseModel
+from .week import Week
+
+
+class Day(BaseModel):
+    """Day model."""
+
+    date = DateField(unique=True)
+    week = ForeignKeyField(Week, related_name='days')
+
+    def __str__(self):
+        """Get string representation."""
+        return 'Day: {}'.format(self.date)

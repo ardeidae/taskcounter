@@ -112,7 +112,7 @@ class SettingDialog(CenterMixin, QDialog):
     @pyqtSlot()
     def __open_current_cell_color_dialog__(self):
         """Update the current cell color setting."""
-        color = QColorDialog.getColor(self.valid_color, self,
+        color = QColorDialog.getColor(self.current_cell_color, self,
                                       'Select current cell color',
                                       QColorDialog.DontUseNativeDialog)
         if color.isValid():

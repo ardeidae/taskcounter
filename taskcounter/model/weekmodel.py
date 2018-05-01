@@ -118,7 +118,7 @@ class WeekModel:
                    .scalar())
         return minutes or 0
 
-    def week_summary(self, manday_minutes):
+    def week_summary(self, man_day_minutes):
         """Get the week summary: tasks and total time in minutes."""
         tasks = {}
         query = (Task.select(Task.name,
@@ -138,9 +138,9 @@ class WeekModel:
             task = {}
             task[ResultColumn.Task] = row.name
             task[ResultColumn.Time] = row.sum
-            if manday_minutes:
+            if man_day_minutes:
                 task[ResultColumn.Man_Day] = round(row.sum /
-                                                   manday_minutes, 2)
+                                                   man_day_minutes, 2)
             else:
                 task[ResultColumn.Man_Day] = ''
             tasks[counter] = task

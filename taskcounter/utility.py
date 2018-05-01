@@ -39,7 +39,6 @@ def weeks_for_year(year):
         return None
     else:
         return last_week.isocalendar()[1]
-    return None
 
 
 def seven_days_of_week(a_year, a_week_number):

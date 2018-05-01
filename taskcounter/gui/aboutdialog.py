@@ -69,7 +69,8 @@ class AboutDialog(CenterMixin, QDialog):
         self.license.setText(self.__get_file_content__(':/LICENSE'))
         self.about.setText(self.__get_file_content__(':/ABOUT'))
 
-    def __build_text_browser__(self):
+    @staticmethod
+    def __build_text_browser__():
         """Build a text browser."""
         edit = QTextBrowser()
         edit.setReadOnly(True)
@@ -81,7 +82,8 @@ class AboutDialog(CenterMixin, QDialog):
         edit.setFont(font)
         return edit
 
-    def __get_file_content__(self, resource_file):
+    @staticmethod
+    def __get_file_content__(resource_file):
         """Get the content of a given resource file."""
         file = QFile(resource_file)
         if file.open(QFile.ReadOnly):

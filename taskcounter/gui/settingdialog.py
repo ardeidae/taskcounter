@@ -41,11 +41,11 @@ class SettingDialog(CenterMixin, QDialog):
 
         self.__update_colors__()
 
-        manday_time_label = QLabel('Default man day time', self)
-        self.manday_time = QTimeEdit(
-            SettingModel.default_manday_time(), self)
-        self.manday_time.timeChanged.connect(
-            self.__manday_time_changed__)
+        man_day_time_label = QLabel('Default man day time', self)
+        self.man_day_time = QTimeEdit(
+            SettingModel.default_man_day_time(), self)
+        self.man_day_time.timeChanged.connect(
+            self.__man_day_time_changed__)
 
         invalid_color_label = QLabel('Invalid color', self)
         self.invalid_color_button = QPushButton('Text', self)
@@ -66,8 +66,8 @@ class SettingDialog(CenterMixin, QDialog):
 
         main_layout = QGridLayout()
 
-        main_layout.addWidget(manday_time_label, 0, 0)
-        main_layout.addWidget(self.manday_time, 0, 1)
+        main_layout.addWidget(man_day_time_label, 0, 0)
+        main_layout.addWidget(self.man_day_time, 0, 1)
 
         main_layout.addWidget(invalid_color_label, 1, 0)
         main_layout.addWidget(self.invalid_color_button, 1, 1)
@@ -81,9 +81,9 @@ class SettingDialog(CenterMixin, QDialog):
         self.setLayout(main_layout)
 
     @pyqtSlot()
-    def __manday_time_changed__(self):
+    def __man_day_time_changed__(self):
         """Update the man day time setting."""
-        SettingModel.set_default_manday_time(self.manday_time.time())
+        SettingModel.set_default_man_day_time(self.man_day_time.time())
 
     @pyqtSlot()
     def __open_invalid_color_dialog__(self):
@@ -130,23 +130,23 @@ class SettingDialog(CenterMixin, QDialog):
     def __update_buttons_colors__(self):
         """Update the buttons colors."""
         invalid_color = self.invalid_color.name()
-        invalid_color_constrast = contrast_color(invalid_color)
+        invalid_color_contrast = contrast_color(invalid_color)
         invalid_style = ('background-color:{}; color:{};'
-                         .format(invalid_color, invalid_color_constrast)
+                         .format(invalid_color, invalid_color_contrast)
                          )
         self.invalid_color_button.setStyleSheet(invalid_style)
 
         valid_color = self.valid_color.name()
-        valid_color_constrast = contrast_color(valid_color)
+        valid_color_contrast = contrast_color(valid_color)
         valid_style = ('background-color:{}; color:{};'
-                       .format(valid_color, valid_color_constrast)
+                       .format(valid_color, valid_color_contrast)
                        )
         self.valid_color_button.setStyleSheet(valid_style)
 
         current_cell_color = self.current_cell_color.name()
-        current_cell_color_constrast = contrast_color(current_cell_color)
+        current_cell_color_contrast = contrast_color(current_cell_color)
         current_cell_style = ('background-color:{}; color:{};'
                               .format(current_cell_color,
-                                      current_cell_color_constrast)
+                                      current_cell_color_contrast)
                               )
         self.current_cell_color_button.setStyleSheet(current_cell_style)

@@ -29,7 +29,7 @@ from taskcounter.db import IntegrityError, Setting
 class SettingModel:
     """Wrapper for the setting model."""
 
-    MANDAY_TIME_PROPERTY = 'default_manday_time'
+    MAN_DAY_TIME_PROPERTY = 'default_man_day_time'
     INVALID_COLOR_PROPERTY = 'invalid_color'
     VALID_COLOR_PROPERTY = 'valid_color'
     CURRENT_CELL_COLOR_PROPERTY = 'current_cell_color'
@@ -62,15 +62,15 @@ class SettingModel:
         return value
 
     @classmethod
-    def default_manday_time(cls):
-        """Get the default manday time."""
-        return cls.get_value(cls.MANDAY_TIME_PROPERTY) or QTime(7, 0)
+    def default_man_day_time(cls):
+        """Get the default man day time."""
+        return cls.get_value(cls.MAN_DAY_TIME_PROPERTY) or QTime(7, 0)
 
     @classmethod
-    def set_default_manday_time(cls, default_manday_time):
-        """Set the default manday time."""
-        cls.insert_or_update(cls.MANDAY_TIME_PROPERTY,
-                             default_manday_time)
+    def set_default_man_day_time(cls, default_man_day_time):
+        """Set the default man day time."""
+        cls.insert_or_update(cls.MAN_DAY_TIME_PROPERTY,
+                             default_man_day_time)
 
     @classmethod
     def invalid_color(cls):

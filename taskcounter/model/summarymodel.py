@@ -31,13 +31,13 @@ class SummaryModel(QAbstractTableModel):
         super().__init__(parent)
 
         self._tasks = []
-        self._manday_minutes = 0
+        self._man_day_minutes = 0
 
-    def rowCount(self, parent=None):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Return the number of rows under the given parent."""
         return len(self._tasks)
 
-    def columnCount(self, parent=None):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Return the number of columns under the given parent."""
         return len(ResultColumn)
 
@@ -62,16 +62,16 @@ class SummaryModel(QAbstractTableModel):
         self.layoutChanged.emit()
 
     @property
-    def manday_minutes(self):
-        """Get the manday minutes."""
-        return self._manday_minutes
+    def man_day_minutes(self):
+        """Get the man day minutes."""
+        return self._man_day_minutes
 
-    @manday_minutes.setter
-    def manday_minutes(self, manday_minutes):
-        """Set the manday minutes."""
-        self._manday_minutes = manday_minutes
+    @man_day_minutes.setter
+    def man_day_minutes(self, man_day_minutes):
+        """Set the man day minutes."""
+        self._man_day_minutes = man_day_minutes
 
-    def data(self, index, role):
+    def data(self, index, role=None):
         """Return the data.
 
         Return the data stored under the given role for the item referred
@@ -106,7 +106,7 @@ class SummaryModel(QAbstractTableModel):
 
         return QVariant()
 
-    def headerData(self, section, orientation, role):
+    def headerData(self, section, orientation, role=None):
         """Return the header data.
 
         Return the data for the given role and section in the header with

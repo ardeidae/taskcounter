@@ -54,11 +54,11 @@ class MainWindow(QMainWindow):
         self.year_edit = None
         self.hours_edit = None
         self.minutes_edit = None
-        self.manday_tedit = None
+        self.man_day_edit = None
         self.current_day_label = None
-        self.week_time_lcdnumber = None
-        self.day_time_lcdnumber = None
-        self.catch_up_lcdnumber = None
+        self.week_time_lcd = None
+        self.day_time_lcd = None
+        self.catch_up_lcd = None
 
     def closeEvent(self, event):
         """When application is about to close."""
@@ -72,13 +72,15 @@ class MainWindow(QMainWindow):
         self.setMinimumHeight(h)
         self.showMaximized()
 
-    def __disable_headers_click__(self, table):
+    @staticmethod
+    def __disable_headers_click__(table):
         """Disable click on table headers."""
         table.horizontalHeader().setSectionsClickable(False)
         table.setCornerButtonEnabled(False)
         table.verticalHeader().setSectionsClickable(False)
 
-    def __init_current_cell_color__(self, table):
+    @staticmethod
+    def __init_current_cell_color__(table):
         """Initialize current cell color."""
         palette = table.palette()
         current_cell_color = SettingModel.current_cell_color()
@@ -153,14 +155,14 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.result_view, 1, 1)
 
         week_label = QLabel('Week time', self)
-        self.week_time_lcdnumber = self.__build_lcd_number_widget__()
+        self.week_time_lcd = self.__build_lcd_number_widget__()
 
         day_label = QLabel('Day time', self)
-        self.day_time_lcdnumber = self.__build_lcd_number_widget__()
+        self.day_time_lcd = self.__build_lcd_number_widget__()
         self.__change_day_color__(QColor('#0000ff'))
 
         catch_up_label = QLabel('Catch-up time', self)
-        self.catch_up_lcdnumber = self.__build_lcd_number_widget__()
+        self.catch_up_lcd = self.__build_lcd_number_widget__()
 
         footer_layout = QGridLayout()
         footer_layout.addWidget(day_label, 0, 0,
@@ -169,9 +171,9 @@ class MainWindow(QMainWindow):
                                 Qt.AlignHCenter)
         footer_layout.addWidget(catch_up_label, 0, 2,
                                 Qt.AlignHCenter)
-        footer_layout.addWidget(self.day_time_lcdnumber, 1, 0)
-        footer_layout.addWidget(self.week_time_lcdnumber, 1, 1)
-        footer_layout.addWidget(self.catch_up_lcdnumber, 1, 2)
+        footer_layout.addWidget(self.day_time_lcd, 1, 0)
+        footer_layout.addWidget(self.week_time_lcd, 1, 1)
+        footer_layout.addWidget(self.catch_up_lcd, 1, 2)
 
         main_layout.addLayout(footer_layout, 2, 0, 1, 2)
 
@@ -183,17 +185,18 @@ class MainWindow(QMainWindow):
 
     def __change_week_color__(self, color):
         """Change the lcd week color."""
-        self.__change_lcd_number_color__(self.week_time_lcdnumber, color)
+        self.__change_lcd_number_color__(self.week_time_lcd, color)
 
     def __change_day_color__(self, color):
         """Change the lcd day color."""
-        self.__change_lcd_number_color__(self.day_time_lcdnumber, color)
+        self.__change_lcd_number_color__(self.day_time_lcd, color)
 
     def __change_catch_up_color__(self, color):
         """Change the lcd catch-up color."""
-        self.__change_lcd_number_color__(self.catch_up_lcdnumber, color)
+        self.__change_lcd_number_color__(self.catch_up_lcd, color)
 
-    def __change_lcd_number_color__(self, lcd_widget, color):
+    @staticmethod
+    def __change_lcd_number_color__(lcd_widget, color):
         """Change a given lcd number color with a given color."""
         if isinstance(color, QColor) and isinstance(lcd_widget,
                                                     QLCDNumber):
@@ -315,9 +318,9 @@ class MainWindow(QMainWindow):
         self.hours_edit.valueChanged.connect(self.__hours_changed__)
         self.minutes_edit.valueChanged.connect(self.__minutes_changed__)
 
-        self.manday_tedit = QTimeEdit(SettingModel.default_manday_time(),
+        self.man_day_edit = QTimeEdit(SettingModel.default_man_day_time(),
                                       self)
-        self.manday_tedit.timeChanged.connect(self.__update_week_summary__)
+        self.man_day_edit.timeChanged.connect(self.__update_week_summary__)
 
         toolbar_weeks.addAction(today_act)
         toolbar_weeks.addWidget(self.year_edit)
@@ -327,28 +330,28 @@ class MainWindow(QMainWindow):
         toolbar_weeks.addWidget(self.hours_edit)
         toolbar_weeks.addWidget(self.minutes_edit)
         toolbar_weeks.addAction(export_act)
-        toolbar_weeks.addWidget(self.manday_tedit)
+        toolbar_weeks.addWidget(self.man_day_edit)
 
         toolbar_application.addAction(exit_act)
         toolbar_application.addAction(settings_act)
         toolbar_application.addAction(about_act)
 
-        menubar = self.menuBar()
-        menubar.setNativeMenuBar(True)
+        menu_bar = self.menuBar()
+        menu_bar.setNativeMenuBar(True)
 
-        app_menu = menubar.addMenu('Application')
+        app_menu = menu_bar.addMenu('Application')
         app_menu.addAction(about_act)
         app_menu.addAction(about_qt_act)
         app_menu.addAction(settings_act)
         app_menu.addAction(exit_act)
 
-        weeks_menu = menubar.addMenu('Weeks')
+        weeks_menu = menu_bar.addMenu('Weeks')
         weeks_menu.addAction(today_act)
         weeks_menu.addAction(previous_act)
         weeks_menu.addAction(next_act)
         weeks_menu.addAction(export_act)
 
-        days_menu = menubar.addMenu('Days')
+        days_menu = menu_bar.addMenu('Days')
         for action in days_action_group.actions():
             days_menu.addAction(action)
 
@@ -479,12 +482,12 @@ class MainWindow(QMainWindow):
 
     def __update_day_time_counter__(self):
         """Update the day time counter."""
-        self.day_time_lcdnumber.display(
+        self.day_time_lcd.display(
             minutes_to_time_str(self.task_model.minutes_of_day))
 
     def __update_week_time_counter__(self):
         """Update the week time counter."""
-        self.week_time_lcdnumber.display(
+        self.week_time_lcd.display(
             minutes_to_time_str(self.week_wrapper.minutes_of_week))
 
         self.__update_week_counter_color__()
@@ -500,15 +503,15 @@ class MainWindow(QMainWindow):
 
         if catch_up_time >= 0:
             self.__change_catch_up_color__(SettingModel.valid_color())
-            self.catch_up_lcdnumber.setToolTip('+' + time_str)
+            self.catch_up_lcd.setToolTip('+' + time_str)
         else:
             self.__change_catch_up_color__(SettingModel.invalid_color())
-            self.catch_up_lcdnumber.setToolTip('-' + time_str)
+            self.catch_up_lcd.setToolTip('-' + time_str)
 
         if abs_time >= 6000:
-            self.catch_up_lcdnumber.display(abs_time // 60)
+            self.catch_up_lcd.display(abs_time // 60)
         else:
-            self.catch_up_lcdnumber.display(time_str)
+            self.catch_up_lcd.display(time_str)
 
     def __build_lcd_number_widget__(self):
         """Build a LCD Number widget."""
@@ -565,10 +568,10 @@ class MainWindow(QMainWindow):
         """Update the week summary."""
         if self.week_wrapper:
 
-            manday_time = self.manday_tedit.time()
-            manday_minutes = manday_time.hour() * 60 + manday_time.minute()
+            man_day_time = self.man_day_edit.time()
+            man_day_minutes = man_day_time.hour() * 60 + man_day_time.minute()
 
-            tasks = self.week_wrapper.week_summary(manday_minutes)
+            tasks = self.week_wrapper.week_summary(man_day_minutes)
             self.result_model.tasks = tasks
             self.__resize_result_headers__()
 
@@ -617,4 +620,4 @@ class MainWindow(QMainWindow):
         self.__init_current_cell_color__(self.task_view)
         self.__init_current_cell_color__(self.result_view)
         self.__update_time__()
-        self.manday_tedit.setTime(SettingModel.default_manday_time())
+        self.man_day_edit.setTime(SettingModel.default_man_day_time())

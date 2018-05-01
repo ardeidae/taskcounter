@@ -48,11 +48,11 @@ class DayModel(QAbstractTableModel):
         """Get the date property."""
         return self._day.date
 
-    def rowCount(self, parent=None):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Return the number of rows under the given parent."""
         return len(self._cached_data) + 1
 
-    def columnCount(self, parent=None):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Return the number of columns under the given parent."""
         return len(TaskColumn)
 
@@ -80,7 +80,7 @@ class DayModel(QAbstractTableModel):
         """Get the cached data for a given row and column."""
         return self._cached_data[row][column]
 
-    def data(self, index, role):
+    def data(self, index, role=None):
         """Return the data.
 
         Return the data stored under the given role for the item referred
@@ -138,7 +138,7 @@ class DayModel(QAbstractTableModel):
 
         return QVariant()
 
-    def setData(self, index, value, role):
+    def setData(self, index, value, role=None):
         """Set the role data for the item at index to value."""
         if role == Qt.EditRole:
             row = index.row()
@@ -208,7 +208,7 @@ class DayModel(QAbstractTableModel):
 
         return False
 
-    def headerData(self, section, orientation, role):
+    def headerData(self, section, orientation, role=None):
         """Return the header data.
 
         Return the data for the given role and section in the header with
@@ -224,7 +224,7 @@ class DayModel(QAbstractTableModel):
         return Qt.ItemIsEditable | super().flags(index)
 
     @staticmethod
-    def update_task(id, field, value):
+    def update_task(id_, field, value):
         """Update task field with a given value for a given id."""
         args = dict()
 
@@ -239,7 +239,7 @@ class DayModel(QAbstractTableModel):
 
         if args:
             try:
-                query = Task.update(**args).where(Task.id == id)
+                query = Task.update(**args).where(Task.id == id_)
                 print('>>> query: ' + str(query.sql()))
                 return query.execute() > 0
             except IntegrityError:
@@ -248,9 +248,9 @@ class DayModel(QAbstractTableModel):
         return False
 
     @staticmethod
-    def delete_task(id):
+    def delete_task(id_):
         """Delete a task with the given id."""
-        query = Task.delete().where(Task.id == id)
+        query = Task.delete().where(Task.id == id_)
         print('>>> query: ' + str(query.sql()))
         return query.execute() > 0
 
@@ -312,12 +312,12 @@ class DayModel(QAbstractTableModel):
                         return True
 
                     if (start_time and end_time
-                        and(start_time
-                            < self._cached_data[r][TaskColumn.Start_Time]
-                            < end_time
-                            or start_time
-                            < self._cached_data[r][TaskColumn.End_Time]
-                            < end_time)):
+                        and (start_time
+                             < self._cached_data[r][TaskColumn.Start_Time]
+                             < end_time
+                             or start_time
+                             < self._cached_data[r][TaskColumn.End_Time]
+                             < end_time)):
                         return True
 
         return False

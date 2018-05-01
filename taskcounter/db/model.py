@@ -28,4 +28,6 @@ class BaseModel(Model):
     """Base for model classes."""
 
     class Meta:
+        """Meta class."""
+
         database = DB

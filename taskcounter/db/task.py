@@ -32,6 +32,8 @@ class Task(BaseModel):
     day = ForeignKeyField(Day, related_name='tasks')
 
     class Meta:
+        """Meta class."""
+
         constraints = [Check("start_time is NULL or start_time LIKE '__:__'"),
                        Check("end_time is NULL or end_time LIKE '__:__'")]
 

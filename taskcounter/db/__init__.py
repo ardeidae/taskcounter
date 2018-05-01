@@ -1,3 +1,5 @@
+"""Task counter db module init."""
+
 from peewee import SQL, IntegrityError, fn
 
 from .day import Day

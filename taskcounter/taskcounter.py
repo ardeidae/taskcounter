@@ -26,6 +26,7 @@ from taskcounter.gui import MainWindow
 
 
 def main():
+    """Start the application."""
     app = QApplication(sys.argv)
 
     create_database()

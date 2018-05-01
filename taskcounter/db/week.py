@@ -30,6 +30,8 @@ class Week(BaseModel):
     minutes_to_work = IntegerField(default=0)
 
     class Meta:
+        """Meta class."""
+
         indexes = (
             (('year', 'week_number'), True),
         )

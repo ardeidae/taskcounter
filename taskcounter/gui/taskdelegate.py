@@ -20,9 +20,9 @@
 from PyQt5.QtCore import QStringListModel, Qt, pyqtSlot
 from PyQt5.QtWidgets import QCompleter, QItemDelegate
 
-from taskcounter.counter import get_last_unique_task_names
 from taskcounter.enum import TaskColumn
 from taskcounter.gui.lineedit import LineEdit
+from taskcounter.model import get_last_unique_task_names
 
 
 class TaskNameDelegate(QItemDelegate):

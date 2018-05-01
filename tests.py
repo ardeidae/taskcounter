@@ -20,11 +20,10 @@
 import unittest
 from datetime import date
 
-from taskcounter.counter import (minutes_to_time, minutes_to_time_str,
+from taskcounter.enum import ResultColumn, TaskColumn, WeekDay
+from taskcounter.utility import (minutes_to_time, minutes_to_time_str,
                                  seven_days_of_week, weekday_from_date,
                                  weeks_for_year)
-from taskcounter.enum import *
-from taskcounter.enum import ResultColumn, TaskColumn, WeekDay
 
 
 class TestWeeksForYear(unittest.TestCase):

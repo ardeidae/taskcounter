@@ -28,16 +28,14 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QFrame,
                              QToolBar, QWidget, qApp)
 
 from taskcounter import resources
-from taskcounter.counter import (ResultSummaryModel, SettingWrapper,
-                                 WeekWrapper, color_between, contrast_color,
-                                 minutes_to_time_str, weekday_from_date,
-                                 weeks_for_year)
 from taskcounter.db import close_database
 from taskcounter.enum import ResultColumn, TaskColumn, WeekDay
+from taskcounter.model import (SummaryModel, SettingModel, WeekModel)
+from taskcounter.utility import (color_between, contrast_color,
+                                 minutes_to_time_str, weekday_from_date,
+                                 weeks_for_year)
 
-from .aboutdialog import AboutDialog
-from .settingdialog import SettingsDialog
-from .taskdelegate import TaskNameDelegate
+from taskcounter.gui import AboutDialog, SettingDialog, TaskNameDelegate
 
 
 class MainWindow(QMainWindow):
@@ -50,7 +48,7 @@ class MainWindow(QMainWindow):
         self.task_model = None
         self.task_view = None
         self.result_view = None
-        self.result_model = ResultSummaryModel(self)
+        self.result_model = SummaryModel(self)
         self.week_edit = None
         self.week_wrapper = None
         self.year_edit = None
@@ -83,7 +81,7 @@ class MainWindow(QMainWindow):
     def __init_current_cell_color__(self, table):
         """Initialize current cell color."""
         palette = table.palette()
-        current_cell_color = SettingWrapper.current_cell_color()
+        current_cell_color = SettingModel.current_cell_color()
         current_text_color = contrast_color(current_cell_color.name())
         palette.setBrush(QPalette.Highlight,
                          QBrush(QColor(current_cell_color)))
@@ -316,7 +314,7 @@ class MainWindow(QMainWindow):
         self.hours_edit.valueChanged.connect(self.__hours_changed__)
         self.minutes_edit.valueChanged.connect(self.__minutes_changed__)
 
-        self.manday_tedit = QTimeEdit(SettingWrapper.default_manday_time(),
+        self.manday_tedit = QTimeEdit(SettingModel.default_manday_time(),
                                       self)
         self.manday_tedit.timeChanged.connect(self.__update_week_summary__)
 
@@ -354,8 +352,8 @@ class MainWindow(QMainWindow):
             days_menu.addAction(action)
 
     def __validate_week_and_year__(self):
-        """Validate the week and the year and update a WeekWrapper."""
-        self.week_wrapper = WeekWrapper(
+        """Validate the week and the year and update a WeekModel."""
+        self.week_wrapper = WeekModel(
             self.year_edit.value(), self.week_edit.value(), self)
 
         minutes_time = self.week_wrapper.minutes_to_work
@@ -422,7 +420,7 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def __edit_preferences__(self):
         """Edit preferences."""
-        settings = SettingsDialog(self)
+        settings = SettingDialog(self)
         settings.exec_()
 
         self.__update_settings__()
@@ -500,10 +498,10 @@ class MainWindow(QMainWindow):
         time_str = minutes_to_time_str(abs_time)
 
         if catch_up_time >= 0:
-            self.__change_catch_up_color__(SettingWrapper.valid_color())
+            self.__change_catch_up_color__(SettingModel.valid_color())
             self.catch_up_lcdnumber.setToolTip('+' + time_str)
         else:
-            self.__change_catch_up_color__(SettingWrapper.invalid_color())
+            self.__change_catch_up_color__(SettingModel.invalid_color())
             self.catch_up_lcdnumber.setToolTip('-' + time_str)
 
         if abs_time >= 6000:
@@ -547,8 +545,8 @@ class MainWindow(QMainWindow):
             percent = (self.week_wrapper.minutes_of_week /
                        self.week_wrapper.minutes_to_work)
 
-        color = color_between(SettingWrapper.invalid_color().name(),
-                              SettingWrapper.valid_color().name(), percent)
+        color = color_between(SettingModel.invalid_color().name(),
+                              SettingModel.valid_color().name(), percent)
         self.__change_week_color__(QColor(color))
 
     def __build_title_label__(self, title):
@@ -618,4 +616,4 @@ class MainWindow(QMainWindow):
         self.__init_current_cell_color__(self.task_view)
         self.__init_current_cell_color__(self.result_view)
         self.__update_time__()
-        self.manday_tedit.setTime(SettingWrapper.default_manday_time())
+        self.manday_tedit.setTime(SettingModel.default_manday_time())

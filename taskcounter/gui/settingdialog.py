@@ -21,12 +21,12 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import (QColorDialog, QDialog, QGridLayout, QLabel,
                              QPushButton, QTimeEdit)
 
-from taskcounter.counter import SettingWrapper, contrast_color
+from taskcounter.gui import CenterMixin
+from taskcounter.model import SettingModel
+from taskcounter.utility import contrast_color
 
-from .centermixin import CenterMixin
 
-
-class SettingsDialog(CenterMixin, QDialog):
+class SettingDialog(CenterMixin, QDialog):
     """Settings dialog."""
 
     def __init__(self, parent=None):
@@ -43,7 +43,7 @@ class SettingsDialog(CenterMixin, QDialog):
 
         manday_time_label = QLabel('Default man day time', self)
         self.manday_time = QTimeEdit(
-            SettingWrapper.default_manday_time(), self)
+            SettingModel.default_manday_time(), self)
         self.manday_time.timeChanged.connect(
             self.__manday_time_changed__)
 
@@ -83,7 +83,7 @@ class SettingsDialog(CenterMixin, QDialog):
     @pyqtSlot()
     def __manday_time_changed__(self):
         """Update the man day time setting."""
-        SettingWrapper.set_default_manday_time(self.manday_time.time())
+        SettingModel.set_default_manday_time(self.manday_time.time())
 
     @pyqtSlot()
     def __open_invalid_color_dialog__(self):
@@ -92,7 +92,7 @@ class SettingsDialog(CenterMixin, QDialog):
                                       'Select invalid color',
                                       QColorDialog.DontUseNativeDialog)
         if color.isValid():
-            SettingWrapper.set_invalid_color(color)
+            SettingModel.set_invalid_color(color)
 
         self.__update_colors__()
         self.__update_buttons_colors__()
@@ -104,7 +104,7 @@ class SettingsDialog(CenterMixin, QDialog):
                                       'Select invalid color',
                                       QColorDialog.DontUseNativeDialog)
         if color.isValid():
-            SettingWrapper.set_valid_color(color)
+            SettingModel.set_valid_color(color)
 
         self.__update_colors__()
         self.__update_buttons_colors__()
@@ -116,16 +116,16 @@ class SettingsDialog(CenterMixin, QDialog):
                                       'Select current cell color',
                                       QColorDialog.DontUseNativeDialog)
         if color.isValid():
-            SettingWrapper.set_current_cell_color(color)
+            SettingModel.set_current_cell_color(color)
 
         self.__update_colors__()
         self.__update_buttons_colors__()
 
     def __update_colors__(self):
         """Update the local colors values."""
-        self.invalid_color = SettingWrapper.invalid_color()
-        self.valid_color = SettingWrapper.valid_color()
-        self.current_cell_color = SettingWrapper.current_cell_color()
+        self.invalid_color = SettingModel.invalid_color()
+        self.valid_color = SettingModel.valid_color()
+        self.current_cell_color = SettingModel.current_cell_color()
 
     def __update_buttons_colors__(self):
         """Update the buttons colors."""

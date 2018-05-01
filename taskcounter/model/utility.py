@@ -15,21 +15,18 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Task counter utility functions."""
+"""Task counter model utility functions."""
 
-from .model import DB
-from .day import Day
-from .setting import Setting
-from .task import Task
-from .week import Week
+from datetime import date, timedelta
+
+from taskcounter.db import Day, Task
 
 
-def create_database():
-    """Create the database."""
-    DB.connect()
-    DB.create_tables([Week, Day, Task, Setting], safe=True)
-
-
-def close_database():
-    """Close the database."""
-    DB.close()
+def get_last_unique_task_names():
+    """Return the last unique task names since last three months."""
+    last_3_months = date.today() + timedelta(days=-90)
+    return (tuple(x.name for x in Task.select(Task.name)
+                  .join(Day)
+                  .distinct()
+                  .where(Day.date > last_3_months)
+                  .order_by(Task.name)))

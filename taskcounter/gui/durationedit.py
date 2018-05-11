@@ -14,7 +14,7 @@ class DurationEdit(QAbstractSpinBox):
         super().__init__(parent)
         self._hour_length = hour_length
         regexp = QRegExp(
-            '^[0-9]{1,' + str(self._hour_length) + '}:[0-5]{,1}[0-9]$')
+            '^[0-9]{1,' + str(self._hour_length) + '}:[0-5]{,1}[0-9]?$')
         self._validator = QRegExpValidator(regexp)
         self._minutes = 0
         self.lineEdit().textChanged.connect(self.text_changed)
@@ -155,11 +155,15 @@ class DurationEdit(QAbstractSpinBox):
             try:
                 index = text.index(':')
             except ValueError:
+                # no : in string, on tab or backtab, go to next field, but
+                # format this one before
                 if key in (Qt.Key_Tab, Qt.Key_Backtab):
                     self.lineEdit().setText(self.minutesToText(self._minutes))
+                    return super().event(event)
             else:
                 cursor_position = self.__cursor_position__()
                 if key == Qt.Key_Colon:
+                    # go to minutes on : type if cursor is on hours
                     if cursor_position <= index:
                         self.lineEdit().setSelection(index + 1, len(text))
                         return True
@@ -167,20 +171,39 @@ class DurationEdit(QAbstractSpinBox):
                         return False
                 if key == Qt.Key_Tab:
                     if cursor_position <= index:
+                        # go to minutes on tab
                         self.lineEdit().setSelection(index + 1, len(text))
                         return True
                     else:
-                        self.lineEdit().setText(self.minutesToText(
-                            self._minutes))
+                        # go to next field on tab, but update minutes before
+                        self.minutes = self.textToMinutes(self.__text__())
                         return super().event(event)
                 elif key == Qt.Key_Backtab:
                     if cursor_position > index:
+                        # go to hours on backtab
                         self.lineEdit().setSelection(0, index)
                         return True
                     else:
-                        self.lineEdit().setText(self.minutesToText(
-                            self._minutes))
+                        # go to previous field on backtab, but update minutes
+                        # before
+                        self.minutes = self.textToMinutes(self.__text__())
                         return super().event(event)
+
+        if event.type() == QEvent.KeyRelease:
+            # on [0-9] key release, if hours are filled, go to minutes
+            if event.key() in (Qt.Key_0, Qt.Key_1, Qt.Key_3, Qt.Key_2,
+                               Qt.Key_4, Qt.Key_5, Qt.Key_6, Qt.Key_7,
+                               Qt.Key_8, Qt.Key_9):
+                text = self.__text__()
+                try:
+                    index = text.index(':')
+                except ValueError:
+                    pass
+                else:
+                    cursor_position = self.__cursor_position__()
+                    if index == cursor_position == self._hour_length:
+                        self.lineEdit().setSelection(index + 1, len(text))
+                        return True
 
         return super().event(event)
 

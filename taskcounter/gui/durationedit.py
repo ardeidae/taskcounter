@@ -46,8 +46,8 @@ class DurationEdit(QAbstractSpinBox):
         hours = minutes = 0
         try:
             array = text.split(':')
-            hours = array[0]
-            minutes = array[1]
+            hours = int(array[0])
+            minutes = int(array[1])
         except (IndexError, ValueError):
             pass
 
@@ -119,8 +119,15 @@ class DurationEdit(QAbstractSpinBox):
                     return (QAbstractSpinBox.StepUpEnabled |
                             QAbstractSpinBox.StepDownEnabled)
         else:
-            hours = int(text[:index])
-            minutes = int(text[index + 1:])
+            try:
+                hours = int(text[:index])
+            except ValueError:
+                hours = 0
+            try:
+                minutes = int(text[index + 1:])
+            except ValueError:
+                minutes = 0
+
             if 0 <= cursor_position <= index:
                 if hours <= 0:
                     return QAbstractSpinBox.StepUpEnabled

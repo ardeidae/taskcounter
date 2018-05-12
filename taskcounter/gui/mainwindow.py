@@ -25,7 +25,7 @@ from PyQt5.QtGui import QBrush, QClipboard, QColor, QIcon, QPalette
 from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QFrame,
                              QGridLayout, QHeaderView, QLabel, QLCDNumber,
                              QMainWindow, QSpinBox, QTableView, QTimeEdit,
-                             QToolBar, QWidget, qApp)
+                             QToolBar, QHBoxLayout, QWidget, qApp)
 
 from taskcounter import resources
 from taskcounter.db import close_database
@@ -147,32 +147,61 @@ class MainWindow(QMainWindow):
         main_layout.setContentsMargins(0, 0, 0, 0)
 
         header_layout = FlowLayout()
+
         self.year_edit = QSpinBox(self)
-        self.year_edit.setPrefix('Year: ')
         self.year_edit.setMinimum(2010)
         self.year_edit.setMaximum(2050)
         self.year_edit.setValue(datetime.datetime.now().year)
 
+        year_widget = QWidget(self)
+        year_layout = QHBoxLayout()
+        year_widget.setLayout(year_layout)
+        year_label = QLabel('Year', self)
+        year_layout.addWidget(year_label)
+        year_layout.addWidget(self.year_edit)
+
         self.week_edit = QSpinBox(self)
-        self.week_edit.setPrefix('Week: ')
         self.week_edit.setMinimum(1)
         self.__update_week_edit__(self.year_edit.value())
         self.week_edit.setValue(datetime.date.today().isocalendar()[1])
+
+        week_widget = QWidget(self)
+        week_layout = QHBoxLayout()
+        week_widget.setLayout(week_layout)
+        week_label = QLabel('Week', self)
+        week_layout.addWidget(week_label)
+        week_layout.addWidget(self.week_edit)
 
         self.week_edit.valueChanged.connect(self.__week_changed__)
         self.year_edit.valueChanged.connect(self.__year_changed__)
 
         self.week_time_edit = DurationEdit(parent=self, hour_length=2)
+
+        week_time_widget = QWidget(self)
+        week_time_layout = QHBoxLayout()
+        week_time_widget.setLayout(week_time_layout)
+        week_time_label = QLabel('Week time', self)
+        week_time_layout.addWidget(week_time_label)
+        week_time_layout.addWidget(self.week_time_edit)
+
         self.week_time_edit.valueChanged.connect(self.__week_time_changed__)
 
         self.man_day_edit = QTimeEdit(SettingModel.default_man_day_time(),
                                       self)
+
+        man_day_widget = QWidget(self)
+        man_day_layout = QHBoxLayout()
+        man_day_widget.setLayout(man_day_layout)
+        man_day_label = QLabel('Man day time', self)
+        man_day_layout.addWidget(man_day_label)
+        man_day_layout.addWidget(self.man_day_edit)
+
         self.man_day_edit.timeChanged.connect(self.__update_week_summary__)
 
-        header_layout.addWidget(self.year_edit)
-        header_layout.addWidget(self.week_edit)
-        header_layout.addWidget(self.week_time_edit)
-        header_layout.addWidget(self.man_day_edit)
+        header_layout.addWidget(year_widget)
+        header_layout.addWidget(week_widget)
+        header_layout.addWidget(week_time_widget)
+        header_layout.addWidget(man_day_widget)
 
         main_layout.addLayout(header_layout, 0, 0, 1, 2)
 

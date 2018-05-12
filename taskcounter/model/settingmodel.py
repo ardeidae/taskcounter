@@ -29,6 +29,7 @@ from taskcounter.db import IntegrityError, Setting
 class SettingModel:
     """Wrapper for the setting model."""
 
+    WEEK_TIME_PROPERTY = 'default_week_time'
     MAN_DAY_TIME_PROPERTY = 'default_man_day_time'
     INVALID_COLOR_PROPERTY = 'invalid_color'
     VALID_COLOR_PROPERTY = 'valid_color'
@@ -60,6 +61,17 @@ class SettingModel:
                 print('>>> Error when reading setting {}'.format(name))
 
         return value
+
+    @classmethod
+    def default_week_time(cls):
+        """Get the default week time."""
+        return cls.get_value(cls.WEEK_TIME_PROPERTY) or (35 * 60)
+
+    @classmethod
+    def set_default_week_time(cls, default_week_time):
+        """Set the default week time."""
+        cls.insert_or_update(cls.WEEK_TIME_PROPERTY,
+                             default_week_time)
 
     @classmethod
     def default_man_day_time(cls):

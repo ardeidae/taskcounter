@@ -20,7 +20,7 @@
 
 from taskcounter.db import SQL, Day, Task, Week, fn
 from taskcounter.enum import ResultColumn, WeekDay
-from taskcounter.model import DayModel
+from taskcounter.model import DayModel, SettingModel
 from taskcounter.utility import seven_days_of_week, weekday_from_date
 
 
@@ -30,8 +30,8 @@ class WeekModel:
     def __init__(self, year, week_number, parent=None):
         """Construct a week wrapper object."""
         self.parent = parent
-        # get the last work time entered, to use it a default value
-        last_time = self.__last_work_time_entered__()
+        # get the default work time, to use it as this week value
+        last_time = SettingModel.default_week_time()
         self._week = Week.get_or_create(year=year,
                                         week_number=week_number,
                                         defaults={'minutes_to_work':
@@ -84,13 +84,6 @@ class WeekModel:
                           )
                    .scalar())
         return minutes or 0
-
-    def __last_work_time_entered__(self):
-        """Get the last work time entered, the newest."""
-        return (Week.select(Week.minutes_to_work)
-                    .where(Week.minutes_to_work.is_null(False))
-                    .order_by(-Week.year, -Week.week_number)
-                    .scalar()) or 0
 
     @property
     def total_time_to_work(self):

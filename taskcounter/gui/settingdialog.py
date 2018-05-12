@@ -21,7 +21,7 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import (QColorDialog, QDialog, QGridLayout, QLabel,
                              QPushButton, QTimeEdit)
 
-from taskcounter.gui import CenterMixin
+from taskcounter.gui import CenterMixin, DurationEdit
 from taskcounter.model import SettingModel
 from taskcounter.utility import contrast_color
 
@@ -40,6 +40,11 @@ class SettingDialog(CenterMixin, QDialog):
         self.current_cell_color = None
 
         self.__update_colors__()
+
+        week_time_label = QLabel('Default week time', self)
+        self.week_time = DurationEdit(parent=self, hour_length=2)
+        self.week_time.minutes = SettingModel.default_week_time()
+        self.week_time.valueChanged.connect(self.__week_time_changed__)
 
         man_day_time_label = QLabel('Default man day time', self)
         self.man_day_time = QTimeEdit(
@@ -66,19 +71,27 @@ class SettingDialog(CenterMixin, QDialog):
 
         main_layout = QGridLayout()
 
-        main_layout.addWidget(man_day_time_label, 0, 0)
-        main_layout.addWidget(self.man_day_time, 0, 1)
+        main_layout.addWidget(week_time_label, 0, 0)
+        main_layout.addWidget(self.week_time, 0, 1)
 
-        main_layout.addWidget(invalid_color_label, 1, 0)
-        main_layout.addWidget(self.invalid_color_button, 1, 1)
+        main_layout.addWidget(man_day_time_label, 1, 0)
+        main_layout.addWidget(self.man_day_time, 1, 1)
 
-        main_layout.addWidget(valid_color_label, 2, 0)
-        main_layout.addWidget(self.valid_color_button, 2, 1)
+        main_layout.addWidget(invalid_color_label, 2, 0)
+        main_layout.addWidget(self.invalid_color_button, 2, 1)
 
-        main_layout.addWidget(current_cell_color_label, 3, 0)
-        main_layout.addWidget(self.current_cell_color_button, 3, 1)
+        main_layout.addWidget(valid_color_label, 3, 0)
+        main_layout.addWidget(self.valid_color_button, 3, 1)
+
+        main_layout.addWidget(current_cell_color_label, 4, 0)
+        main_layout.addWidget(self.current_cell_color_button, 4, 1)
 
         self.setLayout(main_layout)
+
+    @pyqtSlot()
+    def __week_time_changed__(self):
+        """Update the week time setting."""
+        SettingModel.set_default_week_time(self.week_time.minutes)
 
     @pyqtSlot()
     def __man_day_time_changed__(self):

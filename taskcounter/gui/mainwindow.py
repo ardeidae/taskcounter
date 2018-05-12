@@ -25,7 +25,7 @@ from PyQt5.QtGui import QBrush, QClipboard, QColor, QIcon, QPalette
 from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QFrame,
                              QGridLayout, QHeaderView, QLabel, QLCDNumber,
                              QMainWindow, QSpinBox, QTableView, QTimeEdit,
-                             QToolBar, QWidget, qApp)
+                             QToolBar, QHBoxLayout, QWidget, qApp)
 
 from taskcounter import resources
 from taskcounter.db import close_database
@@ -35,7 +35,8 @@ from taskcounter.utility import (color_between, contrast_color,
                                  minutes_to_time_str, weekday_from_date,
                                  weeks_for_year)
 
-from taskcounter.gui import AboutDialog, SettingDialog, TaskNameDelegate
+from taskcounter.gui import (AboutDialog, DurationEdit, FlowLayout,
+                             SettingDialog, TaskNameDelegate)
 
 
 class MainWindow(QMainWindow):
@@ -52,8 +53,7 @@ class MainWindow(QMainWindow):
         self.week_edit = None
         self.week_wrapper = None
         self.year_edit = None
-        self.hours_edit = None
-        self.minutes_edit = None
+        self.week_time_edit = None
         self.man_day_edit = None
         self.current_day_label = None
         self.week_time_lcd = None
@@ -138,21 +138,81 @@ class MainWindow(QMainWindow):
 
         main_layout = QGridLayout()
         main_layout.setRowStretch(0, 1)
-        main_layout.setRowStretch(1, 20)
-        main_layout.setRowStretch(2, 1)
+        main_layout.setRowStretch(1, 1)
+        main_layout.setRowStretch(2, 20)
+        main_layout.setRowStretch(3, 1)
         main_layout.setColumnStretch(0, 1)
         main_layout.setColumnStretch(1, 1)
         main_layout.setSpacing(0)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
+        header_layout = FlowLayout()
+
+        self.year_edit = QSpinBox(self)
+        self.year_edit.setMinimum(2010)
+        self.year_edit.setMaximum(2050)
+        self.year_edit.setValue(datetime.datetime.now().year)
+
+        year_widget = QWidget(self)
+        year_layout = QHBoxLayout()
+        year_widget.setLayout(year_layout)
+        year_label = QLabel('Year', self)
+        year_layout.addWidget(year_label)
+        year_layout.addWidget(self.year_edit)
+
+        self.week_edit = QSpinBox(self)
+        self.week_edit.setMinimum(1)
+        self.__update_week_edit__(self.year_edit.value())
+        self.week_edit.setValue(datetime.date.today().isocalendar()[1])
+
+        week_widget = QWidget(self)
+        week_layout = QHBoxLayout()
+        week_widget.setLayout(week_layout)
+        week_label = QLabel('Week', self)
+        week_layout.addWidget(week_label)
+        week_layout.addWidget(self.week_edit)
+
+        self.week_edit.valueChanged.connect(self.__week_changed__)
+        self.year_edit.valueChanged.connect(self.__year_changed__)
+
+        self.week_time_edit = DurationEdit(parent=self, hour_length=2)
+
+        week_time_widget = QWidget(self)
+        week_time_layout = QHBoxLayout()
+        week_time_widget.setLayout(week_time_layout)
+        week_time_label = QLabel('Week time', self)
+        week_time_layout.addWidget(week_time_label)
+        week_time_layout.addWidget(self.week_time_edit)
+
+        self.week_time_edit.valueChanged.connect(self.__week_time_changed__)
+
+        self.man_day_edit = QTimeEdit(SettingModel.default_man_day_time(),
+                                      self)
+
+        man_day_widget = QWidget(self)
+        man_day_layout = QHBoxLayout()
+        man_day_widget.setLayout(man_day_layout)
+        man_day_label = QLabel('Man day time', self)
+        man_day_layout.addWidget(man_day_label)
+        man_day_layout.addWidget(self.man_day_edit)
+
+        self.man_day_edit.timeChanged.connect(self.__update_week_summary__)
+
+        header_layout.addWidget(year_widget)
+        header_layout.addWidget(week_widget)
+        header_layout.addWidget(week_time_widget)
+        header_layout.addWidget(man_day_widget)
+
+        main_layout.addLayout(header_layout, 0, 0, 1, 2)
+
         self.current_day_label = self.__build_title_label__('')
         summary_label = self.__build_title_label__('Week summary')
 
-        main_layout.addWidget(self.current_day_label, 0, 0)
-        main_layout.addWidget(summary_label, 0, 1)
+        main_layout.addWidget(self.current_day_label, 1, 0)
+        main_layout.addWidget(summary_label, 1, 1)
 
-        main_layout.addWidget(self.task_view, 1, 0)
-        main_layout.addWidget(self.result_view, 1, 1)
+        main_layout.addWidget(self.task_view, 2, 0)
+        main_layout.addWidget(self.result_view, 2, 1)
 
         week_label = QLabel('Week time', self)
         self.week_time_lcd = self.__build_lcd_number_widget__()
@@ -175,7 +235,7 @@ class MainWindow(QMainWindow):
         footer_layout.addWidget(self.week_time_lcd, 1, 1)
         footer_layout.addWidget(self.catch_up_lcd, 1, 2)
 
-        main_layout.addLayout(footer_layout, 2, 0, 1, 2)
+        main_layout.addLayout(footer_layout, 3, 0, 1, 2)
 
         main_widget.setLayout(main_layout)
 
@@ -290,47 +350,10 @@ class MainWindow(QMainWindow):
         export_act.setStatusTip('Export week summary as html table')
         export_act.triggered.connect(self.__export__)
 
-        self.year_edit = QSpinBox(self)
-        self.year_edit.setPrefix('Year: ')
-        self.year_edit.setMinimum(2010)
-        self.year_edit.setMaximum(2050)
-        self.year_edit.setValue(datetime.datetime.now().year)
-
-        self.week_edit = QSpinBox(self)
-        self.week_edit.setPrefix('Week: ')
-        self.week_edit.setMinimum(1)
-        self.__update_week_edit__(self.year_edit.value())
-        self.week_edit.setValue(datetime.date.today().isocalendar()[1])
-
-        self.week_edit.valueChanged.connect(self.__week_changed__)
-        self.year_edit.valueChanged.connect(self.__year_changed__)
-
-        self.hours_edit = QSpinBox(self)
-        self.hours_edit.setSuffix('h')
-        self.hours_edit.setMinimum(0)
-        self.hours_edit.setMaximum(84)
-
-        self.minutes_edit = QSpinBox(self)
-        self.minutes_edit.setSuffix('m')
-        self.minutes_edit.setMinimum(0)
-        self.minutes_edit.setMaximum(59)
-
-        self.hours_edit.valueChanged.connect(self.__hours_changed__)
-        self.minutes_edit.valueChanged.connect(self.__minutes_changed__)
-
-        self.man_day_edit = QTimeEdit(SettingModel.default_man_day_time(),
-                                      self)
-        self.man_day_edit.timeChanged.connect(self.__update_week_summary__)
-
         toolbar_weeks.addAction(today_act)
-        toolbar_weeks.addWidget(self.year_edit)
-        toolbar_weeks.addWidget(self.week_edit)
         toolbar_weeks.addAction(previous_act)
         toolbar_weeks.addAction(next_act)
-        toolbar_weeks.addWidget(self.hours_edit)
-        toolbar_weeks.addWidget(self.minutes_edit)
         toolbar_weeks.addAction(export_act)
-        toolbar_weeks.addWidget(self.man_day_edit)
 
         toolbar_application.addAction(exit_act)
         toolbar_application.addAction(settings_act)
@@ -360,15 +383,9 @@ class MainWindow(QMainWindow):
         self.week_wrapper = WeekModel(
             self.year_edit.value(), self.week_edit.value(), self)
 
-        minutes_time = self.week_wrapper.minutes_to_work
-        (hours, minutes) = divmod(minutes_time, 60)
-
-        self.hours_edit.blockSignals(True)
-        self.minutes_edit.blockSignals(True)
-        self.hours_edit.setValue(hours)
-        self.minutes_edit.setValue(minutes)
-        self.hours_edit.blockSignals(False)
-        self.minutes_edit.blockSignals(False)
+        self.week_time_edit.blockSignals(True)
+        self.week_time_edit.minutes = self.week_wrapper.minutes_to_work
+        self.week_time_edit.blockSignals(False)
 
         if (self.year_edit.value() == datetime.datetime.now().year
                 and self.week_edit.value() ==
@@ -522,20 +539,13 @@ class MainWindow(QMainWindow):
         return lcdnumber
 
     @pyqtSlot()
-    def __hours_changed__(self):
-        """Change the work hours of the week, event."""
-        self.__update_week_time__()
-
-    @pyqtSlot()
-    def __minutes_changed__(self):
-        """Change the work minutes of the week, event."""
+    def __week_time_changed__(self):
+        """Change the work time of the week, event."""
         self.__update_week_time__()
 
     def __update_week_time__(self):
         """Update the work time of the week."""
-        hours = self.hours_edit.value()
-        minutes = self.minutes_edit.value()
-        minutes_time = 60 * hours + minutes
+        minutes_time = self.week_time_edit.minutes
         if self.week_wrapper:
             self.week_wrapper.minutes_to_work = minutes_time
         self.__update_week_counter_color__()

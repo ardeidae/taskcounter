@@ -15,10 +15,19 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Simple launcher for task counter."""
+"""Task counter week day enum type."""
 
-import sys
-import taskcounter.taskcounter
+from enum import Enum, unique
 
-if __name__ == '__main__':
-    sys.exit(taskcounter.taskcounter.main())
+
+@unique
+class WeekDay(Enum):
+    """Week day name Enum."""
+
+    Monday = 0
+    Tuesday = 1
+    Wednesday = 2
+    Thursday = 3
+    Friday = 4
+    Saturday = 5
+    Sunday = 6

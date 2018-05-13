@@ -15,10 +15,29 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Simple launcher for task counter."""
+"""Task counter week database model."""
 
-import sys
-import taskcounter.taskcounter
+from peewee import IntegerField
 
-if __name__ == '__main__':
-    sys.exit(taskcounter.taskcounter.main())
+from .model import BaseModel
+
+
+class Week(BaseModel):
+    """Week model."""
+
+    year = IntegerField()
+    week_number = IntegerField()
+    minutes_to_work = IntegerField(default=0)
+
+    class Meta:
+        """Meta class."""
+
+        indexes = (
+            (('year', 'week_number'), True),
+        )
+        order_by = ('year', 'week_number')
+
+    def __str__(self):
+        """Get string representation."""
+        return 'Week: {}/{}:{}h'.format(self.year, self.week_number,
+                                        self.minutes_to_work)

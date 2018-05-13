@@ -3,3 +3,7 @@ __pycache__/
 .vscode/
 build/
 dist/
+*.pyc
+.idea/
+*.dmg
+*.zip

@@ -15,10 +15,15 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Simple launcher for task counter."""
+"""Task counter result column enum type."""
 
-import sys
-import taskcounter.taskcounter
+from enum import Enum, unique
 
-if __name__ == '__main__':
-    sys.exit(taskcounter.taskcounter.main())
+
+@unique
+class ResultColumn(Enum):
+    """Result column Enum."""
+
+    Task = 0
+    Time = 1
+    Man_Day = 2

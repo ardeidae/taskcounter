@@ -15,10 +15,21 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Simple launcher for task counter."""
+"""Task counter utility functions."""
 
-import sys
-import taskcounter.taskcounter
+from .model import DB
+from .day import Day
+from .setting import Setting
+from .task import Task
+from .week import Week
 
-if __name__ == '__main__':
-    sys.exit(taskcounter.taskcounter.main())
+
+def create_database():
+    """Create the database."""
+    DB.connect()
+    DB.create_tables([Week, Day, Task, Setting], safe=True)
+
+
+def close_database():
+    """Close the database."""
+    DB.close()

@@ -32,7 +32,7 @@ class FlowLayout(QLayout):
         self.h_spacing = h_spacing
         self.v_spacing = v_spacing
 
-        self.itemList = []
+        self.items = []
 
     def __del__(self):
         """Destroy this instance."""
@@ -42,7 +42,7 @@ class FlowLayout(QLayout):
 
     def addItem(self, item):
         """Add an item."""
-        self.itemList.append(item)
+        self.items.append(item)
 
     def horizontalSpacing(self):
         """Get the horizontal spacing between widgets."""
@@ -60,19 +60,19 @@ class FlowLayout(QLayout):
 
     def count(self):
         """Return the number of items in the layout."""
-        return len(self.itemList)
+        return len(self.items)
 
     def itemAt(self, index):
         """Return the layout item at index."""
-        if 0 <= index < len(self.itemList):
-            return self.itemList[index]
+        if 0 <= index < len(self.items):
+            return self.items[index]
 
         return None
 
     def takeAt(self, index):
         """Remove the layout item at index from the layout, and return it."""
-        if 0 <= index < len(self.itemList):
-            return self.itemList.pop(index)
+        if 0 <= index < len(self.items):
+            return self.items.pop(index)
 
         return None
 
@@ -102,7 +102,7 @@ class FlowLayout(QLayout):
         """Return the minimum size of this item."""
         size = QSize()
 
-        for item in self.itemList:
+        for item in self.items:
             size = size.expandedTo(item.minimumSize())
 
         left, top, right, bottom = self.getContentsMargins()
@@ -118,7 +118,7 @@ class FlowLayout(QLayout):
         y = effectiveRect.y()
         lineHeight = 0
 
-        for item in self.itemList:
+        for item in self.items:
             wid = item.widget()
             spaceX = self.horizontalSpacing()
             if spaceX == -1:

@@ -6,13 +6,13 @@ import sys
 block_cipher = None
 
 if os.name == 'nt':
-	icon = 'tasks.ico'
+    icon = 'images/tasks.ico'
 elif sys.platform == 'darwin':
-	icon = 'tasks.icns'
+    icon = 'images/tasks.icns'
 else:
-	icon = None
+    icon = None
 
-a = Analysis(['main.py'],
+a = Analysis(['../main.py'],
              pathex=['.'],
              binaries=[],
              datas=[],
@@ -24,7 +24,7 @@ a = Analysis(['main.py'],
              win_private_assemblies=False,
              cipher=block_cipher)
 pyz = PYZ(a.pure, a.zipped_data,
-             cipher=block_cipher)
+          cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
           a.binaries,
@@ -35,11 +35,11 @@ exe = EXE(pyz,
           strip=False,
           upx=False,
           runtime_tmpdir=None,
-          console=False , icon=icon)
+          console=False, icon=icon)
 app = BUNDLE(exe,
              name='Task counter.app',
              icon=icon,
              bundle_identifier='com.ardeidae.taskcounter',
              info_plist={
-             'NSHighResolutionCapable': 'True'
+                 'NSHighResolutionCapable': 'True'
              },)

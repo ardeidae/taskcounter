@@ -5,3 +5,5 @@ build/
 dist/
 *.pyc
 .idea/
+*.dmg
+*.zip

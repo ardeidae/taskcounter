@@ -24,13 +24,13 @@ from PyQt5.QtWidgets import QLayout, QSizePolicy, QStyle
 class FlowLayout(QLayout):
     """Flow Layout implements a layout that handles different window sizes."""
 
-    def __init__(self, parent=None, margin=-1, hSpacing=-1, vSpacing=-1):
+    def __init__(self, parent=None, margin=-1, h_spacing=-1, v_spacing=-1):
         """Construct a Flow Layout."""
         super().__init__(parent)
 
         self.setContentsMargins(margin, margin, margin, margin)
-        self.m_hSpace = hSpacing
-        self.m_vSpace = vSpacing
+        self.h_spacing = h_spacing
+        self.v_spacing = v_spacing
 
         self.itemList = []
 
@@ -46,17 +46,17 @@ class FlowLayout(QLayout):
 
     def horizontalSpacing(self):
         """Get the horizontal spacing between widgets."""
-        if self.m_hSpace >= 0:
-            return self.m_hSpace
+        if self.h_spacing >= 0:
+            return self.h_spacing
         else:
-            return self.__smartSpacing__(QStyle.PM_LayoutHorizontalSpacing)
+            return self.__smart_spacing__(QStyle.PM_LayoutHorizontalSpacing)
 
     def verticalSpacing(self):
         """Get the vertical spacing between widgets."""
-        if self.m_vSpace >= 0:
-            return self.m_vSpace
+        if self.v_spacing >= 0:
+            return self.v_spacing
         else:
-            return self.__smartSpacing__(QStyle.PM_LayoutVerticalSpacing)
+            return self.__smart_spacing__(QStyle.PM_LayoutVerticalSpacing)
 
     def count(self):
         """Return the number of items in the layout."""
@@ -86,13 +86,13 @@ class FlowLayout(QLayout):
 
     def heightForWidth(self, width):
         """Return preferred height for this layout item, given the width."""
-        height = self.__doLayout__(QRect(0, 0, width, 0), True)
+        height = self.__do_layout__(QRect(0, 0, width, 0), True)
         return height
 
     def setGeometry(self, rect):
         """Define the rectangle covered by this layout item."""
         super().setGeometry(rect)
-        self.__doLayout__(rect, False)
+        self.__do_layout__(rect, False)
 
     def sizeHint(self):
         """Return the preferred size of this item."""
@@ -110,7 +110,7 @@ class FlowLayout(QLayout):
         size += QSize(left + right, top + bottom)
         return size
 
-    def __doLayout__(self, rect, testOnly):
+    def __do_layout__(self, rect, testOnly):
         """Calculate the area available to the layout items."""
         left, top, right, bottom = self.getContentsMargins()
         effectiveRect = rect.adjusted(+left, +top, -right, -bottom)
@@ -147,7 +147,7 @@ class FlowLayout(QLayout):
 
         return y + lineHeight - rect.y() + bottom
 
-    def __smartSpacing__(self, pm):
+    def __smart_spacing__(self, pm):
         """Get default spacing for either top-level or sub layouts."""
         parent = self.parent()
         if not parent:

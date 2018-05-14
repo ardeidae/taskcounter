@@ -43,6 +43,8 @@ python3 tests.py
 * [PyQt5](https://www.riverbankcomputing.com/software/pyqt/intro) - PyQt is a set of Python bindings for [Qt application framework](https://www.qt.io/).
 * [peewee](http://peewee.readthedocs.io/en/latest/) - Peewee is a simple and small ORM.
 * [SQLite](https://www.sqlite.org/) - SQLite is a SQL database engine.
+* [PyInstaller](http://www.pyinstaller.org/) - PyInstaller is a program that freezes (packages) Python programs into stand-alone executables.
+* [dmgbuild](http://dmgbuild.readthedocs.io/) - A command line tool to build .dmg files.
 
 ## Versioning
 

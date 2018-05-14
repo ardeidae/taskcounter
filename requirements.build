@@ -6,4 +6,4 @@ future==0.16.0
 mac-alias==2.0.7
 macholib==1.9
 pefile==2017.11.5
--e git://github.com/pyinstaller/pyinstaller.git@1033a8770ab96cc8fa0f2d3047b2db3db9dcda43#egg=PyInstaller
+-e git+https://github.com/pyinstaller/pyinstaller.git@1033a8770ab96cc8fa0f2d3047b2db3db9dcda43#egg=PyInstaller

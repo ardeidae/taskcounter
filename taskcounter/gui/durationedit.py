@@ -44,17 +44,18 @@ class DurationEdit(QAbstractSpinBox):
     def textToMinutes(text):
         """Convert time text to minutes."""
         hours = minutes = 0
+        array = text.split(':')
         try:
-            array = text.split(':')
             hours = int(array[0])
-            minutes = int(array[1])
-        except (IndexError, ValueError):
-            pass
+        except ValueError:
+            hours = 0
+        if len(array) == 2:
+            try:
+                minutes = int(array[1])
+            except ValueError:
+                minutes = 0
 
-        hours = 0 if not hours else hours
-        minutes = 0 if not minutes else minutes
-
-        return int(hours) * 60 + int(minutes)
+        return hours * 60 + minutes
 
     @property
     def minutes(self):
@@ -105,19 +106,20 @@ class DurationEdit(QAbstractSpinBox):
         try:
             index = text.index(':')
         except ValueError:
+            # no : in string
             try:
                 hours = int(text)
             except ValueError:
-                pass
+                hours = 0
+
+            # we have only hours in the field
+            if hours <= 0:
+                return QAbstractSpinBox.StepUpEnabled
+            elif hours >= self.__max_hours__():
+                return QAbstractSpinBox.StepDownEnabled
             else:
-                # we have only hours in the field
-                if hours <= 0:
-                    return QAbstractSpinBox.StepUpEnabled
-                elif hours >= self.__max_hours__():
-                    return QAbstractSpinBox.StepDownEnabled
-                else:
-                    return (QAbstractSpinBox.StepUpEnabled |
-                            QAbstractSpinBox.StepDownEnabled)
+                return (QAbstractSpinBox.StepUpEnabled |
+                        QAbstractSpinBox.StepDownEnabled)
         else:
             try:
                 hours = int(text[:index])

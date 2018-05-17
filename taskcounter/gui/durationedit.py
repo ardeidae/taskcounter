@@ -152,15 +152,19 @@ class DurationEdit(QAbstractSpinBox):
     def event(self, event):
         """Handle event and check for Tab and Shift+Tab."""
         if event.type() == QEvent.KeyPress:
-            text = self.__text__()
             key = event.key()
+            if key in (Qt.Key_Enter, Qt.Key_Return):
+                self.minutes = self.textToMinutes(self.__text__())
+                return super().event(event)
+
+            text = self.__text__()
             try:
                 index = text.index(':')
             except ValueError:
                 # no : in string, on tab or backtab, go to next field, but
                 # format this one before
                 if key in (Qt.Key_Tab, Qt.Key_Backtab):
-                    self.lineEdit().setText(self.minutesToText(self._minutes))
+                    self.minutes = self.textToMinutes(self.__text__())
                     return super().event(event)
             else:
                 cursor_position = self.__cursor_position__()
@@ -213,7 +217,7 @@ class DurationEdit(QAbstractSpinBox):
         """Receive keyboard focus events (focus lost) for the widget."""
         super().focusOutEvent(event)
 
-        self.lineEdit().setText(self.minutesToText(self._minutes))
+        self.minutes = self.textToMinutes(self.__text__())
 
     def focusInEvent(self, event):
         """Receive keyboard focus events (focus received) for the widget."""

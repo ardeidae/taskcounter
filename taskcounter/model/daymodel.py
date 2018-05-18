@@ -81,7 +81,11 @@ class DayModel(QAbstractTableModel):
 
     def get_cached_data(self, row, column):
         """Get the cached data for a given row and column."""
-        return self._cached_data[row][column]
+        try:
+            return self._cached_data[row][column]
+        except KeyError:
+            return ''
+
 
     def data(self, index, role=None):
         """Return the data.

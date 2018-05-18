@@ -600,6 +600,15 @@ class MainWindow(QMainWindow):
         table_text += '<table cellpadding="0" cellspacing="0" border="0" '
         table_text += 'style="width:100%;">'
 
+        table_text += '<tr>'
+        table_text += ('<th style="border:2px solid black;'
+                       'margin:0;padding:2px;text-align:center;'
+                       'background-color:#ddd;">Task</th>')
+        table_text += ('<th style="border:2px solid black;'
+                       'margin:0;padding:2px;text-align:center;'
+                       'background-color:#ddd;width:20%;">Time</th>')
+        table_text += '</tr>'
+
         rows = model.rowCount()
         columns_to_export = (ResultColumn.Task.value, ResultColumn.Time.value)
 
@@ -608,9 +617,9 @@ class MainWindow(QMainWindow):
             for j in columns_to_export:
                 content = model.data(model.index(i, j), Qt.DisplayRole)
                 if j == 0:
-                    table_text += ('<th style="border:2px solid black;'
-                                   'margin:0;padding:2px;text-align:left;'
-                                   'background-color:#ddd;">{}</th>'
+                    table_text += ('<td style="border:2px solid black;'
+                                   'margin:0;padding:2px;text-align:left;">'
+                                   '{}</td>'
                                    ).format(content)
                 else:
                     table_text += ('<td style="border:2px solid black;'

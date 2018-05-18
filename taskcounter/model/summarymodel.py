@@ -17,6 +17,8 @@
 
 """Task counter summary model."""
 
+import logging
+
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant
 
 from taskcounter.enum import ResultColumn
@@ -29,6 +31,7 @@ class SummaryModel(QAbstractTableModel):
     def __init__(self, parent=None):
         """Construct a result summary object."""
         super().__init__(parent)
+        self.logger = logging.getLogger(__name__)
 
         self._tasks = []
         self._man_day_minutes = 0
@@ -44,6 +47,7 @@ class SummaryModel(QAbstractTableModel):
     @property
     def tasks(self):
         """Get the tasks."""
+        self.logger.debug('Get tasks: %s', self._tasks)
         return self._tasks
 
     @tasks.setter
@@ -51,6 +55,7 @@ class SummaryModel(QAbstractTableModel):
         """Set the tasks."""
         self.layoutAboutToBeChanged.emit()
 
+        self.logger.debug('Set tasks: %s', self._tasks)
         self._tasks = tasks
 
         top_left = self.index(0, 0)
@@ -64,11 +69,15 @@ class SummaryModel(QAbstractTableModel):
     @property
     def man_day_minutes(self):
         """Get the man day minutes."""
+        self.logger.debug('Get the man day minutes: %s',
+                          self._man_day_minutes)
         return self._man_day_minutes
 
     @man_day_minutes.setter
     def man_day_minutes(self, man_day_minutes):
         """Set the man day minutes."""
+        self.logger.debug('Set the man day minutes: %s',
+                          man_day_minutes)
         self._man_day_minutes = man_day_minutes
 
     def data(self, index, role=None):

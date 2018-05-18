@@ -17,6 +17,7 @@
 
 """Task counter main entry point."""
 
+import logging
 import sys
 
 from PyQt5.QtWidgets import QApplication
@@ -27,6 +28,10 @@ from taskcounter.gui import MainWindow
 
 def main():
     """Start the application."""
+    logger = logging.getLogger(__name__)
+
+    logger.info('Starting application')
+
     app = QApplication(sys.argv)
 
     create_database()

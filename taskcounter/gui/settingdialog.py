@@ -17,6 +17,8 @@
 
 """Task counter setting dialog."""
 
+import logging
+
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import (QColorDialog, QDialog, QGridLayout, QLabel,
                              QPushButton, QTimeEdit)
@@ -32,6 +34,8 @@ class SettingDialog(CenterMixin, QDialog):
     def __init__(self, parent=None):
         """Construct a settings dialog."""
         super().__init__(parent)
+        self.logger = logging.getLogger(__name__)
+        self.logger.info('Opening setting dialog')
         self.setWindowTitle('Edit preferences')
         self.center()
 
@@ -44,11 +48,16 @@ class SettingDialog(CenterMixin, QDialog):
         week_time_label = QLabel('Default week time', self)
         self.week_time = DurationEdit(parent=self, hour_length=2)
         self.week_time.minutes = SettingModel.default_week_time()
+        self.logger.info('Read default week time minutes: %s',
+                         SettingModel.default_week_time())
         self.week_time.valueChanged.connect(self.__week_time_changed__)
 
         man_day_time_label = QLabel('Default man day time', self)
         self.man_day_time = QTimeEdit(
             SettingModel.default_man_day_time(), self)
+        self.logger.info('Read default man day time: %s',
+                         SettingModel.default_man_day_time()
+                                     .toString('hh:mm'))
         self.man_day_time.timeChanged.connect(
             self.__man_day_time_changed__)
 
@@ -92,11 +101,15 @@ class SettingDialog(CenterMixin, QDialog):
     def __week_time_changed__(self):
         """Update the week time setting."""
         SettingModel.set_default_week_time(self.week_time.minutes)
+        self.logger.info('Write default week time minutes: %s',
+                         self.week_time.minutes)
 
     @pyqtSlot()
     def __man_day_time_changed__(self):
         """Update the man day time setting."""
         SettingModel.set_default_man_day_time(self.man_day_time.time())
+        self.logger.info('Write default man day time: %s',
+                         self.man_day_time.time().toString('hh:mm'))
 
     @pyqtSlot()
     def __open_invalid_color_dialog__(self):
@@ -106,6 +119,8 @@ class SettingDialog(CenterMixin, QDialog):
                                       QColorDialog.DontUseNativeDialog)
         if color.isValid():
             SettingModel.set_invalid_color(color)
+            self.logger.info('Write invalid color: %s',
+                             color.name())
 
         self.__update_colors__()
         self.__update_buttons_colors__()
@@ -118,6 +133,8 @@ class SettingDialog(CenterMixin, QDialog):
                                       QColorDialog.DontUseNativeDialog)
         if color.isValid():
             SettingModel.set_valid_color(color)
+            self.logger.info('Write valid color: %s',
+                             color.name())
 
         self.__update_colors__()
         self.__update_buttons_colors__()
@@ -130,6 +147,8 @@ class SettingDialog(CenterMixin, QDialog):
                                       QColorDialog.DontUseNativeDialog)
         if color.isValid():
             SettingModel.set_current_cell_color(color)
+            self.logger.info('Write current cell color: %s',
+                             color.name())
 
         self.__update_colors__()
         self.__update_buttons_colors__()
@@ -139,6 +158,12 @@ class SettingDialog(CenterMixin, QDialog):
         self.invalid_color = SettingModel.invalid_color()
         self.valid_color = SettingModel.valid_color()
         self.current_cell_color = SettingModel.current_cell_color()
+        self.logger.info('Read invalid color: %s',
+                         self.invalid_color.name())
+        self.logger.info('Read valid color: %s',
+                         self.valid_color.name())
+        self.logger.info('Read current cell color: %s',
+                         self.current_cell_color.name())
 
     def __update_buttons_colors__(self):
         """Update the buttons colors."""

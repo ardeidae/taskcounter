@@ -17,6 +17,7 @@
 
 """Task counter week model."""
 
+import logging
 
 from taskcounter.db import SQL, Day, Task, Week, fn
 from taskcounter.enum import ResultColumn, WeekDay
@@ -29,23 +30,29 @@ class WeekModel:
 
     def __init__(self, year, week_number, parent=None):
         """Construct a week wrapper object."""
+        self.logger = logging.getLogger(__name__)
         self.parent = parent
         # get the default work time, to use it as this week value
-        last_time = SettingModel.default_week_time()
+        default_time = SettingModel.default_week_time()
+        self.logger.info('Default time for new week: %s', default_time)
         self._week = Week.get_or_create(year=year,
                                         week_number=week_number,
                                         defaults={'minutes_to_work':
-                                                  last_time})[0]
+                                                  default_time})[0]
+        self.logger.debug('Week: %s', self._week)
         self.__create_days__()
 
     @property
     def minutes_to_work(self):
         """Get work time in minutes of this week instance."""
-        return self._week.minutes_to_work
+        minutes = self._week.minutes_to_work
+        self.logger.debug('Get minutes to work: %s', minutes)
+        return minutes
 
     @minutes_to_work.setter
     def minutes_to_work(self, minutes_to_work):
         """Set work time in minutes of this week instance."""
+        self.logger.debug('Set minutes to work: %s', minutes)
         self._week.minutes_to_work = minutes_to_work
         self._week.save()
 
@@ -62,7 +69,9 @@ class WeekModel:
                                (Week.year == self._week.year))
                         .order_by(Day.date)):
                 if week_day is weekday_from_date(day.date):
-                    return DayModel(day.date, day.week, self.parent)
+                    day_model = DayModel(day.date, day.week, self.parent)
+                    self.logger.debug('Get day model: %s', day_model)
+                    return day_model
         return None
 
     def __create_days__(self):
@@ -83,6 +92,7 @@ class WeekModel:
                           & Task.end_time.is_null(False)
                           )
                    .scalar())
+        self.logger.debug('Get minutes of week: %s', minutes)
         return minutes or 0
 
     @property
@@ -96,6 +106,7 @@ class WeekModel:
                                    .where(Task.start_time.is_null(False) &
                                           Task.end_time.is_null(False))))
                    .scalar())
+        self.logger.debug('Get total minutes to work: %s', minutes)
         return minutes or 0
 
     @property
@@ -109,6 +120,7 @@ class WeekModel:
                           & Task.end_time.is_null(False)
                           )
                    .scalar())
+        self.logger.debug('Get total time worked: %s', minutes)
         return minutes or 0
 
     def week_summary(self, man_day_minutes):
@@ -138,4 +150,5 @@ class WeekModel:
                 task[ResultColumn.Man_Day] = ''
             tasks[counter] = task
 
+        self.logger.debug('Week summary: %s', tasks)
         return tasks

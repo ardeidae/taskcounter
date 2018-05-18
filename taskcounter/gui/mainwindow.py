@@ -18,6 +18,7 @@
 """Task counter main window."""
 
 import datetime
+import logging
 
 from PyQt5.QtCore import (QByteArray, QItemSelectionModel, QMimeData, Qt,
                           pyqtSlot)
@@ -45,6 +46,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         """Construct a MainWindow."""
         super().__init__()
+        self.logger = logging.getLogger(__name__)
         self.day_actions = dict()
         self.task_model = None
         self.task_view = None
@@ -241,6 +243,7 @@ class MainWindow(QMainWindow):
 
     def __set_day_title__(self, title):
         """Set the day title on top of the table view."""
+        self.logger.info('Set day title: %s', title)
         self.current_day_label.setText(str(title))
 
     def __change_week_color__(self, color):
@@ -382,6 +385,7 @@ class MainWindow(QMainWindow):
         """Validate the week and the year and update a WeekModel."""
         self.week_wrapper = WeekModel(
             self.year_edit.value(), self.week_edit.value(), self)
+        self.logger.debug('Week wrapper: %s', self.week_wrapper)
 
         self.week_time_edit.blockSignals(True)
         self.week_time_edit.minutes = self.week_wrapper.minutes_to_work

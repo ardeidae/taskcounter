@@ -17,6 +17,7 @@
 
 """Task counter day model."""
 
+import logging
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QTime, QVariant
 from PyQt5.QtGui import QBrush, QColor
@@ -33,6 +34,7 @@ class DayModel(QAbstractTableModel):
     def __init__(self, date_, week, parent=None):
         """Construct a day wrapper object."""
         super().__init__(parent)
+        self.logger = logging.getLogger(__name__)
         self._day = Day.get_or_create(date=date_,
                                       week=week)[0]
         self._cached_data = None
@@ -75,6 +77,7 @@ class DayModel(QAbstractTableModel):
             row[TaskColumn.Start_Time] = task.start_time
             row[TaskColumn.End_Time] = task.end_time
             self._cached_data[counter] = row
+            self.logger.debug('Cached data: %s', self._cached_data)
 
     def get_cached_data(self, row, column):
         """Get the cached data for a given row and column."""
@@ -226,6 +229,7 @@ class DayModel(QAbstractTableModel):
     @staticmethod
     def update_task(id_, field, value):
         """Update task field with a given value for a given id."""
+        logger = logging.getLogger(__name__)
         args = dict()
 
         if field == TaskColumn.Task:
@@ -240,7 +244,7 @@ class DayModel(QAbstractTableModel):
         if args:
             try:
                 query = Task.update(**args).where(Task.id == id_)
-                print('>>> query: ' + str(query.sql()))
+                logger.debug('Executing query: %s', query.sql())
                 return query.execute() > 0
             except IntegrityError:
                 return False
@@ -250,15 +254,16 @@ class DayModel(QAbstractTableModel):
     @staticmethod
     def delete_task(id_):
         """Delete a task with the given id."""
+        logger = logging.getLogger(__name__)
         query = Task.delete().where(Task.id == id_)
-        print('>>> query: ' + str(query.sql()))
+        logger.debug('Executing query: %s', query.sql())
         return query.execute() > 0
 
     def create_task(self, task_name):
         """Create a task for a given task name."""
         try:
             query = Task.insert(name=task_name, day=self._day)
-            print('>>> query: ' + str(query.sql()))
+            self.logger.debug('Executing query: %s', query.sql())
             # pylint: disable=locally-disabled,E1120
             return query.execute() > 0
         except IntegrityError:
@@ -281,6 +286,7 @@ class DayModel(QAbstractTableModel):
                           & Task.end_time.is_null(False)
                           )
                    .scalar())
+        self.logger.debug('Minutes of day: %s', minutes)
         return minutes or 0
 
     def __overlaps_other_range__(self, task_id, field, value):

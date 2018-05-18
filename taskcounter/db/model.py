@@ -18,10 +18,11 @@
 """Task counter base database model."""
 
 from os import path
+from taskcounter import taskcounter_dir
 
 from peewee import Model, SqliteDatabase
 
-DB = SqliteDatabase(path.join(path.expanduser('~'), 'taskcounter.db'))
+DB = SqliteDatabase(path.join(taskcounter_dir, 'taskcounter.db'))
 
 
 class BaseModel(Model):

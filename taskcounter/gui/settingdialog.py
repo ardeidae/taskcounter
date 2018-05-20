@@ -36,7 +36,7 @@ class SettingDialog(CenterMixin, QDialog):
         super().__init__(parent)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Opening setting dialog')
-        self.setWindowTitle('Edit preferences')
+        self.setWindowTitle(self.tr('Edit preferences'))
         self.center()
 
         self.invalid_color = None
@@ -45,14 +45,14 @@ class SettingDialog(CenterMixin, QDialog):
 
         self.__update_colors__()
 
-        week_time_label = QLabel('Default week time', self)
+        week_time_label = QLabel(self.tr('Default week time'), self)
         self.week_time = DurationEdit(parent=self, hour_length=2)
         self.week_time.minutes = SettingModel.default_week_time()
         self.logger.info('Read default week time minutes: %s',
                          SettingModel.default_week_time())
         self.week_time.valueChanged.connect(self.__week_time_changed__)
 
-        man_day_time_label = QLabel('Default man day time', self)
+        man_day_time_label = QLabel(self.tr('Default man day time'), self)
         self.man_day_time = QTimeEdit(
             SettingModel.default_man_day_time(), self)
         self.logger.info('Read default man day time: %s',
@@ -61,18 +61,18 @@ class SettingDialog(CenterMixin, QDialog):
         self.man_day_time.timeChanged.connect(
             self.__man_day_time_changed__)
 
-        invalid_color_label = QLabel('Invalid color', self)
-        self.invalid_color_button = QPushButton('Text', self)
+        invalid_color_label = QLabel(self.tr('Invalid color'), self)
+        self.invalid_color_button = QPushButton(self.tr('Text'), self)
         self.invalid_color_button.clicked.connect(
             self.__open_invalid_color_dialog__)
 
-        valid_color_label = QLabel('Valid color', self)
-        self.valid_color_button = QPushButton('Text', self)
+        valid_color_label = QLabel(self.tr('Valid color'), self)
+        self.valid_color_button = QPushButton(self.tr('Text'), self)
         self.valid_color_button.clicked.connect(
             self.__open_valid_color_dialog__)
 
-        current_cell_color_label = QLabel('Current cell color', self)
-        self.current_cell_color_button = QPushButton('Text', self)
+        current_cell_color_label = QLabel(self.tr('Current cell color'), self)
+        self.current_cell_color_button = QPushButton(self.tr('Text'), self)
         self.current_cell_color_button.clicked.connect(
             self.__open_current_cell_color_dialog__)
 
@@ -115,7 +115,7 @@ class SettingDialog(CenterMixin, QDialog):
     def __open_invalid_color_dialog__(self):
         """Update the invalid color setting."""
         color = QColorDialog.getColor(self.invalid_color, self,
-                                      'Select invalid color',
+                                      self.tr('Select invalid color'),
                                       QColorDialog.DontUseNativeDialog)
         if color.isValid():
             SettingModel.set_invalid_color(color)
@@ -129,7 +129,7 @@ class SettingDialog(CenterMixin, QDialog):
     def __open_valid_color_dialog__(self):
         """Update the valid color setting."""
         color = QColorDialog.getColor(self.valid_color, self,
-                                      'Select invalid color',
+                                      self.tr('Select invalid color'),
                                       QColorDialog.DontUseNativeDialog)
         if color.isValid():
             SettingModel.set_valid_color(color)
@@ -143,7 +143,7 @@ class SettingDialog(CenterMixin, QDialog):
     def __open_current_cell_color_dialog__(self):
         """Update the current cell color setting."""
         color = QColorDialog.getColor(self.current_cell_color, self,
-                                      'Select current cell color',
+                                      self.tr('Select current cell color'),
                                       QColorDialog.DontUseNativeDialog)
         if color.isValid():
             SettingModel.set_current_cell_color(color)

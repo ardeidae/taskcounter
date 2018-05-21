@@ -17,6 +17,8 @@
 
 """Task counter model utility functions."""
 
+import logging
+
 from datetime import date, timedelta
 
 from taskcounter.db import Day, Task
@@ -24,9 +26,14 @@ from taskcounter.db import Day, Task
 
 def get_last_unique_task_names():
     """Return the last unique task names since last three months."""
+    logger = logging.getLogger(__name__)
+
     last_3_months = date.today() + timedelta(days=-90)
-    return (tuple(x.name for x in Task.select(Task.name)
-                  .join(Day)
-                  .distinct()
-                  .where(Day.date > last_3_months)
-                  .order_by(Task.name)))
+    logger.debug('Last unique task names period: %s', last_3_months)
+    tasks = (tuple(x.name for x in Task.select(Task.name)
+                   .join(Day)
+                   .distinct()
+                   .where(Day.date > last_3_months)
+                   .order_by(Task.name)))
+    logger.debug('Last unique task names: %s', tasks)
+    return tasks

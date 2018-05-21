@@ -1,3 +1,22 @@
+#     Copyright (C) 2018  Matthieu PETIOT
+#
+#     https://github.com/ardeidae/taskcounter
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Task counter duration edit."""
+
 from PyQt5.QtCore import QEvent, QRegExp, QSize, Qt, pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QRegExpValidator, QValidator
 from PyQt5.QtWidgets import (QAbstractSpinBox, QApplication, QStyle,
@@ -44,17 +63,18 @@ class DurationEdit(QAbstractSpinBox):
     def textToMinutes(text):
         """Convert time text to minutes."""
         hours = minutes = 0
+        array = text.split(':')
         try:
-            array = text.split(':')
             hours = int(array[0])
-            minutes = int(array[1])
-        except (IndexError, ValueError):
-            pass
+        except ValueError:
+            hours = 0
+        if len(array) == 2:
+            try:
+                minutes = int(array[1])
+            except ValueError:
+                minutes = 0
 
-        hours = 0 if not hours else hours
-        minutes = 0 if not minutes else minutes
-
-        return int(hours) * 60 + int(minutes)
+        return hours * 60 + minutes
 
     @property
     def minutes(self):
@@ -105,19 +125,20 @@ class DurationEdit(QAbstractSpinBox):
         try:
             index = text.index(':')
         except ValueError:
+            # no : in string
             try:
                 hours = int(text)
             except ValueError:
-                pass
+                hours = 0
+
+            # we have only hours in the field
+            if hours <= 0:
+                return QAbstractSpinBox.StepUpEnabled
+            elif hours >= self.__max_hours__():
+                return QAbstractSpinBox.StepDownEnabled
             else:
-                # we have only hours in the field
-                if hours <= 0:
-                    return QAbstractSpinBox.StepUpEnabled
-                elif hours >= self.__max_hours__():
-                    return QAbstractSpinBox.StepDownEnabled
-                else:
-                    return (QAbstractSpinBox.StepUpEnabled |
-                            QAbstractSpinBox.StepDownEnabled)
+                return (QAbstractSpinBox.StepUpEnabled |
+                        QAbstractSpinBox.StepDownEnabled)
         else:
             try:
                 hours = int(text[:index])

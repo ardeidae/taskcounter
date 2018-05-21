@@ -17,6 +17,8 @@
 
 """Task counter utility functions."""
 
+import logging
+
 from .model import DB
 from .day import Day
 from .setting import Setting
@@ -26,10 +28,15 @@ from .week import Week
 
 def create_database():
     """Create the database."""
+    logger = logging.getLogger(__name__)
+    logger.info('Connect to database')
     DB.connect()
+    logger.info('Create tables if necessary')
     DB.create_tables([Week, Day, Task, Setting], safe=True)
 
 
 def close_database():
     """Close the database."""
+    logger = logging.getLogger(__name__)
+    logger.info('Close database')
     DB.close()

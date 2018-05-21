@@ -64,14 +64,10 @@ class TaskNameDelegate(QItemDelegate):
         if editor:
             row = index.row()
             column = index.column()
-            try:
-                editor.setText(index.model()
-                               .get_cached_data(row,
-                                                TaskColumn(column)))
-                editor.selectAll()
-            except KeyError:
-                print('>>> KeyError')
-                pass
+            editor.setText(index.model()
+                           .get_cached_data(row,
+                                            TaskColumn(column)))
+            editor.selectAll()
 
     def setModelData(self, editor, model, index):
         """Get data from the editor widget and store it.

@@ -18,6 +18,7 @@
 """Task counter main window."""
 
 import datetime
+import logging
 
 from PyQt5.QtCore import (QByteArray, QItemSelectionModel, QMimeData, Qt,
                           pyqtSlot)
@@ -45,6 +46,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         """Construct a MainWindow."""
         super().__init__()
+        self.logger = logging.getLogger(__name__)
         self.day_actions = dict()
         self.task_model = None
         self.task_view = None
@@ -156,7 +158,7 @@ class MainWindow(QMainWindow):
         year_widget = QWidget(self)
         year_layout = QHBoxLayout()
         year_widget.setLayout(year_layout)
-        year_label = QLabel('Year', self)
+        year_label = QLabel(self.tr('Year'), self)
         year_layout.addWidget(year_label)
         year_layout.addWidget(self.year_edit)
 
@@ -168,7 +170,7 @@ class MainWindow(QMainWindow):
         week_widget = QWidget(self)
         week_layout = QHBoxLayout()
         week_widget.setLayout(week_layout)
-        week_label = QLabel('Week', self)
+        week_label = QLabel(self.tr('Week'), self)
         week_layout.addWidget(week_label)
         week_layout.addWidget(self.week_edit)
 
@@ -180,7 +182,7 @@ class MainWindow(QMainWindow):
         week_time_widget = QWidget(self)
         week_time_layout = QHBoxLayout()
         week_time_widget.setLayout(week_time_layout)
-        week_time_label = QLabel('Week time', self)
+        week_time_label = QLabel(self.tr('Week time'), self)
         week_time_layout.addWidget(week_time_label)
         week_time_layout.addWidget(self.week_time_edit)
 
@@ -192,7 +194,7 @@ class MainWindow(QMainWindow):
         man_day_widget = QWidget(self)
         man_day_layout = QHBoxLayout()
         man_day_widget.setLayout(man_day_layout)
-        man_day_label = QLabel('Man day time', self)
+        man_day_label = QLabel(self.tr('Man day time'), self)
         man_day_layout.addWidget(man_day_label)
         man_day_layout.addWidget(self.man_day_edit)
 
@@ -206,7 +208,7 @@ class MainWindow(QMainWindow):
         main_layout.addLayout(header_layout, 0, 0, 1, 2)
 
         self.current_day_label = self.__build_title_label__('')
-        summary_label = self.__build_title_label__('Week summary')
+        summary_label = self.__build_title_label__(self.tr('Week summary'))
 
         main_layout.addWidget(self.current_day_label, 1, 0)
         main_layout.addWidget(summary_label, 1, 1)
@@ -214,14 +216,14 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.task_view, 2, 0)
         main_layout.addWidget(self.result_view, 2, 1)
 
-        week_label = QLabel('Week time', self)
+        week_label = QLabel(self.tr('Week time'), self)
         self.week_time_lcd = self.__build_lcd_number_widget__()
 
-        day_label = QLabel('Day time', self)
+        day_label = QLabel(self.tr('Day time'), self)
         self.day_time_lcd = self.__build_lcd_number_widget__()
         self.__change_day_color__(QColor('#0000ff'))
 
-        catch_up_label = QLabel('Catch-up time', self)
+        catch_up_label = QLabel(self.tr('Catch-up time'), self)
         self.catch_up_lcd = self.__build_lcd_number_widget__()
 
         footer_layout = QGridLayout()
@@ -241,6 +243,7 @@ class MainWindow(QMainWindow):
 
     def __set_day_title__(self, title):
         """Set the day title on top of the table view."""
+        self.logger.info('Set day title: %s', title)
         self.current_day_label.setText(str(title))
 
     def __change_week_color__(self, color):
@@ -266,7 +269,7 @@ class MainWindow(QMainWindow):
 
     def init_ui(self):
         """Initialize the user interface."""
-        self.setWindowTitle('Task counter')
+        self.setWindowTitle(self.tr('Task counter'))
         self.setWindowIcon(QIcon(':/tasks.png'))
         self.statusBar()
 
@@ -303,51 +306,70 @@ class MainWindow(QMainWindow):
 
         days_action_group = QActionGroup(self)
         for counter, day in enumerate(WeekDay, start=1):
+
+            if day == WeekDay.Monday:
+                tr_name = self.tr('Monday')
+            elif day == WeekDay.Tuesday:
+                tr_name = self.tr('Tuesday')
+            elif day == WeekDay.Wednesday:
+                tr_name = self.tr('Wednesday')
+            elif day == WeekDay.Thursday:
+                tr_name = self.tr('Thursday')
+            elif day == WeekDay.Friday:
+                tr_name = self.tr('Friday')
+            elif day == WeekDay.Saturday:
+                tr_name = self.tr('Saturday')
+            elif day == WeekDay.Sunday:
+                tr_name = self.tr('Sunday')
+
             action = QAction(
-                QIcon(':/' + day.name.lower() + '.png'), day.name, self)
+                QIcon(':/' + day.name.lower() + '.png'), tr_name, self)
+            action.setObjectName(day.name)
             action.setShortcut('Alt+' + str(counter))
             action.setCheckable(True)
-            action.setStatusTip('Go to ' + day.name)
+            action.setStatusTip(self.tr('Go to {day}').format(day=tr_name))
             action.triggered.connect(self.__change_current_day__)
             days_action_group.addAction(action)
             self.day_actions[day] = action
             toolbar_days.addAction(action)
 
-        previous_act = QAction(QIcon(':/previous.png'), 'Previous Week', self)
+        previous_act = QAction(QIcon(':/previous.png'),
+                               self.tr('Previous Week'), self)
         previous_act.setShortcut('Ctrl+P')
         previous_act.triggered.connect(self.__previous_week__)
-        previous_act.setStatusTip('Go to Previous Week')
+        previous_act.setStatusTip(self.tr('Go to Previous Week'))
 
-        next_act = QAction(QIcon(':/next.png'), 'Next Week', self)
+        next_act = QAction(QIcon(':/next.png'), self.tr('Next Week'), self)
         next_act.setShortcut('Ctrl+N')
         next_act.triggered.connect(self.__next_week__)
-        next_act.setStatusTip('Go to Next Week')
+        next_act.setStatusTip(self.tr('Go to Next Week'))
 
-        today_act = QAction(QIcon(':/today.png'), 'Today', self)
+        today_act = QAction(QIcon(':/today.png'), self.tr('Today'), self)
         today_act.setShortcut('Ctrl+T')
         today_act.triggered.connect(self.__today__)
-        today_act.setStatusTip('Go to today')
+        today_act.setStatusTip(self.tr('Go to today'))
 
-        about_act = QAction(QIcon(':/info.png'), 'About', self)
+        about_act = QAction(QIcon(':/info.png'), self.tr('About'), self)
         about_act.triggered.connect(self.__about__)
-        about_act.setStatusTip('About this application')
+        about_act.setStatusTip(self.tr('About this application'))
 
-        about_qt_act = QAction('About Qt', self)
+        about_qt_act = QAction(self.tr('About Qt'), self)
         about_qt_act.triggered.connect(qApp.aboutQt)
-        about_qt_act.setStatusTip('About Qt')
+        about_qt_act.setStatusTip(self.tr('About Qt'))
 
-        settings_act = QAction(QIcon(':/settings.png'), 'Preferences', self)
+        settings_act = QAction(QIcon(':/settings.png'),
+                               self.tr('Preferences'), self)
         settings_act.triggered.connect(self.__edit_preferences__)
-        settings_act.setStatusTip('Edit preferences')
+        settings_act.setStatusTip(self.tr('Edit preferences'))
 
-        exit_act = QAction(QIcon(':/exit.png'), '&Quit', self)
+        exit_act = QAction(QIcon(':/exit.png'), self.tr('&Quit'), self)
         exit_act.setShortcut('Ctrl+Q')
-        exit_act.setStatusTip('Quit application')
+        exit_act.setStatusTip(self.tr('Quit application'))
         exit_act.triggered.connect(self.close)
 
-        export_act = QAction(QIcon(':/export.png'), 'Export', self)
+        export_act = QAction(QIcon(':/export.png'), self.tr('Export'), self)
         export_act.setShortcut('Ctrl+E')
-        export_act.setStatusTip('Export week summary as html table')
+        export_act.setStatusTip(self.tr('Export week summary as html table'))
         export_act.triggered.connect(self.__export__)
 
         toolbar_weeks.addAction(today_act)
@@ -362,19 +384,19 @@ class MainWindow(QMainWindow):
         menu_bar = self.menuBar()
         menu_bar.setNativeMenuBar(True)
 
-        app_menu = menu_bar.addMenu('Application')
+        app_menu = menu_bar.addMenu(self.tr('Application'))
         app_menu.addAction(about_act)
         app_menu.addAction(about_qt_act)
         app_menu.addAction(settings_act)
         app_menu.addAction(exit_act)
 
-        weeks_menu = menu_bar.addMenu('Weeks')
+        weeks_menu = menu_bar.addMenu(self.tr('Weeks'))
         weeks_menu.addAction(today_act)
         weeks_menu.addAction(previous_act)
         weeks_menu.addAction(next_act)
         weeks_menu.addAction(export_act)
 
-        days_menu = menu_bar.addMenu('Days')
+        days_menu = menu_bar.addMenu(self.tr('Days'))
         for action in days_action_group.actions():
             days_menu.addAction(action)
 
@@ -382,6 +404,7 @@ class MainWindow(QMainWindow):
         """Validate the week and the year and update a WeekModel."""
         self.week_wrapper = WeekModel(
             self.year_edit.value(), self.week_edit.value(), self)
+        self.logger.debug('Week wrapper: %s', self.week_wrapper)
 
         self.week_time_edit.blockSignals(True)
         self.week_time_edit.minutes = self.week_wrapper.minutes_to_work
@@ -453,7 +476,7 @@ class MainWindow(QMainWindow):
         if self.week_wrapper:
             if self.task_model:
                 self.task_model.dataChanged.disconnect()
-            self.task_model = self.week_wrapper[WeekDay[sender.text()]]
+            self.task_model = self.week_wrapper[WeekDay[sender.objectName()]]
             self.__update_time__()
             self.task_model.dataChanged.connect(
                 self.__update_time__)
@@ -596,6 +619,17 @@ class MainWindow(QMainWindow):
         table_text += '<table cellpadding="0" cellspacing="0" border="0" '
         table_text += 'style="width:100%;">'
 
+        table_text += '<tr>'
+        table_text += ('<th style="border:2px solid black;'
+                       'margin:0;padding:2px;text-align:center;'
+                       'background-color:#ddd;">'
+                       + self.tr('Task') + '</th>')
+        table_text += ('<th style="border:2px solid black;'
+                       'margin:0;padding:2px;text-align:center;'
+                       'background-color:#ddd;width:20%;">'
+                       + self.tr('Time') + '</th>')
+        table_text += '</tr>'
+
         rows = model.rowCount()
         columns_to_export = (ResultColumn.Task.value, ResultColumn.Time.value)
 
@@ -604,9 +638,9 @@ class MainWindow(QMainWindow):
             for j in columns_to_export:
                 content = model.data(model.index(i, j), Qt.DisplayRole)
                 if j == 0:
-                    table_text += ('<th style="border:2px solid black;'
-                                   'margin:0;padding:2px;text-align:left;'
-                                   'background-color:#ddd;">{}</th>'
+                    table_text += ('<td style="border:2px solid black;'
+                                   'margin:0;padding:2px;text-align:left;">'
+                                   '{}</td>'
                                    ).format(content)
                 else:
                     table_text += ('<td style="border:2px solid black;'

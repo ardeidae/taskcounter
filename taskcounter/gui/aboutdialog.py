@@ -17,6 +17,8 @@
 
 """Task counter about dialog."""
 
+import logging
+
 from PyQt5.QtCore import QFile, Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QDialog, QDialogButtonBox, QLabel, QTabWidget,
@@ -33,7 +35,9 @@ class AboutDialog(CenterMixin, QDialog):
     def __init__(self, parent=None):
         """Construct an about dialog."""
         super().__init__(parent)
-        self.setWindowTitle('About this software')
+        self.logger = logging.getLogger(__name__)
+        self.logger.info('Opening about dialog')
+        self.setWindowTitle(self.tr('About this software'))
         self.setMinimumHeight(600)
         self.setMinimumWidth(600)
         self.center()
@@ -41,14 +45,16 @@ class AboutDialog(CenterMixin, QDialog):
         self.license = self.__build_text_browser__()
         self.about = self.__build_text_browser__()
 
+        link = '<a href="{link}">{link}</a>'.format(link=github_repository)
         repository_label = QLabel(
-            '<html>Source repository URL: <a href="{link}">{link}</a></html>'
-            .format(link=github_repository), self)
+            '<html>' + self.tr('Source repository URL: {link}')
+            .format(link=link) + '</html>', self)
         repository_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
         repository_label.setOpenExternalLinks(True)
-        author_label = QLabel('Author: {}'.format(author))
-        version_label = QLabel(
-            'Version: {}'.format(version), self)
+        author_label = QLabel(self.tr('Author: {author}')
+                              .format(author=author))
+        version_label = QLabel(self.tr(
+            'Version: {version}').format(version=version), self)
 
         self.tab_widget = QTabWidget(self)
 
@@ -59,8 +65,9 @@ class AboutDialog(CenterMixin, QDialog):
         layout.addWidget(version_label)
         layout.addWidget(self.tab_widget)
 
-        self.tab_widget.addTab(self.license, 'License')
-        self.tab_widget.addTab(self.about, 'Third-Party Software Notices')
+        self.tab_widget.addTab(self.license, self.tr('License'))
+        self.tab_widget.addTab(self.about, self.tr(
+            'Third-Party Software Notices'))
 
         button_box = QDialogButtonBox(QDialogButtonBox.Ok)
         button_box.accepted.connect(self.accept)
@@ -85,11 +92,17 @@ class AboutDialog(CenterMixin, QDialog):
     @staticmethod
     def __get_file_content__(resource_file):
         """Get the content of a given resource file."""
+        logger = logging.getLogger(__name__)
         file = QFile(resource_file)
+        logger.info('Opening read only file: %s', resource_file)
         if file.open(QFile.ReadOnly):
             string = str(file.readAll(), 'utf-8')
             file.close()
+            logger.info('File closed')
+            logger.debug('Returning: %s', string)
             return str(string)
         else:
-            print('>>> ' + file.errorString())
+            logger.error('Error opening file: %s. Error: %s',
+                         resource_file, file.errorString)
+            logger.debug('Returning empty string')
             return ''

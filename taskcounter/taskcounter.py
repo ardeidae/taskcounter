@@ -17,17 +17,36 @@
 
 """Task counter main entry point."""
 
+import logging
 import sys
 
+from PyQt5.QtCore import QLocale, QTranslator
 from PyQt5.QtWidgets import QApplication
 
+from taskcounter import resources
 from taskcounter.db import create_database
 from taskcounter.gui import MainWindow
 
 
 def main():
     """Start the application."""
+    logger = logging.getLogger(__name__)
+
+    logger.info('Starting application')
+
     app = QApplication(sys.argv)
+
+    locale = QLocale.system().name()
+    logger.info('Locale: ' + locale)
+    translation_file = ':/{}.qm'.format(locale)
+    logger.info('Translation file: ' + translation_file)
+
+    translator = QTranslator()
+    if translator.load(translation_file):
+        logger.info('Translator loaded. Installing...')
+        app.installTranslator(translator)
+    else:
+        logger.warning('Unable to load translator')
 
     create_database()
 

@@ -18,6 +18,7 @@
 """Task counter setting model."""
 
 
+import logging
 import pickle
 
 from PyQt5.QtCore import QTime
@@ -38,17 +39,22 @@ class SettingModel:
     @staticmethod
     def insert_or_update(name, value):
         """Insert or update a value for a named setting."""
+        logger = logging.getLogger(__name__)
         dump = pickle.dumps(value).hex()
         try:
             Setting.create(name=name, value=dump)
+            logger.debug('Created setting: %s with value: %s', name, value)
         except IntegrityError:
             query = Setting.update(value=dump).where(Setting.name == name)
-            print('>>> query: ' + str(query.sql()))
+            logger.debug('Update setting: %s with value: %s', name, value)
+            logger.debug('Query: %s', query.sql())
             query.execute()
 
     @staticmethod
     def get_value(name):
         """Get value for a named setting."""
+        logger = logging.getLogger(__name__)
+        logger.debug('Get value for setting: %s', name)
         value = None
         hex_value = (Setting.select(Setting.value)
                             .where(Setting.name == name)
@@ -57,8 +63,9 @@ class SettingModel:
             try:
                 bytes_value = bytes.fromhex(hex_value)
                 value = pickle.loads(bytes_value)
+                logger.debug('Read value: %s', value)
             except (pickle.PickleError, ValueError):
-                print('>>> Error when reading setting {}'.format(name))
+                logger.error('Error when reading setting: %s', name)
 
         return value
 

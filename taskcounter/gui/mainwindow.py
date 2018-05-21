@@ -306,11 +306,28 @@ class MainWindow(QMainWindow):
 
         days_action_group = QActionGroup(self)
         for counter, day in enumerate(WeekDay, start=1):
+
+            if day == WeekDay.Monday:
+                tr_name = self.tr('Monday')
+            elif day == WeekDay.Tuesday:
+                tr_name = self.tr('Tuesday')
+            elif day == WeekDay.Wednesday:
+                tr_name = self.tr('Wednesday')
+            elif day == WeekDay.Thursday:
+                tr_name = self.tr('Thursday')
+            elif day == WeekDay.Friday:
+                tr_name = self.tr('Friday')
+            elif day == WeekDay.Saturday:
+                tr_name = self.tr('Saturday')
+            elif day == WeekDay.Sunday:
+                tr_name = self.tr('Sunday')
+
             action = QAction(
-                QIcon(':/' + day.name.lower() + '.png'), day.name, self)
+                QIcon(':/' + day.name.lower() + '.png'), tr_name, self)
+            action.setObjectName(day.name)
             action.setShortcut('Alt+' + str(counter))
             action.setCheckable(True)
-            action.setStatusTip(self.tr('Go to {day}').format(day=day.name))
+            action.setStatusTip(self.tr('Go to {day}').format(day=tr_name))
             action.triggered.connect(self.__change_current_day__)
             days_action_group.addAction(action)
             self.day_actions[day] = action
@@ -459,7 +476,7 @@ class MainWindow(QMainWindow):
         if self.week_wrapper:
             if self.task_model:
                 self.task_model.dataChanged.disconnect()
-            self.task_model = self.week_wrapper[WeekDay[sender.text()]]
+            self.task_model = self.week_wrapper[WeekDay[sender.objectName()]]
             self.__update_time__()
             self.task_model.dataChanged.connect(
                 self.__update_time__)

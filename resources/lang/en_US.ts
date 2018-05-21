@@ -77,109 +77,144 @@
         <translation>Task counter</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="313"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="329"/>
         <source>Go to {day}</source>
         <translation>Go to {day}</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="319"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="335"/>
         <source>Previous Week</source>
         <translation>Previous Week</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="323"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="339"/>
         <source>Go to Previous Week</source>
         <translation>Go to Previous Week</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="325"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="341"/>
         <source>Next Week</source>
         <translation>Next Week</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="328"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="344"/>
         <source>Go to Next Week</source>
         <translation>Go to Next Week</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="330"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="346"/>
         <source>Today</source>
         <translation>Today</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="333"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="349"/>
         <source>Go to today</source>
         <translation>Go to today</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="335"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="351"/>
         <source>About</source>
         <translation>About</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="337"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="353"/>
         <source>About this application</source>
         <translation>About this application</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="341"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="357"/>
         <source>About Qt</source>
         <translation>About Qt</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="343"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="359"/>
         <source>Preferences</source>
         <translation>Preferences</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="346"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="362"/>
         <source>Edit preferences</source>
         <translation>Edit preferences</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="348"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="364"/>
         <source>&amp;Quit</source>
         <translation>&amp;Quit</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="350"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="366"/>
         <source>Quit application</source>
         <translation>Quit application</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="353"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="369"/>
         <source>Export</source>
         <translation>Export</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="355"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="371"/>
         <source>Export week summary as html table</source>
         <translation>Export week summary as html table</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="370"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="386"/>
         <source>Application</source>
         <translation>Application</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="376"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="392"/>
         <source>Weeks</source>
         <translation>Weeks</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="382"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="398"/>
         <source>Days</source>
         <translation>Days</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="606"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="622"/>
         <source>Task</source>
         <translation>Task</translation>
     </message>
     <message>
-        <location filename="../../taskcounter/gui/mainwindow.py" line="610"/>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="626"/>
         <source>Time</source>
         <translation>Time</translation>
+    </message>
+    <message>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="311"/>
+        <source>Monday</source>
+        <translation>Monday</translation>
+    </message>
+    <message>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="313"/>
+        <source>Tuesday</source>
+        <translation>Tuesday</translation>
+    </message>
+    <message>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="315"/>
+        <source>Wednesday</source>
+        <translation>Wednesday</translation>
+    </message>
+    <message>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="317"/>
+        <source>Thursday</source>
+        <translation>Thursday</translation>
+    </message>
+    <message>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="319"/>
+        <source>Friday</source>
+        <translation>Friday</translation>
+    </message>
+    <message>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="321"/>
+        <source>Saturday</source>
+        <translation>Saturday</translation>
+    </message>
+    <message>
+        <location filename="../../taskcounter/gui/mainwindow.py" line="323"/>
+        <source>Sunday</source>
+        <translation>Sunday</translation>
     </message>
 </context>
 <context>

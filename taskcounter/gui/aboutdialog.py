@@ -37,7 +37,7 @@ class AboutDialog(CenterMixin, QDialog):
         super().__init__(parent)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Opening about dialog')
-        self.setWindowTitle('About this software')
+        self.setWindowTitle(self.tr('About this software'))
         self.setMinimumHeight(600)
         self.setMinimumWidth(600)
         self.center()
@@ -45,14 +45,16 @@ class AboutDialog(CenterMixin, QDialog):
         self.license = self.__build_text_browser__()
         self.about = self.__build_text_browser__()
 
+        link = '<a href="{link}">{link}</a>'.format(link=github_repository)
         repository_label = QLabel(
-            '<html>Source repository URL: <a href="{link}">{link}</a></html>'
-            .format(link=github_repository), self)
+            '<html>' + self.tr('Source repository URL: {link}')
+            .format(link=link) + '</html>', self)
         repository_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
         repository_label.setOpenExternalLinks(True)
-        author_label = QLabel('Author: {}'.format(author))
-        version_label = QLabel(
-            'Version: {}'.format(version), self)
+        author_label = QLabel(self.tr('Author: {author}')
+                              .format(author=author))
+        version_label = QLabel(self.tr(
+            'Version: {version}').format(version=version), self)
 
         self.tab_widget = QTabWidget(self)
 
@@ -63,8 +65,9 @@ class AboutDialog(CenterMixin, QDialog):
         layout.addWidget(version_label)
         layout.addWidget(self.tab_widget)
 
-        self.tab_widget.addTab(self.license, 'License')
-        self.tab_widget.addTab(self.about, 'Third-Party Software Notices')
+        self.tab_widget.addTab(self.license, self.tr('License'))
+        self.tab_widget.addTab(self.about, self.tr(
+            'Third-Party Software Notices'))
 
         button_box = QDialogButtonBox(QDialogButtonBox.Ok)
         button_box.accepted.connect(self.accept)

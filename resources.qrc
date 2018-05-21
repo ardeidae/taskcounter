@@ -26,5 +26,8 @@
 
         <file alias="LICENSE">resources/LICENSE</file>
         <file alias="ABOUT">resources/ABOUT</file>
+
+        <file alias="fr_FR.qm">resources/lang/fr_FR.qm</file>
+        <file alias="en_US.qm">resources/lang/en_US.qm</file>
     </qresource>
 </RCC>

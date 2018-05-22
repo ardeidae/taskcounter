@@ -52,7 +52,7 @@ class WeekModel:
     @minutes_to_work.setter
     def minutes_to_work(self, minutes_to_work):
         """Set work time in minutes of this week instance."""
-        self.logger.debug('Set minutes to work: %s', minutes)
+        self.logger.debug('Set minutes to work: %s', minutes_to_work)
         self._week.minutes_to_work = minutes_to_work
         self._week.save()
 

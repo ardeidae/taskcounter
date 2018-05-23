@@ -17,6 +17,7 @@
 
 """Task counter main entry point."""
 
+import locale
 import logging
 import sys
 
@@ -36,9 +37,10 @@ def main():
 
     app = QApplication(sys.argv)
 
-    locale = QLocale.system().name()
-    logger.info('Locale: ' + locale)
-    translation_file = ':/{}.qm'.format(locale)
+    qlocale = QLocale.system().name()
+    locale.setlocale(locale.LC_TIME, qlocale)
+    logger.info('Locale: ' + qlocale)
+    translation_file = ':/{}.qm'.format(qlocale)
     logger.info('Translation file: ' + translation_file)
 
     translator = QTranslator()

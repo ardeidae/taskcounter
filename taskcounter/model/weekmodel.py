@@ -40,7 +40,7 @@ class WeekModel:
                                         defaults={'minutes_to_work':
                                                   default_time})[0]
         self.logger.debug('Week: %s', self._week)
-        self.__create_days__()
+        self.__create_days()
 
     @property
     def minutes_to_work(self):
@@ -74,7 +74,7 @@ class WeekModel:
                     return day_model
         return None
 
-    def __create_days__(self):
+    def __create_days(self):
         """Create the days of this week."""
         for date_ in seven_days_of_week(self._week.year,
                                         self._week.week_number):

@@ -38,15 +38,15 @@ class DurationEdit(QAbstractSpinBox):
         self._minutes = 0
         self.lineEdit().textChanged.connect(self.text_changed)
 
-    def __text__(self):
+    def __text(self):
         """Get the line edit text."""
         return self.lineEdit().text()
 
-    def __cursor_position__(self):
+    def __cursor_position(self):
         """Get the cursor position."""
         return self.lineEdit().cursorPosition()
 
-    def __max_hours__(self):
+    def __max_hours(self):
         """Get the max hours that can be reached for the hour length."""
         return 10 ** self._hour_length - 1
 
@@ -91,7 +91,7 @@ class DurationEdit(QAbstractSpinBox):
             self.valueChanged.emit(self._minutes)
         else:
             hours = divmod(minutes, 60)[0]
-            if hours > self.__max_hours__():
+            if hours > self.__max_hours():
                 self._minutes = 0
                 self.valueChanged.emit(self._minutes)
             else:
@@ -101,8 +101,8 @@ class DurationEdit(QAbstractSpinBox):
 
     def stepBy(self, steps):
         """Trigger a step."""
-        cursor_position = self.__cursor_position__()
-        text = self.__text__()
+        cursor_position = self.__cursor_position()
+        text = self.__text()
         try:
             index = text.index(':')
         except ValueError:
@@ -120,8 +120,8 @@ class DurationEdit(QAbstractSpinBox):
 
     def stepEnabled(self):
         """Determine whether stepping up and down is legal at any time."""
-        cursor_position = self.__cursor_position__()
-        text = self.__text__()
+        cursor_position = self.__cursor_position()
+        text = self.__text()
         try:
             index = text.index(':')
         except ValueError:
@@ -134,7 +134,7 @@ class DurationEdit(QAbstractSpinBox):
             # we have only hours in the field
             if hours <= 0:
                 return QAbstractSpinBox.StepUpEnabled
-            elif hours >= self.__max_hours__():
+            elif hours >= self.__max_hours():
                 return QAbstractSpinBox.StepDownEnabled
             else:
                 return (QAbstractSpinBox.StepUpEnabled |
@@ -152,7 +152,7 @@ class DurationEdit(QAbstractSpinBox):
             if 0 <= cursor_position <= index:
                 if hours <= 0:
                     return QAbstractSpinBox.StepUpEnabled
-                elif hours >= self.__max_hours__():
+                elif hours >= self.__max_hours():
                     return QAbstractSpinBox.StepDownEnabled
                 else:
                     return (QAbstractSpinBox.StepUpEnabled |
@@ -173,20 +173,20 @@ class DurationEdit(QAbstractSpinBox):
         if event.type() == QEvent.KeyPress:
             key = event.key()
             if key in (Qt.Key_Enter, Qt.Key_Return):
-                self.minutes = self.textToMinutes(self.__text__())
+                self.minutes = self.textToMinutes(self.__text())
                 return super().event(event)
 
-            text = self.__text__()
+            text = self.__text()
             try:
                 index = text.index(':')
             except ValueError:
                 # no : in string, on tab or backtab, go to next field, but
                 # format this one before
                 if key in (Qt.Key_Tab, Qt.Key_Backtab):
-                    self.minutes = self.textToMinutes(self.__text__())
+                    self.minutes = self.textToMinutes(self.__text())
                     return super().event(event)
             else:
-                cursor_position = self.__cursor_position__()
+                cursor_position = self.__cursor_position()
                 if key == Qt.Key_Colon:
                     # go to minutes on : type if cursor is on hours
                     if cursor_position <= index:
@@ -201,7 +201,7 @@ class DurationEdit(QAbstractSpinBox):
                         return True
                     else:
                         # go to next field on tab, but update minutes before
-                        self.minutes = self.textToMinutes(self.__text__())
+                        self.minutes = self.textToMinutes(self.__text())
                         return super().event(event)
                 elif key == Qt.Key_Backtab:
                     if cursor_position > index:
@@ -211,7 +211,7 @@ class DurationEdit(QAbstractSpinBox):
                     else:
                         # go to previous field on backtab, but update minutes
                         # before
-                        self.minutes = self.textToMinutes(self.__text__())
+                        self.minutes = self.textToMinutes(self.__text())
                         return super().event(event)
 
         if event.type() == QEvent.KeyRelease:
@@ -219,13 +219,13 @@ class DurationEdit(QAbstractSpinBox):
             if event.key() in (Qt.Key_0, Qt.Key_1, Qt.Key_3, Qt.Key_2,
                                Qt.Key_4, Qt.Key_5, Qt.Key_6, Qt.Key_7,
                                Qt.Key_8, Qt.Key_9):
-                text = self.__text__()
+                text = self.__text()
                 try:
                     index = text.index(':')
                 except ValueError:
                     pass
                 else:
-                    cursor_position = self.__cursor_position__()
+                    cursor_position = self.__cursor_position()
                     if index == cursor_position == self._hour_length:
                         self.lineEdit().setSelection(index + 1, len(text))
                         return True
@@ -236,13 +236,13 @@ class DurationEdit(QAbstractSpinBox):
         """Receive keyboard focus events (focus lost) for the widget."""
         super().focusOutEvent(event)
 
-        self.minutes = self.textToMinutes(self.__text__())
+        self.minutes = self.textToMinutes(self.__text())
 
     def focusInEvent(self, event):
         """Receive keyboard focus events (focus received) for the widget."""
         super().focusInEvent(event)
 
-        text = self.__text__()
+        text = self.__text()
         reason = event.reason()
         try:
             index = text.index(':')

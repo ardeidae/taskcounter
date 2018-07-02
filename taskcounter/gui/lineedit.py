@@ -37,7 +37,7 @@ class LineEdit(QTextEdit):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.completer = None
-        self.textChanged.connect(self.__text_has_changed__)
+        self.textChanged.connect(self.__text_has_changed)
 
     def set_completer(self, completer):
         """Set the completer on the editor."""
@@ -48,11 +48,11 @@ class LineEdit(QTextEdit):
             completer.setModelSorting(
                 QCompleter.CaseSensitivelySortedModel)
             completer.setMaxVisibleItems(15)
-            completer.activated.connect(self.__insert_completion__)
+            completer.activated.connect(self.__insert_completion)
             self.completer = completer
 
     @pyqtSlot(str)
-    def __insert_completion__(self, completion):
+    def __insert_completion(self, completion):
         """When the completer is activated, inserts the completion."""
         if self.completer and self.completer.widget() == self:
             self.completer.widget().setPlainText(completion)
@@ -84,7 +84,7 @@ class LineEdit(QTextEdit):
         self.completer.complete()
 
     @pyqtSlot()
-    def __text_has_changed__(self):
+    def __text_has_changed(self):
         """When the text has changed."""
         # remove new lines and strip left blank characters
         self.blockSignals(True)

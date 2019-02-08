@@ -242,7 +242,7 @@ class MainWindow(QMainWindow):
         footer_layout.addWidget(remaining_week_label, 0, 2,
                                 Qt.AlignCenter)
         footer_layout.addWidget(catch_up_label, 0, 3,
-                                Qt.AlignHCenter)
+                                Qt.AlignCenter)
         footer_layout.addWidget(total_annual_label, 0, 4,
                                 Qt.AlignCenter)
         footer_layout.addWidget(self.day_time_lcd, 1, 0)

@@ -24,20 +24,20 @@ from PyQt5.QtCore import (QByteArray, QItemSelectionModel, QMimeData, Qt,
                           pyqtSlot)
 from PyQt5.QtGui import QBrush, QClipboard, QColor, QIcon, QPalette
 from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QFrame,
-                             QGridLayout, QHeaderView, QLabel, QLCDNumber,
-                             QMainWindow, QSpinBox, QTableView, QTimeEdit,
-                             QToolBar, QHBoxLayout, QWidget, qApp)
+                             QGridLayout, QHBoxLayout, QHeaderView, QLabel,
+                             QLCDNumber, QMainWindow, QSpinBox, QTableView,
+                             QTimeEdit, QToolBar, QWidget, qApp)
 
 from taskcounter import resources
 from taskcounter.db import close_database
 from taskcounter.enum import ResultColumn, TaskColumn, WeekDay
-from taskcounter.model import (SummaryModel, SettingModel, WeekModel)
+from taskcounter.gui import (AboutDialog, DurationEdit, FlowLayout,
+                             SettingDialog, TaskNameDelegate)
+from taskcounter.model import (SettingModel, SummaryModel, WeekModel,
+                               get_total_annual_worked_hours)
 from taskcounter.utility import (color_between, contrast_color,
                                  minutes_to_time_str, weekday_from_date,
                                  weeks_for_year)
-
-from taskcounter.gui import (AboutDialog, DurationEdit, FlowLayout,
-                             SettingDialog, TaskNameDelegate)
 
 
 class MainWindow(QMainWindow):
@@ -62,6 +62,7 @@ class MainWindow(QMainWindow):
         self.remaining_week_time_lcd = None
         self.day_time_lcd = None
         self.catch_up_lcd = None
+        self.total_annual_lcd = None
 
     def closeEvent(self, event):
         """When application is about to close."""
@@ -230,6 +231,9 @@ class MainWindow(QMainWindow):
         catch_up_label = QLabel(self.tr('Catch-up time'), self)
         self.catch_up_lcd = self.__build_lcd_number_widget()
 
+        total_annual_label = QLabel(self.tr('Total annual time'), self)
+        self.total_annual_lcd = self.__build_lcd_number_widget()
+
         footer_layout = QGridLayout()
         footer_layout.addWidget(day_label, 0, 0,
                                 Qt.AlignHCenter)
@@ -239,10 +243,13 @@ class MainWindow(QMainWindow):
                                 Qt.AlignCenter)
         footer_layout.addWidget(catch_up_label, 0, 3,
                                 Qt.AlignHCenter)
+        footer_layout.addWidget(total_annual_label, 0, 4,
+                                Qt.AlignCenter)
         footer_layout.addWidget(self.day_time_lcd, 1, 0)
         footer_layout.addWidget(self.week_time_lcd, 1, 1)
         footer_layout.addWidget(self.remaining_week_time_lcd, 1, 2)
         footer_layout.addWidget(self.catch_up_lcd, 1, 3)
+        footer_layout.addWidget(self.total_annual_lcd, 1, 4)
 
         main_layout.addLayout(footer_layout, 3, 0, 1, 2)
 
@@ -526,6 +533,7 @@ class MainWindow(QMainWindow):
         self.__update_day_time_counter()
         self.__update_week_time_counter()
         self.__update_catch_up_time_counter()
+        self.__update_total_annual_time_counter()
         self.__update_week_summary()
 
     def __update_day_time_counter(self):
@@ -563,6 +571,11 @@ class MainWindow(QMainWindow):
             self.catch_up_lcd.display(abs_time // 60)
         else:
             self.catch_up_lcd.display(time_str)
+
+    def __update_total_annual_time_counter(self):
+        """Update the total annual time counter."""
+        total = get_total_annual_worked_hours(self.year_edit.value())
+        self.total_annual_lcd.display(total)
 
     def __build_lcd_number_widget(self):
         """Build a LCD Number widget."""

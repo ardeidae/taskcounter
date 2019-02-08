@@ -59,6 +59,7 @@ class MainWindow(QMainWindow):
         self.man_day_edit = None
         self.current_day_label = None
         self.week_time_lcd = None
+        self.remaining_week_time_lcd = None
         self.day_time_lcd = None
         self.catch_up_lcd = None
 
@@ -216,8 +217,11 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.task_view, 2, 0)
         main_layout.addWidget(self.result_view, 2, 1)
 
-        week_label = QLabel(self.tr('Week time'), self)
+        week_time_label = QLabel(self.tr('Week time'), self)
         self.week_time_lcd = self.__build_lcd_number_widget()
+
+        remaining_week_label = QLabel(self.tr('Remaining week time'), self)
+        self.remaining_week_time_lcd = self.__build_lcd_number_widget()
 
         day_label = QLabel(self.tr('Day time'), self)
         self.day_time_lcd = self.__build_lcd_number_widget()
@@ -229,13 +233,16 @@ class MainWindow(QMainWindow):
         footer_layout = QGridLayout()
         footer_layout.addWidget(day_label, 0, 0,
                                 Qt.AlignHCenter)
-        footer_layout.addWidget(week_label, 0, 1,
+        footer_layout.addWidget(week_time_label, 0, 1,
                                 Qt.AlignHCenter)
-        footer_layout.addWidget(catch_up_label, 0, 2,
+        footer_layout.addWidget(remaining_week_label, 0, 2,
+                                Qt.AlignCenter)
+        footer_layout.addWidget(catch_up_label, 0, 3,
                                 Qt.AlignHCenter)
         footer_layout.addWidget(self.day_time_lcd, 1, 0)
         footer_layout.addWidget(self.week_time_lcd, 1, 1)
-        footer_layout.addWidget(self.catch_up_lcd, 1, 2)
+        footer_layout.addWidget(self.remaining_week_time_lcd, 1, 2)
+        footer_layout.addWidget(self.catch_up_lcd, 1, 3)
 
         main_layout.addLayout(footer_layout, 3, 0, 1, 2)
 
@@ -249,6 +256,7 @@ class MainWindow(QMainWindow):
     def __change_week_color(self, color):
         """Change the lcd week color."""
         self.__change_lcd_number_color(self.week_time_lcd, color)
+        self.__change_lcd_number_color(self.remaining_week_time_lcd, color)
 
     def __change_day_color(self, color):
         """Change the lcd day color."""
@@ -526,9 +534,12 @@ class MainWindow(QMainWindow):
             minutes_to_time_str(self.task_model.minutes_of_day))
 
     def __update_week_time_counter(self):
-        """Update the week time counter."""
+        """Update the week time counters."""
         self.week_time_lcd.display(
             minutes_to_time_str(self.week_wrapper.minutes_of_week))
+        self.remaining_week_time_lcd.display(
+            minutes_to_time_str(max(0, self.week_wrapper.minutes_to_work
+                                    - self.week_wrapper.minutes_of_week)))
 
         self.__update_week_counter_color()
 

@@ -40,11 +40,11 @@ class TaskNameDelegate(QItemDelegate):
         completer.setModel(string_list_model)
         editor = LineEdit(parent)
         editor.set_completer(completer)
-        editor.return_pressed.connect(self.__commit_and_close_editor__)
+        editor.return_pressed.connect(self.__commit_and_close_editor)
         return editor
 
     @pyqtSlot()
-    def __commit_and_close_editor__(self):
+    def __commit_and_close_editor(self):
         """Commit changes and close the editor."""
         editor = self.sender()
 

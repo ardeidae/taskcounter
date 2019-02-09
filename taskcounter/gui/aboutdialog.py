@@ -42,8 +42,8 @@ class AboutDialog(CenterMixin, QDialog):
         self.setMinimumWidth(600)
         self.center()
 
-        self.license = self.__build_text_browser__()
-        self.about = self.__build_text_browser__()
+        self.license = self.__build_text_browser()
+        self.about = self.__build_text_browser()
 
         link = '<a href="{link}">{link}</a>'.format(link=github_repository)
         repository_label = QLabel(
@@ -73,11 +73,11 @@ class AboutDialog(CenterMixin, QDialog):
         button_box.accepted.connect(self.accept)
         layout.addWidget(button_box)
 
-        self.license.setText(self.__get_file_content__(':/LICENSE'))
-        self.about.setText(self.__get_file_content__(':/ABOUT'))
+        self.license.setText(self.__get_file_content(':/LICENSE'))
+        self.about.setText(self.__get_file_content(':/ABOUT'))
 
     @staticmethod
-    def __build_text_browser__():
+    def __build_text_browser():
         """Build a text browser."""
         edit = QTextBrowser()
         edit.setReadOnly(True)
@@ -90,7 +90,7 @@ class AboutDialog(CenterMixin, QDialog):
         return edit
 
     @staticmethod
-    def __get_file_content__(resource_file):
+    def __get_file_content(resource_file):
         """Get the content of a given resource file."""
         logger = logging.getLogger(__name__)
         file = QFile(resource_file)

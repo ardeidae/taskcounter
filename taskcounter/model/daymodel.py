@@ -38,7 +38,7 @@ class DayModel(QAbstractTableModel):
         self._day = Day.get_or_create(date=date_,
                                       week=week)[0]
         self._cached_data = None
-        self.__cache_data__()
+        self.__cache_data()
 
     @property
     def week(self):
@@ -58,7 +58,7 @@ class DayModel(QAbstractTableModel):
         """Return the number of columns under the given parent."""
         return len(TaskColumn)
 
-    def __cache_data__(self):
+    def __cache_data(self):
         """Cache data."""
         self._cached_data = {}
 
@@ -158,7 +158,7 @@ class DayModel(QAbstractTableModel):
 
                 if field == TaskColumn.Task and not value:
                     if self.delete_task(task_id):
-                        self.__cache_data__()
+                        self.__cache_data()
                         self.layoutAboutToBeChanged.emit()
                         top_left = self.index(0, 0)
                         bottom_right = self.index(
@@ -180,12 +180,12 @@ class DayModel(QAbstractTableModel):
                         if start and value <= start:
                             return False
                     if field in (TaskColumn.Start_Time, TaskColumn.End_Time):
-                        if self.__overlaps_other_range__(task_id,
+                        if self.__overlaps_other_range(task_id,
                                                          field, value):
                             return False
 
                     if self.update_task(task_id, field, value):
-                        self.__cache_data__()
+                        self.__cache_data()
 
                         self.layoutAboutToBeChanged.emit()
                         top_left = self.index(0, 0)
@@ -199,7 +199,7 @@ class DayModel(QAbstractTableModel):
                 if field == TaskColumn.Task and value:
                     # insert only when task name is not empty
                     if self.create_task(value):
-                        self.__cache_data__()
+                        self.__cache_data()
 
                         self.layoutAboutToBeChanged.emit()
 
@@ -293,7 +293,7 @@ class DayModel(QAbstractTableModel):
         self.logger.debug('Minutes of day: %s', minutes)
         return minutes or 0
 
-    def __overlaps_other_range__(self, task_id, field, value):
+    def __overlaps_other_range(self, task_id, field, value):
         """Check range overlaps another range."""
         if not self._cached_data:
             return False

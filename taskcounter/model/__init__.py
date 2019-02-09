@@ -17,7 +17,7 @@
 
 """Task counter model module init."""
 
-from .utility import get_last_unique_task_names
+from .utility import get_last_unique_task_names, get_total_annual_worked_hours
 from .settingmodel import SettingModel
 from .daymodel import DayModel
 from .summarymodel import SummaryModel

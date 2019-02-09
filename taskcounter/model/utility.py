@@ -21,7 +21,7 @@ import logging
 
 from datetime import date, timedelta
 
-from taskcounter.db import Day, Task
+from taskcounter.db import Day, Task, Week, fn
 
 
 def get_last_unique_task_names():
@@ -37,3 +37,21 @@ def get_last_unique_task_names():
                    .order_by(Task.name)))
     logger.debug('Last unique task names: %s', tasks)
     return tasks
+
+
+def get_total_annual_worked_hours(_year):
+    """Get the total time worked in hours of `_year`."""
+    logger = logging.getLogger(__name__)
+
+    minutes = (Task.select(fn.SUM((fn.strftime('%s', Task.end_time)
+                                   - fn.strftime('%s', Task.start_time))
+                                  .cast('real') / 60).alias('sum')
+                           ).join(Day)
+               .join(Week)
+               .where((Week.year == int(_year))
+                      & Task.start_time.is_null(False)
+                      & Task.end_time.is_null(False)
+                      )
+               .scalar())
+    logger.debug('Get total time of year: %s', minutes)
+    return minutes / 60 if minutes is not None else 0

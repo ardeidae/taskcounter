@@ -54,4 +54,4 @@ def get_total_annual_worked_hours(_year):
                       )
                .scalar())
     logger.debug('Get total time of year: %s', minutes)
-    return minutes / 60 if minutes is not None else 0
+    return max(int(minutes / 60), 0) if minutes is not None else 0

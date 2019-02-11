@@ -37,10 +37,17 @@ def main():
 
     app = QApplication(sys.argv)
 
-    qlocale = QLocale.system().name()
-    locale.setlocale(locale.LC_TIME, qlocale)
-    logger.info('Locale: ' + qlocale)
-    translation_file = ':/{}.qm'.format(qlocale)
+    locale_name = QLocale.system().name()
+    logger.info('Locale name: ' + locale_name)
+
+    if sys.platform == 'darwin':
+        locale.setlocale(locale.LC_TIME, locale_name)
+    elif sys.platform == 'win32':
+        locale_bcp47 = QLocale.system().bcp47Name()
+        logger.info('Locale bcp47: ' + locale_bcp47)
+        locale.setlocale(locale.LC_TIME, locale_bcp47)
+
+    translation_file = ':/{}.qm'.format(locale_name)
     logger.info('Translation file: ' + translation_file)
 
     translator = QTranslator()

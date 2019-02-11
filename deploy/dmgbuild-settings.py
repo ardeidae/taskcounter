@@ -3,7 +3,7 @@ import os.path
 
 # dmgbuild -s dmgbuild-settings.py "" ""
 
-application = defines.get('app', 'dist/Task counter.app')
+application = defines.get('app', 'dist/Taskcounter.app')
 appname = os.path.basename(application)
 filename = 'Taskcounter.dmg'
 volume_name = 'Taskcounter'

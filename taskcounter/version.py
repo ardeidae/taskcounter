@@ -17,6 +17,6 @@
 
 """Task counter version information."""
 
-version = '1.2.2'
+version = '1.2.3'
 author = 'Matthieu PETIOT'
 github_repository = 'https://github.com/ardeidae/taskcounter'

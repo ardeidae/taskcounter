@@ -42,10 +42,12 @@ def main():
 
     if sys.platform == 'darwin':
         locale.setlocale(locale.LC_TIME, locale_name)
+        locale.setlocale(locale.LC_CTYPE, locale_name)
     elif sys.platform == 'win32':
         locale_bcp47 = QLocale.system().bcp47Name()
         logger.info('Locale bcp47: ' + locale_bcp47)
         locale.setlocale(locale.LC_TIME, locale_bcp47)
+        locale.setlocale(locale.LC_CTYPE, locale_bcp47)
 
     translation_file = ':/{}.qm'.format(locale_name)
     logger.info('Translation file: ' + translation_file)

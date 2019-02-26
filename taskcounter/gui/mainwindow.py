@@ -597,6 +597,7 @@ class MainWindow(QMainWindow):
             self.week_wrapper.minutes_to_work = minutes_time
         self.__update_week_counter_color()
         self.__update_catch_up_time_counter()
+        self.__update_week_time_counter()
 
     def __update_week_counter_color(self):
         """Update the week counter color depending on the time percentage."""

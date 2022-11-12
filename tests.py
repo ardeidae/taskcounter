@@ -145,11 +145,12 @@ class TestResultColumn(unittest.TestCase):
         """Test enum values."""
         self.assertEqual(0, ResultColumn.Task.value)
         self.assertEqual(1, ResultColumn.Time.value)
-        self.assertEqual(2, ResultColumn.Man_Day.value)
+        self.assertEqual(2, ResultColumn.Decimal_Time.value)
+        self.assertEqual(3, ResultColumn.Man_Day.value)
 
     def test_enum_has_three_columns(self):
         """Test that enum has two columns."""
-        self.assertEqual(3, len(ResultColumn))
+        self.assertEqual(4, len(ResultColumn))
 
 
 class TestSevenDaysOfWeek(unittest.TestCase):

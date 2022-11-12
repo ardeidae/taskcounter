@@ -22,7 +22,7 @@ import logging
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant
 
 from taskcounter.enum import ResultColumn
-from taskcounter.utility import minutes_to_time_str
+from taskcounter.utility import minutes_to_time_str, minutes_to_decimal_time_str
 
 
 class SummaryModel(QAbstractTableModel):
@@ -105,6 +105,8 @@ class SummaryModel(QAbstractTableModel):
                         return str(value)
                 elif column == ResultColumn.Time.value:
                     return minutes_to_time_str(value)
+                elif column == ResultColumn.Decimal_Time.value:
+                    return minutes_to_decimal_time_str(value)
                 elif column == ResultColumn.Man_Day.value:
                     return value
         elif role == Qt.TextAlignmentRole:

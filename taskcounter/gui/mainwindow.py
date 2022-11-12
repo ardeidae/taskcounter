@@ -51,7 +51,9 @@ class MainWindow(QMainWindow):
         self.task_model = None
         self.task_view = None
         self.result_view = None
+        self.daily_result_view = None
         self.result_model = SummaryModel(self)
+        self.daily_result_model = SummaryModel(self)
         self.week_edit = None
         self.week_wrapper = None
         self.year_edit = None
@@ -122,18 +124,37 @@ class MainWindow(QMainWindow):
     def __resize_result_headers(self):
         """Resize result headers."""
         self.result_view.horizontalHeader().setSectionResizeMode(
-            ResultColumn.Task.value,
-            QHeaderView.Stretch)
+            ResultColumn.Task.value, QHeaderView.Stretch)
         self.result_view.horizontalHeader().setSectionResizeMode(
-            ResultColumn.Time.value,
-            QHeaderView.Fixed)
+            ResultColumn.Time.value, QHeaderView.Fixed)
         self.result_view.horizontalHeader().setSectionResizeMode(
-            ResultColumn.Man_Day.value,
-            QHeaderView.Fixed)
+            ResultColumn.Decimal_Time.value, QHeaderView.Fixed)
+        self.result_view.horizontalHeader().setSectionResizeMode(
+            ResultColumn.Man_Day.value, QHeaderView.Fixed)
         self.result_view.horizontalHeader().resizeSection(
             ResultColumn.Time.value, 70)
         self.result_view.horizontalHeader().resizeSection(
+            ResultColumn.Decimal_Time.value, 80)
+        self.result_view.horizontalHeader().resizeSection(
             ResultColumn.Man_Day.value, 70)
+
+    def __resize_daily_result_headers(self):
+        """Resize daily result headers."""
+        self.daily_result_view.horizontalHeader().setSectionResizeMode(
+            ResultColumn.Task.value, QHeaderView.Stretch)
+        self.daily_result_view.horizontalHeader().setSectionResizeMode(
+            ResultColumn.Time.value, QHeaderView.Fixed)
+        self.daily_result_view.horizontalHeader().setSectionResizeMode(
+            ResultColumn.Decimal_Time.value, QHeaderView.Fixed)
+        self.daily_result_view.horizontalHeader().setSectionResizeMode(
+            ResultColumn.Man_Day.value, QHeaderView.Fixed)
+        self.daily_result_view.horizontalHeader().resizeSection(
+            ResultColumn.Time.value, 70)
+        self.daily_result_view.horizontalHeader().resizeSection(
+            ResultColumn.Decimal_Time.value, 80)
+        self.daily_result_view.horizontalHeader().resizeSection(
+            ResultColumn.Man_Day.value, 70)
+
 
     def __init_layout(self):
         """Initialize the central widget layout."""
@@ -145,6 +166,8 @@ class MainWindow(QMainWindow):
         main_layout.setRowStretch(1, 1)
         main_layout.setRowStretch(2, 20)
         main_layout.setRowStretch(3, 1)
+        main_layout.setRowStretch(4, 20)
+        main_layout.setRowStretch(5, 1)
         main_layout.setColumnStretch(0, 1)
         main_layout.setColumnStretch(1, 1)
         main_layout.setSpacing(0)
@@ -201,6 +224,7 @@ class MainWindow(QMainWindow):
         man_day_layout.addWidget(self.man_day_edit)
 
         self.man_day_edit.timeChanged.connect(self.__update_week_summary)
+        self.man_day_edit.timeChanged.connect(self.__update_daily_summary)
 
         header_layout.addWidget(year_widget)
         header_layout.addWidget(week_widget)
@@ -211,12 +235,16 @@ class MainWindow(QMainWindow):
 
         self.current_day_label = self.__build_title_label('')
         summary_label = self.__build_title_label(self.tr('Week summary'))
+        daily_summary_label = self.__build_title_label(self.tr('Daily summary'))
 
         main_layout.addWidget(self.current_day_label, 1, 0)
         main_layout.addWidget(summary_label, 1, 1)
 
-        main_layout.addWidget(self.task_view, 2, 0)
+        main_layout.addWidget(self.task_view, 2, 0, 3, 1)
         main_layout.addWidget(self.result_view, 2, 1)
+
+        main_layout.addWidget(daily_summary_label, 3, 1)
+        main_layout.addWidget(self.daily_result_view, 4, 1)
 
         week_time_label = QLabel(self.tr('Week time'), self)
         self.week_time_lcd = self.__build_lcd_number_widget()
@@ -251,7 +279,7 @@ class MainWindow(QMainWindow):
         footer_layout.addWidget(self.catch_up_lcd, 1, 3)
         footer_layout.addWidget(self.total_annual_lcd, 1, 4)
 
-        main_layout.addLayout(footer_layout, 3, 0, 1, 2)
+        main_layout.addLayout(footer_layout, 5, 0, 1, 2)
 
         main_widget.setLayout(main_layout)
 
@@ -303,6 +331,14 @@ class MainWindow(QMainWindow):
         self.result_view.setAlternatingRowColors(True)
         self.result_view.setModel(self.result_model)
         self.result_view.setSelectionBehavior(QTableView.SelectRows)
+
+        self.daily_result_view = QTableView(self)
+        self.__init_current_cell_color(self.daily_result_view)
+        self.__disable_headers_click(self.daily_result_view)
+        self.daily_result_view.setAlternatingRowColors(True)
+        self.daily_result_view.setModel(self.daily_result_model)
+        self.daily_result_view.setSelectionBehavior(QTableView.SelectRows)
+
         self.__init_layout()
 
         self.__validate_week_and_year()
@@ -535,6 +571,7 @@ class MainWindow(QMainWindow):
         self.__update_catch_up_time_counter()
         self.__update_total_annual_time_counter()
         self.__update_week_summary()
+        self.__update_daily_summary()
 
     def __update_day_time_counter(self):
         """Update the day time counter."""
@@ -633,6 +670,17 @@ class MainWindow(QMainWindow):
             self.result_model.tasks = tasks
             self.__resize_result_headers()
 
+    def __update_daily_summary(self):
+        """Update the daily summary."""
+        if self.week_wrapper:
+
+            man_day_time = self.man_day_edit.time()
+            man_day_minutes = man_day_time.hour() * 60 + man_day_time.minute()
+
+            tasks = self.week_wrapper.daily_summary(self.task_model.date, man_day_minutes)
+            self.daily_result_model.tasks = tasks
+            self.__resize_daily_result_headers()
+
     def __export_cells_as_table(self):
         """Copy tasks and time cells as html table."""
         model = self.result_view.model()
@@ -688,5 +736,6 @@ class MainWindow(QMainWindow):
         """Update user interface with new settings."""
         self.__init_current_cell_color(self.task_view)
         self.__init_current_cell_color(self.result_view)
+        self.__init_current_cell_color(self.daily_result_view)
         self.__update_time()
         self.man_day_edit.setTime(SettingModel.default_man_day_time())

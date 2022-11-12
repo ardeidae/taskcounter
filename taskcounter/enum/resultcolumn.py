@@ -26,4 +26,5 @@ class ResultColumn(Enum):
 
     Task = 0
     Time = 1
-    Man_Day = 2
+    Decimal_Time = 2
+    Man_Day = 3

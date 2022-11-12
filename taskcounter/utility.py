@@ -21,6 +21,7 @@ import logging
 
 import re
 from datetime import date, timedelta
+from math import floor
 
 from taskcounter.enum import WeekDay
 
@@ -127,6 +128,23 @@ def minutes_to_time_str(a_total_minutes):
         logger.debug('Return: %s', time)
         return time
     logger.error('Return None')
+    return None
+
+
+def minutes_to_decimal_time_str(a_total_minutes):
+    """Get a h,m in decimal time from a number of minutes."""
+    logger = logging.getLogger(__name__)
+    logger.debug('Total minutes: %s', a_total_minutes)
+
+    time = minutes_to_time(a_total_minutes)
+
+    logger.debug('Time: %s', time)
+    if time:
+        hours = time[0]
+        decimal_minutes = floor(time[1] / 60 * 100) / 100
+        decimal_time = str(hours + decimal_minutes)
+        logger.debug('%s', decimal_time)
+        return decimal_time
     return None
 
 

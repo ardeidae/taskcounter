@@ -96,7 +96,7 @@ class LineEdit(QTextEdit):
 
         self.setPlainText(' '.join(origin.splitlines()).lstrip())
         cursor = self.textCursor()
-        # to avoid offset when setting cursor position, substract whitespaces.
+        # to avoid offset when setting cursor position, subtract whitespaces.
         cursor.setPosition(max(cursor_position - whitespaces, 0))
         self.setTextCursor(cursor)
         self.ensureCursorVisible()

@@ -87,7 +87,7 @@ class TestWeeksForYear(unittest.TestCase):
 
 
 class TestWeekDay(unittest.TestCase):
-    """Tests for WeekDay enum ans weekday_from_date."""
+    """Tests for WeekDay enum and weekday_from_date."""
 
     def test_enum_values(self):
         """Test enum values."""
@@ -169,7 +169,7 @@ class TestSevenDaysOfWeek(unittest.TestCase):
         self.assertEqual([], list(seven_days_of_week(2018, 'str2')))
 
     def test_int_in_string_returns_seven_days_list(self):
-        """Test that int in string returns seven days list.."""
+        """Test that int in string returns seven days list."""
         self.assertEqual(7, len(list(seven_days_of_week('2018', '52'))))
         self.assertEqual(7, len(list(seven_days_of_week('2018', 52))))
         self.assertEqual(7, len(list(seven_days_of_week(2018, '52'))))

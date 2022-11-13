@@ -81,7 +81,7 @@ def seven_days_of_week(a_year, a_week_number):
             if monday_of_first_week.weekday() == WeekDay.Monday.value:
                 break
         # now monday_of_first_week is really the monday of the first week
-        logger.debug('Monday of first weel: %s', monday_of_first_week)
+        logger.debug('Monday of first week: %s', monday_of_first_week)
 
         assert(monday_of_first_week.weekday() == WeekDay.Monday.value)
 
@@ -203,7 +203,7 @@ def contrast_color(color):
     regexp = r'^#(?:[0-9a-fA-F]{3}){1,2}$'
 
     logger = logging.getLogger(__name__)
-    logger.debug('Get constrast color for %s', color)
+    logger.debug('Get contrast color for %s', color)
 
     if re.search(regexp, color):
         r, g, b = split_color(color)

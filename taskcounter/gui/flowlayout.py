@@ -44,14 +44,14 @@ class FlowLayout(QLayout):
         """Add an item."""
         self.items.append(item)
 
-    def horizontalSpacing(self):
+    def horizontal_spacing(self):
         """Get the horizontal spacing between widgets."""
         if self.h_spacing >= 0:
             return self.h_spacing
         else:
             return self.__smart_spacing(QStyle.PM_LayoutHorizontalSpacing)
 
-    def verticalSpacing(self):
+    def vertical_spacing(self):
         """Get the vertical spacing between widgets."""
         if self.v_spacing >= 0:
             return self.v_spacing
@@ -110,42 +110,42 @@ class FlowLayout(QLayout):
         size += QSize(left + right, top + bottom)
         return size
 
-    def __do_layout(self, rect, testOnly):
+    def __do_layout(self, rect, test_only):
         """Calculate the area available to the layout items."""
         left, top, right, bottom = self.getContentsMargins()
-        effectiveRect = rect.adjusted(+left, +top, -right, -bottom)
-        x = effectiveRect.x()
-        y = effectiveRect.y()
-        lineHeight = 0
+        effective_rect = rect.adjusted(+left, +top, -right, -bottom)
+        x = effective_rect.x()
+        y = effective_rect.y()
+        line_height = 0
 
         for item in self.items:
             wid = item.widget()
-            spaceX = self.horizontalSpacing()
-            if spaceX == -1:
-                spaceX = wid.style().layoutSpacing(QSizePolicy.PushButton,
-                                                   QSizePolicy.PushButton,
-                                                   Qt.Horizontal)
+            space_x = self.horizontal_spacing()
+            if space_x == -1:
+                space_x = wid.style().layoutSpacing(QSizePolicy.PushButton,
+                                                    QSizePolicy.PushButton,
+                                                    Qt.Horizontal)
 
-            spaceY = self.verticalSpacing()
-            if spaceY == -1:
-                spaceY = wid.style().layoutSpacing(QSizePolicy.PushButton,
-                                                   QSizePolicy.PushButton,
-                                                   Qt.Vertical)
+            space_y = self.vertical_spacing()
+            if space_y == -1:
+                space_y = wid.style().layoutSpacing(QSizePolicy.PushButton,
+                                                    QSizePolicy.PushButton,
+                                                    Qt.Vertical)
 
-            nextX = x + item.sizeHint().width() + spaceX
-            if nextX - spaceX > effectiveRect.right() and lineHeight > 0:
-                x = effectiveRect.x()
-                y = y + lineHeight + spaceY
-                nextX = x + item.sizeHint().width() + spaceX
-                lineHeight = 0
+            next_x = x + item.sizeHint().width() + space_x
+            if next_x - space_x > effective_rect.right() and line_height > 0:
+                x = effective_rect.x()
+                y = y + line_height + space_y
+                next_x = x + item.sizeHint().width() + space_x
+                line_height = 0
 
-            if not testOnly:
+            if not test_only:
                 item.setGeometry(QRect(QPoint(x, y), item.sizeHint()))
 
-            x = nextX
-            lineHeight = max(lineHeight, item.sizeHint().height())
+            x = next_x
+            line_height = max(line_height, item.sizeHint().height())
 
-        return y + lineHeight - rect.y() + bottom
+        return y + line_height - rect.y() + bottom
 
     def __smart_spacing(self, pm):
         """Get default spacing for either top-level or sub layouts."""

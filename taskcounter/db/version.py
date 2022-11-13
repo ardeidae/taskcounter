@@ -1,4 +1,4 @@
-#     Copyright (C) 2018  Matthieu PETIOT
+#     Copyright (C) 2022  Matthieu PETIOT
 #
 #     https://github.com/ardeidae/taskcounter
 #
@@ -15,16 +15,20 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Task counter result column enum type."""
+"""Task counter version database model."""
+from datetime import datetime
 
-from enum import Enum, unique
+from peewee import IntegerField, DateTimeField
+
+from taskcounter.db.model import BaseModel
 
 
-@unique
-class ResultColumn(Enum):
-    """Result column Enum."""
+class Version(BaseModel):
+    """Version model."""
 
-    Task = 0
-    Time = 1
-    Decimal_Time = 2
-    Man_Day = 3
+    version = IntegerField(null=False, unique=True)
+    datetime = DateTimeField(null=False, default=datetime.now)
+
+    def __str__(self):
+        """Get string representation."""
+        return 'Version {} updated {}'.format(self.version, self.datetime)

@@ -6,9 +6,9 @@ import sys
 block_cipher = None
 
 if os.name == 'nt':
-    icon = 'images/tasks.ico'
+    icon = '../images/tasks.ico'
 elif sys.platform == 'darwin':
-    icon = 'images/tasks.icns'
+    icon = '../images/tasks.icns'
 else:
     icon = None
 

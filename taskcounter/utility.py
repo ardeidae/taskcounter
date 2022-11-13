@@ -21,6 +21,7 @@ import logging
 
 import re
 from datetime import date, timedelta
+from math import floor
 
 from taskcounter.enum import WeekDay
 
@@ -80,7 +81,7 @@ def seven_days_of_week(a_year, a_week_number):
             if monday_of_first_week.weekday() == WeekDay.Monday.value:
                 break
         # now monday_of_first_week is really the monday of the first week
-        logger.debug('Monday of first weel: %s', monday_of_first_week)
+        logger.debug('Monday of first week: %s', monday_of_first_week)
 
         assert(monday_of_first_week.weekday() == WeekDay.Monday.value)
 
@@ -127,6 +128,23 @@ def minutes_to_time_str(a_total_minutes):
         logger.debug('Return: %s', time)
         return time
     logger.error('Return None')
+    return None
+
+
+def minutes_to_decimal_time_str(a_total_minutes):
+    """Get a h,m in decimal time from a number of minutes."""
+    logger = logging.getLogger(__name__)
+    logger.debug('Total minutes: %s', a_total_minutes)
+
+    time = minutes_to_time(a_total_minutes)
+
+    logger.debug('Time: %s', time)
+    if time:
+        hours = time[0]
+        decimal_minutes = floor(time[1] / 60 * 100) / 100
+        decimal_time = str(hours + decimal_minutes)
+        logger.debug('%s', decimal_time)
+        return decimal_time
     return None
 
 
@@ -185,7 +203,7 @@ def contrast_color(color):
     regexp = r'^#(?:[0-9a-fA-F]{3}){1,2}$'
 
     logger = logging.getLogger(__name__)
-    logger.debug('Get constrast color for %s', color)
+    logger.debug('Get contrast color for %s', color)
 
     if re.search(regexp, color):
         r, g, b = split_color(color)

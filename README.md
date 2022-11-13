@@ -8,7 +8,16 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-You need to install Python 3.5 or greater and pip to run this software.
+You need to install Python 3.10 or greater and pip to run this software.
+Using pyenv, you can run this command:
+
+```
+# PYTHON_CONFIGURE_OPTS allows to build with pyinstaller
+env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.10.6
+```
+
+We need to [enable shared library with
+pyenv](https://github.com/pyenv/pyenv/wiki#how-to-build-cpython-with---enable-shared).
 
 ### Installing
 
@@ -29,6 +38,15 @@ Run the application
 
 ```
 python3 main.py
+```
+
+Build executable
+
+```
+pip install -r requirements.build
+pyinstaller deploy/taskcounter.spec
+# on macos, build the dmg
+dmgbuild -s deploy/dmgbuild-settings.py "" ""
 ```
 
 ## Running the tests

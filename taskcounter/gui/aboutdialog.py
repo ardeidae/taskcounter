@@ -33,7 +33,7 @@ class AboutDialog(CenterMixin, QDialog):
     """Application about dialog."""
 
     def __init__(self, parent=None):
-        """Construct an about dialog."""
+        """Construct an About dialog."""
         super().__init__(parent)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Opening about dialog')

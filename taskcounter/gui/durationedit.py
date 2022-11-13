@@ -18,7 +18,7 @@
 """Task counter duration edit."""
 
 from PyQt5.QtCore import QEvent, QRegExp, QSize, Qt, pyqtSlot, pyqtSignal
-from PyQt5.QtGui import QRegExpValidator, QValidator
+from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtWidgets import (QAbstractSpinBox, QApplication, QStyle,
                              QStyleOptionSpinBox)
 
@@ -55,14 +55,14 @@ class DurationEdit(QAbstractSpinBox):
         return self._validator.validate(text, pos)
 
     @staticmethod
-    def minutesToText(minutes):
+    def minutes_to_text(minutes):
         """Convert minutes to a time string."""
         return '{:02d}:{:02d}'.format(*divmod(minutes, 60))
 
     @staticmethod
-    def textToMinutes(text):
+    def text_to_minutes(text):
         """Convert time text to minutes."""
-        hours = minutes = 0
+        minutes = 0
         array = text.split(':')
         try:
             hours = int(array[0])
@@ -97,7 +97,7 @@ class DurationEdit(QAbstractSpinBox):
             else:
                 self._minutes = minutes
                 self.valueChanged.emit(self._minutes)
-        self.lineEdit().setText(self.minutesToText(self._minutes))
+        self.lineEdit().setText(self.minutes_to_text(self._minutes))
 
     def stepBy(self, steps):
         """Trigger a step."""
@@ -173,7 +173,7 @@ class DurationEdit(QAbstractSpinBox):
         if event.type() == QEvent.KeyPress:
             key = event.key()
             if key in (Qt.Key_Enter, Qt.Key_Return):
-                self.minutes = self.textToMinutes(self.__text())
+                self.minutes = self.text_to_minutes(self.__text())
                 return super().event(event)
 
             text = self.__text()
@@ -183,7 +183,7 @@ class DurationEdit(QAbstractSpinBox):
                 # no : in string, on tab or backtab, go to next field, but
                 # format this one before
                 if key in (Qt.Key_Tab, Qt.Key_Backtab):
-                    self.minutes = self.textToMinutes(self.__text())
+                    self.minutes = self.text_to_minutes(self.__text())
                     return super().event(event)
             else:
                 cursor_position = self.__cursor_position()
@@ -201,7 +201,7 @@ class DurationEdit(QAbstractSpinBox):
                         return True
                     else:
                         # go to next field on tab, but update minutes before
-                        self.minutes = self.textToMinutes(self.__text())
+                        self.minutes = self.text_to_minutes(self.__text())
                         return super().event(event)
                 elif key == Qt.Key_Backtab:
                     if cursor_position > index:
@@ -211,7 +211,7 @@ class DurationEdit(QAbstractSpinBox):
                     else:
                         # go to previous field on backtab, but update minutes
                         # before
-                        self.minutes = self.textToMinutes(self.__text())
+                        self.minutes = self.text_to_minutes(self.__text())
                         return super().event(event)
 
         if event.type() == QEvent.KeyRelease:
@@ -236,7 +236,7 @@ class DurationEdit(QAbstractSpinBox):
         """Receive keyboard focus events (focus lost) for the widget."""
         super().focusOutEvent(event)
 
-        self.minutes = self.textToMinutes(self.__text())
+        self.minutes = self.text_to_minutes(self.__text())
 
     def focusInEvent(self, event):
         """Receive keyboard focus events (focus received) for the widget."""
@@ -257,7 +257,7 @@ class DurationEdit(QAbstractSpinBox):
     @pyqtSlot(str)
     def text_changed(self, text):
         """Update the stored value."""
-        self._minutes = self.textToMinutes(text)
+        self._minutes = self.text_to_minutes(text)
 
     def sizeHint(self):
         """Return the recommended size for the widget."""

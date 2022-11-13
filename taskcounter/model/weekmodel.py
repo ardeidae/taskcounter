@@ -125,7 +125,6 @@ class WeekModel:
 
     def week_summary(self, man_day_minutes):
         """Get the week summary: tasks and total time in minutes."""
-        tasks = {}
         query = (Task.select(Task.name,
                              fn.SUM((fn.strftime('%s', Task.end_time) -
                                      fn.strftime('%s', Task.start_time))
@@ -139,16 +138,41 @@ class WeekModel:
                  .group_by(Task.name)
                  .order_by(SQL('sum').desc()))
 
+        tasks = self.__summary_from_query(man_day_minutes, query)
+        self.logger.debug('Week summary: %s', tasks)
+        return tasks
+
+    def daily_summary(self, today_date, man_day_minutes):
+        """Get the day summary: tasks and total time in minutes."""
+        query = (Task.select(Task.name,
+                             fn.SUM((fn.strftime('%s', Task.end_time) -
+                                     fn.strftime('%s', Task.start_time))
+                                    .cast('real') / 60).alias('sum')
+                             )
+                 .join(Day)
+                 .where((Day.date == today_date)
+                        & Task.start_time.is_null(False)
+                        & Task.end_time.is_null(False)
+                        )
+                 .group_by(Task.name)
+                 .order_by(SQL('sum').desc()))
+
+        tasks = self.__summary_from_query(man_day_minutes, query)
+        self.logger.debug('Daily summary: %s', tasks)
+        return tasks
+
+    @staticmethod
+    def __summary_from_query(man_day_minutes, query):
+        """Return the summary (tasks and total time in minutes) from an
+        executed query."""
+        tasks = {}
         for counter, row in enumerate(query):
-            task = {}
-            task[ResultColumn.Task] = row.name
-            task[ResultColumn.Time] = row.sum
+            task = {ResultColumn.Task: row.name, ResultColumn.Time: row.sum,
+                    ResultColumn.Decimal_Time: row.sum}
             if man_day_minutes:
                 task[ResultColumn.Man_Day] = round(row.sum /
                                                    man_day_minutes, 2)
             else:
                 task[ResultColumn.Man_Day] = ''
             tasks[counter] = task
-
-        self.logger.debug('Week summary: %s', tasks)
         return tasks

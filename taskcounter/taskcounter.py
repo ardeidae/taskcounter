@@ -24,6 +24,7 @@ import sys
 from PyQt5.QtCore import QLocale, QTranslator
 from PyQt5.QtWidgets import QApplication
 
+from taskcounter import resources
 from taskcounter.db import create_database
 from taskcounter.db.utility import migrate_database
 from taskcounter.gui import MainWindow
@@ -36,6 +37,9 @@ def main():
     logger.info('Starting application')
 
     app = QApplication(sys.argv)
+
+    logger.info('Init resources')
+    resources.qInitResources()
 
     locale_name = QLocale.system().name()
     logger.info('Locale name: ' + locale_name)

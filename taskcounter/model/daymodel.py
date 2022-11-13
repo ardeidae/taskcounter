@@ -71,11 +71,12 @@ class DayModel(QAbstractTableModel):
                                        .order_by(SQL(
                                            "IFNULL(start_time, '24:00')"
                                        ))):
-            row = {}
-            row[TaskColumn.Id] = task.id
-            row[TaskColumn.Task] = task.name
-            row[TaskColumn.Start_Time] = task.start_time
-            row[TaskColumn.End_Time] = task.end_time
+            row = {
+                TaskColumn.Id: task.id,
+                TaskColumn.Task: task.name,
+                TaskColumn.Start_Time: task.start_time,
+                TaskColumn.End_Time: task.end_time
+            }
             self._cached_data[counter] = row
             self.logger.debug('Cached data: %s', self._cached_data)
 
@@ -85,7 +86,6 @@ class DayModel(QAbstractTableModel):
             return self._cached_data[row][column]
         except KeyError:
             return ''
-
 
     def data(self, index, role=None):
         """Return the data.
@@ -181,7 +181,7 @@ class DayModel(QAbstractTableModel):
                             return False
                     if field in (TaskColumn.Start_Time, TaskColumn.End_Time):
                         if self.__overlaps_other_range(task_id,
-                                                         field, value):
+                                                       field, value):
                             return False
 
                     if self.update_task(task_id, field, value):
@@ -298,6 +298,8 @@ class DayModel(QAbstractTableModel):
         if not self._cached_data:
             return False
 
+        start_time = None
+        end_time = None
         # find start and end times of task_id.
         for r in self._cached_data:
             if self._cached_data[r][TaskColumn.Id] == task_id:

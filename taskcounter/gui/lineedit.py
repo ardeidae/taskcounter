@@ -68,7 +68,7 @@ class LineEdit(QTextEdit):
                 event.ignore()
                 return
         else:
-            if event.key() in(Qt.Key_Return, Qt.Key_Enter):
+            if event.key() in (Qt.Key_Return, Qt.Key_Enter):
                 self.return_pressed.emit()
                 return
 

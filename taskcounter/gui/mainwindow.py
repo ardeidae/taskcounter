@@ -28,7 +28,6 @@ from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QFrame,
                              QLCDNumber, QMainWindow, QSpinBox, QTableView,
                              QTimeEdit, QToolBar, QWidget, qApp)
 
-from taskcounter import resources
 from taskcounter.db import close_database
 from taskcounter.enum import ResultColumn, TaskColumn, WeekDay
 from taskcounter.gui import (AboutDialog, DurationEdit, FlowLayout,
@@ -97,7 +96,8 @@ class MainWindow(QMainWindow):
                          QBrush(QColor(current_text_color)))
         table.setPalette(palette)
 
-    def __set_task_delegate(self, table):
+    @staticmethod
+    def __set_task_delegate(table):
         """Set a task delegate on a table."""
         delegate = TaskNameDelegate(table)
         table.setItemDelegateForColumn(
@@ -154,7 +154,6 @@ class MainWindow(QMainWindow):
             ResultColumn.Decimal_Time.value, 80)
         self.daily_result_view.horizontalHeader().resizeSection(
             ResultColumn.Man_Day.value, 70)
-
 
     def __init_layout(self):
         """Initialize the central widget layout."""
@@ -370,7 +369,7 @@ class MainWindow(QMainWindow):
                 tr_name = self.tr('Friday')
             elif day == WeekDay.Saturday:
                 tr_name = self.tr('Saturday')
-            elif day == WeekDay.Sunday:
+            else:  # WeekDay.Sunday:
                 tr_name = self.tr('Sunday')
 
             action = QAction(

@@ -1,4 +1,4 @@
-#     Copyright (C) 2018  Matthieu PETIOT
+#     Copyright (C) 2022  Matthieu PETIOT
 #
 #     https://github.com/ardeidae/taskcounter
 #
@@ -15,21 +15,20 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Task counter base database model."""
+"""Task counter version database model."""
+from datetime import datetime
 
-from os import path
+from peewee import IntegerField, DateTimeField
 
-from peewee import Model, SqliteDatabase
-
-from taskcounter import taskcounter_dir
-
-DB = SqliteDatabase(path.join(taskcounter_dir, 'taskcounter.db'))
+from taskcounter.db.model import BaseModel
 
 
-class BaseModel(Model):
-    """Base for model classes."""
+class Version(BaseModel):
+    """Version model."""
 
-    class Meta:
-        """Meta class."""
+    version = IntegerField(null=False, unique=True)
+    datetime = DateTimeField(null=False, default=datetime.now)
 
-        database = DB
+    def __str__(self):
+        """Get string representation."""
+        return 'Version {} updated {}'.format(self.version, self.datetime)

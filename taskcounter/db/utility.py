@@ -18,12 +18,15 @@
 """Task counter utility functions."""
 
 import logging
+import sys
 
 from .model import DB
 from .day import Day
 from .setting import Setting
-from .task import Task
+from .task import Task, TaskOld
+from .version import Version
 from .week import Week
+from ..model.versionmodel import VersionModel
 
 
 def create_database():
@@ -31,8 +34,66 @@ def create_database():
     logger = logging.getLogger(__name__)
     logger.info('Connect to database')
     DB.connect()
-    logger.info('Create tables if necessary')
-    DB.create_tables([Week, Day, Task, Setting], safe=True)
+    logger.info('Create tables Week, Day, Task, Setting if necessary')
+    DB.create_tables([Week, Day, TaskOld, Setting], safe=True)
+
+
+def migrate_database():
+    """Migrate database to the last version."""
+    logger = logging.getLogger(__name__)
+
+    # add Version table
+    logger.info('Create table Version')
+    DB.create_tables([Version], safe=True)
+
+    logger.info('Check migrations')
+    current_version = VersionModel.get_current_version()
+    if current_version is None:
+        if migrate_to_version_1():
+            next_version = 1
+            update_ok = VersionModel.set_current_version(next_version)
+            if update_ok:
+                logger.info('Database migrated to version: %s', next_version)
+            else:
+                logger.error('Unable to migrate database to version: %s', next_version)
+                sys.exit(1)
+
+
+def migrate_to_version_1():
+    """We need to change the check constraint. We must delete and create the
+    table again"""
+    logger = logging.getLogger(__name__)
+    logger.info('Migrate to version 1')
+
+    logger.info('Get old task entries')
+    task_list = []
+    for record in TaskOld.select():
+        task = {
+            'id': record.id,
+            'name': record.name,
+            'start_time': record.start_time,
+            'end_time': record.end_time,
+            'day_id': record.day_id,
+        }
+        task_list.append(task)
+
+    logger.info('Drop table task')
+    DB.drop_tables([TaskOld])
+
+    logger.info('Create new table task')
+    DB.create_tables([Task], safe=True)
+
+    logger.info('Insert entries in new table task')
+    for task in task_list:
+        Task.create(
+            id=task['id'],
+            name=task['name'],
+            start_time=task['start_time'],
+            end_time=task['end_time'],
+            day_id=task['day_id'],
+        )
+
+    return True
 
 
 def close_database():

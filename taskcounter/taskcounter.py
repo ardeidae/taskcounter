@@ -24,8 +24,8 @@ import sys
 from PyQt5.QtCore import QLocale, QTranslator
 from PyQt5.QtWidgets import QApplication
 
-from taskcounter import resources
 from taskcounter.db import create_database
+from taskcounter.db.utility import migrate_database
 from taskcounter.gui import MainWindow
 
 
@@ -60,6 +60,7 @@ def main():
         logger.warning('Unable to load translator')
 
     create_database()
+    migrate_database()
 
     main_window = MainWindow()
     main_window.init_ui()
